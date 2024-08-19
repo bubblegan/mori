@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-schemas": "prisma generate && prisma format",
+    "post-install": "yarn generate-schemas"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
