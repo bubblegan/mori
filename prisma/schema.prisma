@@ -1,0 +1,108 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  statement Statement[]
+  expense   Expense[]
+  category  Category[]
+  tag       Tag[]
+  eventLog  EventLog[]
+  tempFile  TempFile[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  keyword   String[]  @default([])
+  title     String    @default("")
+  color     String    @default("")
+  userId    Int
+  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Expense   Expense[]
+}
+
+model Expense {
+  id          Int              @id @default(autoincrement())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now())
+  amount      Decimal          @db.Decimal(10, 2)
+  description String
+  note        String?
+  date        DateTime         @default(now())
+  statementId Int?
+  categoryId  Int?
+  Category    Category?        @relation(fields: [categoryId], references: [id])
+  Statement   Statement?       @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  userId      Int
+  User        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags        TagsOnExpenses[]
+}
+
+model Statement {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  name      String
+  file      Bytes     @db.ByteA
+  bank      String
+  date      DateTime  @default(now())
+  userId    Int
+  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Expense   Expense[]
+}
+
+model Tag {
+  id        Int              @id @default(autoincrement())
+  title     String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @default(now())
+  userId    Int
+  User      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses  TagsOnExpenses[]
+}
+
+model TagsOnExpenses {
+  tagId      Int
+  assignedAt DateTime @default(now())
+  assignedBy String
+  expensesId Int
+  expenses   Expense  @relation(fields: [expensesId], references: [id])
+  tag        Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([expensesId, tagId])
+}
+
+model EventLog {
+  id          Int      @id @default(autoincrement())
+  type        String   
+  message     String
+  detail      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+  userId      Int
+  User        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TempFile {
+  id          Int       @id @default(autoincrement())
+  name        String
+  file        Bytes     @db.ByteA
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+  userId      Int
+  User        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

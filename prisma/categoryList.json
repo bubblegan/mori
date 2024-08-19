@@ -1,0 +1,32 @@
+{
+  "categories": [
+    {
+      "title": "transport",
+      "keyword": ["bus", "mrt", "grab"]
+    },
+    {
+      "title": "food",
+      "keyword": []
+    },
+    {
+      "title": "grocery",
+      "keyword": ["ntuc", "sheng shiong"]
+    },
+    {
+      "title": "utils",
+      "keyword": []
+    },
+    {
+      "title": "accommodation",
+      "keyword": []
+    },
+    {
+      "title": "entertainment",
+      "keyword": []
+    },
+    {
+      "title": "other",
+      "keyword": []
+    }
+  ]
+}
