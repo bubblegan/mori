@@ -21,16 +21,20 @@ async function generateParsingPrompt(fileBuffer: Buffer) {
 
   let pdfText = "";
 
-  const pngPages = await pdfToPng(fileBuffer, {
-    viewportScale: 5,
-    disableFontFace: false,
-  });
+  try {
+    const pngPages = await pdfToPng(fileBuffer, {
+      viewportScale: 5,
+      disableFontFace: false,
+    });
 
-  for (const page of pngPages) {
-    const worker = await createWorker("eng");
-    const ret = await worker.recognize(page.content);
-    pdfText += ret.data.text;
-    await worker.terminate();
+    for (const page of pngPages) {
+      const worker = await createWorker("eng");
+      const ret = await worker.recognize(page.content);
+      pdfText += ret.data.text;
+      await worker.terminate();
+    }
+  } catch (error) {
+    console.log(error);
   }
 
   // for DBS cut off
