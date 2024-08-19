@@ -9,7 +9,6 @@ import { trpc } from "@/utils/trpc";
 import { Category } from "@prisma/client";
 import { atom, useAtom } from "jotai";
 import { useForm, SubmitHandler } from "react-hook-form";
-import colors from "tailwindcss/colors";
 
 type CategoryFormInput = {
   title: string;
@@ -41,15 +40,22 @@ const CategoryForm = () => {
     });
   }, [category, form]);
 
-  const colorSet = new Set<string>();
-  for (const [key, value] of Object.entries(colors)) {
-    if (typeof value === "object" && !key.toLocaleLowerCase().includes("gray")) {
-      colorSet.add(value["700"]);
-    }
-  }
-  const colorOptions: string[] = Array.from(colorSet);
-
-  // const colorOptions = () => {};
+  const colorOptions: string[] = [
+    "#44403c",
+    "#b91c1c",
+    "#c2410c",
+    "#4d7c0f",
+    "#15803d",
+    "#047857",
+    "#0e7490",
+    "#0f766e",
+    "#1d4ed8",
+    "#4338ca",
+    "#6d28d9",
+    "#a21caf",
+    "#be185d",
+    "#be123c",
+  ];
 
   const utils = trpc.useUtils();
 

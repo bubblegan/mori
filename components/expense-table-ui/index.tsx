@@ -33,6 +33,7 @@ const ExpenseTableUi = ({
   columns,
 }: {
   data: ExpenseTableData[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<ExpenseTableData, any>[];
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);

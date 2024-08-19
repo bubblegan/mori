@@ -107,7 +107,7 @@ const StatementTable = () => {
 
   const statements = trpc.statement.list.useQuery({ years });
 
-  const [, setvalue] = useAtom(StatementFormAtom);
+  const [, setValue] = useAtom(StatementFormAtom);
   const [data, setData] = useState<StatementTableData[]>(() => []);
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -127,12 +127,12 @@ const StatementTable = () => {
             createdAt: dayjs(statement.createdAt).format("YYYY MMM DD"),
             option: statement.id,
             onEdit: () =>
-              setvalue({ isOpen: true, statement: { id: statement.id, fileName: statement.name } }),
+              setValue({ isOpen: true, statement: { id: statement.id, fileName: statement.name } }),
           };
         }) || [];
       setData(tableData);
     }
-  }, [statements.data]);
+  }, [statements.data, setValue]);
 
   const table = useReactTable({
     data,
