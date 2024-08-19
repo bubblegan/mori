@@ -34,6 +34,7 @@ async function generateParsingPrompt(fileBuffer: Buffer) {
       await worker.terminate();
     }
   } catch (error) {
+    console.log(error);
     throw error;
   }
 

@@ -69,7 +69,20 @@ const processPdf = async (req: Request, res: Response, fileBuffer: Buffer) => {
   });
 
   // generate the prompt
-  const prompt = await generateParsingPrompt(fileBuffer);
+  let prompt = "";
+  try {
+    prompt = await generateParsingPrompt(fileBuffer);
+  } catch (error) {
+    await prisma.eventLog.create({
+      data: {
+        type: "AI_PARSING_PROMPT",
+        message: "error on generating prompt",
+        detail: error?.toString(),
+        userId,
+      },
+    });
+  }
+
   await prisma.eventLog.create({
     data: {
       type: "AI_PARSING_PROMPT",
