@@ -1,8 +1,5 @@
-import { fromBuffer } from "pdf2pic";
-import PDFExtract from "pdf.js-extract";
+import { pdfToPng } from "pdf-to-png-converter";
 import { createWorker } from "tesseract.js";
-
-const pdfExtract = new PDFExtract.PDFExtract();
 
 async function generateParsingPrompt(fileBuffer: Buffer) {
   let prompt =
@@ -22,26 +19,20 @@ async function generateParsingPrompt(fileBuffer: Buffer) {
   prompt +=
     "if possible use these symbol for {bank name}: DBS, POSB, UOB, CITI, AMEX, OCBC, HSBC, SCB, BOC \n";
 
-  const content = await pdfExtract.extractBuffer(fileBuffer);
   let pdfText = "";
 
-  for (let i = 0; i < content.pages.length; i++) {
-    const convert = fromBuffer(fileBuffer, {
-      density: 200,
-      format: "png",
-      width: 2000,
-      height: 2000,
-    });
+  const pngPages = await pdfToPng(fileBuffer, {
+    viewportScale: 5,
+    disableFontFace: false,
+  });
 
-    const saveImage = await convert(i + 1, { responseType: "buffer" });
-
-    if (saveImage.buffer) {
-      const worker = await createWorker("eng");
-      const ret = await worker.recognize(saveImage.buffer);
-      pdfText += ret.data.text;
-      await worker.terminate();
-    }
+  for (const page of pngPages) {
+    const worker = await createWorker("eng");
+    const ret = await worker.recognize(page.content);
+    pdfText += ret.data.text;
+    await worker.terminate();
   }
+
   // for DBS cut off
   if (pdfText.includes("SPECIALLY FOR YOU")) {
     pdfText = pdfText.substring(0, pdfText.indexOf("SPECIALLY FOR YOU"));
