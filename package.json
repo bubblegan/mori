@@ -11,6 +11,7 @@
     "post-install": "yarn generate-schemas"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^0.0.49",
     "@hookform/resolvers": "^3.3.4",
     "@prisma/client": "^5.13.0",
     "@radix-ui/react-alert-dialog": "^1.0.5",
@@ -32,6 +33,7 @@
     "@trpc/react-query": "^11.0.0-rc.359",
     "@trpc/server": "^11.0.0-rc.359",
     "adm-zip": "^0.5.12",
+    "ai": "^3.3.11",
     "bcryptjs": "^2.4.3",
     "canvas": "^2.11.2",
     "class-variance-authority": "^0.7.0",

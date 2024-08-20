@@ -4,12 +4,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Switch } from "@/ui/switch";
 import { useToast } from "@/ui/use-toast";
 import { trpc } from "@/utils/trpc";
-import dayjs from "dayjs";
+import { useCompletion } from "ai/react";
+// import dayjs from "dayjs";
 import { Loader2 } from "lucide-react";
 // this import is needed in to configure a default worker for pdfjs
 import "pdfjs-dist/build/pdf.worker.mjs";
 import Tesseract from "tesseract.js";
 import { ParsedResponse } from "../../pages/api/upload";
+import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
+import { Input } from "../ui/input";
 import UploadSummary from "./upload-summary";
 
 type UploadingState = "default" | "parsing" | "uploading" | "uploaded";
@@ -22,19 +25,20 @@ const UploadStatementForm = ({
   setIsOpen: (param: boolean) => void;
 }) => {
   const { toast } = useToast();
+  const { setInput, handleSubmit, data, input, isLoading, completion } = useCompletion();
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
-  const [parsedData, setParsedData] = useState<ParsedResponse | null>(null);
+  const [parsedData] = useState<ParsedResponse | null>(null);
   const [pdfFile, setPdfFile] = useState<FileList | null>(null);
   const [enableAiCategorise, setEnableAiCategorise] = useState(false);
-  const [startUploadTime, setStartUploadTime] = useState<string | undefined>(undefined);
+  // const [startUploadTime, setStartUploadTime] = useState<string | undefined>(undefined);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const utils = trpc.useUtils();
-  const logData = trpc.log.list.useQuery(
-    { from: startUploadTime || "" },
-    { enabled: !!startUploadTime, refetchInterval: 3000 }
-  );
+  // const utils = trpc.useUtils();
+  // const logData = trpc.log.list.useQuery(
+  //   { from: startUploadTime || "" },
+  //   { enabled: !!startUploadTime, refetchInterval: 3000 }
+  // );
 
   const { mutate: createStatement } = trpc.statement.create.useMutation({
     onSuccess() {
@@ -45,11 +49,11 @@ const UploadStatementForm = ({
     },
   });
 
-  let logMessage = "";
+  // let logMessage = "";
 
-  if (logData.data) {
-    logMessage = logData.data[logData.data?.length - 1]?.message;
-  }
+  // if (logData.data) {
+  //   logMessage = logData.data[logData.data?.length - 1]?.message;
+  // }
 
   const extractTextFromPDF = async (statement: File) => {
     const { getDocument } = await import("pdfjs-dist");
@@ -90,49 +94,53 @@ const UploadStatementForm = ({
     return pdfText;
   };
 
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return;
+    }
+    setUploadingState("parsing");
+    const statement = e.target.files[0];
+
+    const statementText = await extractTextFromPDF(statement);
+    const prompt = generateParsingPrompt(statementText);
+
+    setInput(prompt);
+  };
+
   const handleUpload = async () => {
     if (!pdfFile) return;
 
-    const statement = pdfFile[0];
-    const formData = new FormData();
+    // setStartUploadTime(new Date().toISOString());
 
-    // convert to image
-    setUploadingState("parsing");
-    const statementText = await extractTextFromPDF(statement);
-    setStartUploadTime(new Date().toISOString());
-
-    formData.append("statementText", statementText);
-    formData.append("statement", statement);
-
-    if (enableAiCategorise) {
-      formData.append("enableAiCategorise", "true");
-    }
+    // if (enableAiCategorise) {
+    //   formData.append("enableAiCategorise", "true");
+    // }
 
     setUploadingState("uploading");
 
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+    // const response = await fetch("/api/upload", {
+    //   method: "POST",
+    //   body: formData,
+    // });
 
-    if (response.ok) {
-      const parsedData: ParsedResponse = await response.json();
-      parsedData.statementDate = dayjs(parsedData.statementDate).toDate();
-      parsedData.expenses.forEach((expense) => {
-        expense.date = dayjs(expense.date).toDate();
-        if (!expense.categoryId) {
-          delete expense.categoryId;
-        }
-      });
-      setParsedData(parsedData);
-    }
+    // if (response.ok) {
+    //   const parsedData: ParsedResponse = await response.json();
+    //   parsedData.statementDate = dayjs(parsedData.statementDate).toDate();
+    //   parsedData.expenses.forEach((expense) => {
+    //     expense.date = dayjs(expense.date).toDate();
+    //     if (!expense.categoryId) {
+    //       delete expense.categoryId;
+    //     }
+    //   });
+    //   setParsedData(parsedData);
+    // }
 
-    setUploadingState("uploaded");
-    setPdfFile(null);
-    setStartUploadTime(undefined);
+    // setUploadingState("uploaded");
+    // setPdfFile(null);
+    // setStartUploadTime(undefined);
 
-    utils.statement.invalidate();
-    utils.expense.invalidate();
+    // utils.statement.invalidate();
+    // utils.expense.invalidate();
   };
 
   return (
@@ -161,17 +169,7 @@ const UploadStatementForm = ({
                 <p>{pdfFile[0].size / 1000} KB</p>
               </div>
             )}
-            <input
-              type="file"
-              ref={inputRef}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                if (!e.target.files) {
-                  return;
-                }
-                setPdfFile(e.target.files);
-              }}
-              style={{ display: "none" }}
-            />
+            <input type="file" ref={inputRef} onChange={handleFileUpload} style={{ display: "none" }} />
             <div className="flex w-full justify-between rounded border border-gray-700 p-3">
               <p>Enable Ai Categorize</p>
               <Switch checked={enableAiCategorise} onCheckedChange={setEnableAiCategorise} />
@@ -181,11 +179,17 @@ const UploadStatementForm = ({
             </Button>
           </>
         )}
-        {(uploadingState === "uploading" || uploadingState === "parsing") && (
+        {uploadingState === "parsing" && !data && (
+          <form onSubmit={handleSubmit}>
+            <Input className="h-60" value={input} placeholder="parsing..." />
+            <Button type="submit">Submit</Button>
+          </form>
+        )}
+        {completion && (
           <>
-            <p>{logMessage}</p>
+            <p>{completion}</p>
             <Button className="w-fit" disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Statement {uploadingState}
             </Button>
           </>
@@ -202,7 +206,7 @@ const UploadStatementForm = ({
               setIsOpen(false);
               setPdfFile(null);
               setUploadingState("default");
-              setStartUploadTime(undefined);
+              // setStartUploadTime(undefined);
             }}
             onDownloadCsvClick={() => {
               console.log("todo");
