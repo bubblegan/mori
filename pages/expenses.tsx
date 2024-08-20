@@ -41,9 +41,9 @@ export default function Expenses() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isFiltered =
-    searchParams.has("keyword") || searchParams.has("categoryIds") || searchParams.has("statementIds");
+    searchParams?.has("keyword") || searchParams?.has("categoryIds") || searchParams?.has("statementIds");
 
-  const view = searchParams.get("view");
+  const view = searchParams?.get("view");
 
   // if not filter, default to year to date
 

@@ -5,10 +5,10 @@ import { trpc } from "../trpc";
 
 const useHandleAggregateSum = () => {
   const searchParams = useSearchParams();
-  const statementIds = searchParams.get("statementIds")?.split(",").map(Number) || [];
-  const startDate = searchParams.get("startDate");
-  const endDate = searchParams.get("endDate");
-  const dateRange = searchParams.get("dateRange");
+  const statementIds = searchParams?.get("statementIds")?.split(",").map(Number) || [];
+  const startDate = searchParams?.get("startDate");
+  const endDate = searchParams?.get("endDate");
+  const dateRange = searchParams?.get("dateRange");
 
   let start = null;
   let end = null;

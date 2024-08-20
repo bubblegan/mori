@@ -10,8 +10,8 @@ export function ExpenseFilterPills() {
   const categories = trpc.category.list.useQuery();
   const statements = trpc.statement.list.useQuery({});
 
-  const categoryIds = searchParams.get("categoryIds")?.split(",") || [];
-  const statementIds = searchParams.get("statementIds")?.split(",") || [];
+  const categoryIds = searchParams?.get("categoryIds")?.split(",") || [];
+  const statementIds = searchParams?.get("statementIds")?.split(",") || [];
 
   const selectedCategory =
     categories.data?.result?.filter((category) => categoryIds.includes(category.id.toString())) || [];

@@ -36,8 +36,8 @@ const DateRangePicker = () => {
   };
 
   useEffect(() => {
-    const startDateParam = searchParams.get("startDate");
-    const endDateParam = searchParams.get("endDate");
+    const startDateParam = searchParams?.get("startDate");
+    const endDateParam = searchParams?.get("endDate");
 
     const startDateParsed = dayjs(startDateParam, "YYYY-MM-DD");
     const endDateParsed = dayjs(endDateParam, "YYYY-MM-DD");
@@ -63,7 +63,7 @@ const DateRangePicker = () => {
   };
 
   const dateTitle = useMemo(() => {
-    const dateRangeParam = searchParams.get("dateRange") as DateRange;
+    const dateRangeParam = searchParams?.get("dateRange") as DateRange;
 
     if (dateRangeParam) {
       return dateRangeTitleMap[dateRangeParam];

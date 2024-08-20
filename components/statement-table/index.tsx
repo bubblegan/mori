@@ -103,7 +103,7 @@ const columns = [
 
 const StatementTable = () => {
   const searchParams = useSearchParams();
-  const years = searchParams.get("years")?.split(",").map(Number);
+  const years = searchParams?.get("years")?.split(",").map(Number);
 
   const statements = trpc.statement.list.useQuery({ years });
 

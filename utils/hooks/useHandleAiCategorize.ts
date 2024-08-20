@@ -8,12 +8,12 @@ const useHandleAiCategorize = () => {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  const statementIds = searchParams.get("statementIds")?.split(",").map(Number) || [];
-  const categoryIds = searchParams.get("categoryIds")?.split(",").map(Number) || [];
-  const keyword = searchParams.get("keyword") || "";
-  const dateRange = searchParams.get("dateRange");
-  const startDate = searchParams.get("startDate");
-  const endDate = searchParams.get("endDate");
+  const statementIds = searchParams?.get("statementIds")?.split(",").map(Number) || [];
+  const categoryIds = searchParams?.get("categoryIds")?.split(",").map(Number) || [];
+  const keyword = searchParams?.get("keyword") || "";
+  const dateRange = searchParams?.get("dateRange");
+  const startDate = searchParams?.get("startDate");
+  const endDate = searchParams?.get("endDate");
   let start = null;
   let end = null;
 
