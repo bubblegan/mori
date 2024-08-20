@@ -48,7 +48,7 @@
     "next-themes": "^0.3.0",
     "openai": "^4.40.0",
     "optics-ts": "^2.4.1",
-    "pdf-to-png-converter": "^3.2.0",
+    "pdfjs-dist": "^4.5.136",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",

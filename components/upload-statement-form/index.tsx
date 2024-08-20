@@ -6,10 +6,13 @@ import { useToast } from "@/ui/use-toast";
 import { trpc } from "@/utils/trpc";
 import dayjs from "dayjs";
 import { Loader2 } from "lucide-react";
+// this import is needed in to configure a default worker for pdfjs
+import "pdfjs-dist/build/pdf.worker.mjs";
+import Tesseract from "tesseract.js";
 import { ParsedResponse } from "../../pages/api/upload";
 import UploadSummary from "./upload-summary";
 
-type UploadingState = "default" | "uploading" | "uploaded";
+type UploadingState = "default" | "parsing" | "uploading" | "uploaded";
 
 const UploadStatementForm = ({
   isOpen = false,
@@ -48,14 +51,57 @@ const UploadStatementForm = ({
     logMessage = logData.data[logData.data?.length - 1]?.message;
   }
 
+  const extractTextFromPDF = async (statement: File) => {
+    const { getDocument } = await import("pdfjs-dist");
+    const pdf = await getDocument(URL.createObjectURL(statement)).promise;
+    let pdfText = "";
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2 });
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      if (context) {
+        await page.render({ canvasContext: context, viewport }).promise;
+        const text = await Tesseract.recognize(canvas, "eng").then(({ data: { text } }) => text);
+
+        pdfText += text + "\n\n";
+      }
+    }
+
+    // trimming
+    // for DBS cut off
+    if (pdfText.includes("SPECIALLY FOR YOU")) {
+      pdfText = pdfText.substring(0, pdfText.indexOf("SPECIALLY FOR YOU"));
+    }
+
+    // for AMEX cut off
+    if (pdfText.includes("INFORMATION ABOUT THE AMERICAN EXPRESS CARD")) {
+      pdfText = pdfText.substring(0, pdfText.indexOf("INFORMATION ABOUT THE AMERICAN EXPRESS CARD"));
+    }
+
+    // for CITI cut off
+    if (pdfText.includes("Protect Yourself from Fraud ")) {
+      pdfText = pdfText.substring(0, pdfText.indexOf("Protect Yourself from Fraud"));
+    }
+
+    return pdfText;
+  };
+
   const handleUpload = async () => {
     if (!pdfFile) return;
 
     const statement = pdfFile[0];
     const formData = new FormData();
 
+    // convert to image
+    setUploadingState("parsing");
+    const statementText = await extractTextFromPDF(statement);
     setStartUploadTime(new Date().toISOString());
 
+    formData.append("statementText", statementText);
     formData.append("statement", statement);
 
     if (enableAiCategorise) {
@@ -135,12 +181,12 @@ const UploadStatementForm = ({
             </Button>
           </>
         )}
-        {uploadingState === "uploading" && (
+        {(uploadingState === "uploading" || uploadingState === "parsing") && (
           <>
             <p>{logMessage}</p>
             <Button className="w-fit" disabled>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Statement Uploading
+              Statement {uploadingState}
             </Button>
           </>
         )}
@@ -154,6 +200,9 @@ const UploadStatementForm = ({
             }}
             onCloseClick={() => {
               setIsOpen(false);
+              setPdfFile(null);
+              setUploadingState("default");
+              setStartUploadTime(undefined);
             }}
             onDownloadCsvClick={() => {
               console.log("todo");

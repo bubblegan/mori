@@ -1,7 +1,4 @@
-import { pdfToPng } from "pdf-to-png-converter";
-import { createWorker } from "tesseract.js";
-
-async function generateParsingPrompt(fileBuffer: Buffer) {
+function generateParsingPrompt(statementText: string) {
   let prompt =
     "Base on the following lines that read from a credit card statement PDf, help me extract lines of expense in the following template. Note: Please list all the expenses. \n";
   prompt += "{date}, {descrption}, {amount} \n";
@@ -19,41 +16,7 @@ async function generateParsingPrompt(fileBuffer: Buffer) {
   prompt +=
     "if possible use these symbol for {bank name}: DBS, POSB, UOB, CITI, AMEX, OCBC, HSBC, SCB, BOC \n";
 
-  let pdfText = "";
-
-  try {
-    const pngPages = await pdfToPng(fileBuffer, {
-      viewportScale: 5,
-      disableFontFace: false,
-    });
-
-    for (const page of pngPages) {
-      const worker = await createWorker("eng");
-      const ret = await worker.recognize(page.content);
-      pdfText += ret.data.text;
-      await worker.terminate();
-    }
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
-
-  // for DBS cut off
-  if (pdfText.includes("SPECIALLY FOR YOU")) {
-    pdfText = pdfText.substring(0, pdfText.indexOf("SPECIALLY FOR YOU"));
-  }
-
-  // for AMEX cut off
-  if (pdfText.includes("INFORMATION ABOUT THE AMERICAN EXPRESS CARD")) {
-    pdfText = pdfText.substring(0, pdfText.indexOf("INFORMATION ABOUT THE AMERICAN EXPRESS CARD"));
-  }
-
-  // for CITI cut off
-  if (pdfText.includes("Protect Yourself from Fraud ")) {
-    pdfText = pdfText.substring(0, pdfText.indexOf("Protect Yourself from Fraud"));
-  }
-
-  prompt += pdfText + "\n";
+  prompt += statementText + "\n";
 
   return prompt;
 }

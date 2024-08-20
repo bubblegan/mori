@@ -9,7 +9,6 @@ import { Request, Response } from "express";
 import fs from "fs";
 import multer from "multer";
 import { getServerSession } from "next-auth";
-import unzipper from "unzipper";
 import generateCategorisePrompt, { CategorizableExpense } from "../../server/ai/generateCategorisePrompt";
 import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
 import openAi from "../../server/ai/openAi";
@@ -42,9 +41,10 @@ export type ParsedResponse = {
   expenses: CreateExpense[];
 };
 
-const processPdf = async (req: Request, res: Response, fileBuffer: Buffer) => {
+const processPdf = async (req: Request, res: Response) => {
   const formData = req.body;
   const enableAiCategorise = formData?.enableAiCategorise ?? false;
+  const { statementText } = formData;
 
   const parseResult: {
     expenses: CreateExpense[];
@@ -69,20 +69,7 @@ const processPdf = async (req: Request, res: Response, fileBuffer: Buffer) => {
   });
 
   // generate the prompt
-  let prompt = "";
-  try {
-    prompt = await generateParsingPrompt(fileBuffer);
-  } catch (error) {
-    await prisma.eventLog.create({
-      data: {
-        type: "AI_PARSING_PROMPT",
-        message: "error on generating prompt",
-        detail: error?.toString(),
-        userId,
-      },
-    });
-  }
-
+  const prompt = await generateParsingPrompt(statementText);
   await prisma.eventLog.create({
     data: {
       type: "AI_PARSING_PROMPT",
@@ -239,7 +226,8 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
             const fileBuffer = fs.readFileSync(req.file?.path);
             const fileName = req.file?.originalname;
 
-            const result = await processPdf(req, res, fileBuffer);
+            // process pdf
+            const result = await processPdf(req, res);
 
             // store temp statement
             const storeResult = await prisma.tempFile.create({
@@ -258,18 +246,6 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           } catch (error) {
             res.status(500).json({ error, message: "Upload Fail" });
           }
-        }
-
-        if (req.file?.mimetype === "application/zip") {
-          fs.createReadStream(req.file.path)
-            .pipe(unzipper.Parse())
-            .on("entry", async function (entry) {
-              // const fileName = entry.path;
-              const fileBuffer = await entry.buffer();
-              await processPdf(req, res, fileBuffer);
-              entry.autodrain();
-            });
-          res.status(200).json({ message: "Zip file Upload Successfully" });
         }
       });
       break;
