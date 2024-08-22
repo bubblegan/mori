@@ -4,21 +4,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import cn from "@/utils/cn";
 import { flexRender, useReactTable, createColumnHelper, getCoreRowModel } from "@tanstack/react-table";
 import dayjs from "dayjs";
-import { ParsedResponse } from "../../pages/api/upload";
+import { ParsedExpense, ParsedStatement } from "./index";
 
-interface ParsedExpenseTable {
+type ParsedExpenseTable = {
   description?: string;
   amount?: string;
   category?: string;
   date?: string;
-}
+};
 
-interface UploadSummaryProps {
-  parsedData: ParsedResponse | null;
+type UploadSummaryProps = {
+  parsedStatement?: ParsedStatement;
+  parsedExpenses?: ParsedExpense[];
   onCreateClick: () => void;
   onCloseClick: () => void;
   onDownloadCsvClick: () => void;
-}
+};
 
 const columnHelper = createColumnHelper<ParsedExpenseTable>();
 
@@ -57,13 +58,13 @@ const columns = [
 ];
 
 const UploadSummary = (props: UploadSummaryProps) => {
-  const { parsedData, onCreateClick, onCloseClick, onDownloadCsvClick } = props;
+  const { parsedExpenses, parsedStatement, onCreateClick, onCloseClick, onDownloadCsvClick } = props;
 
   const [data, setTableData] = useState<ParsedExpenseTable[]>([]);
 
   useEffect(() => {
     const tableData: ParsedExpenseTable[] =
-      parsedData?.expenses?.map((expense) => {
+      parsedExpenses?.map((expense) => {
         return {
           description: expense.description,
           amount: expense.amount.toString(),
@@ -73,7 +74,7 @@ const UploadSummary = (props: UploadSummaryProps) => {
       }) || [];
 
     setTableData(tableData);
-  }, [parsedData]);
+  }, [parsedExpenses]);
 
   const table = useReactTable({
     data,
@@ -83,9 +84,9 @@ const UploadSummary = (props: UploadSummaryProps) => {
 
   return (
     <>
-      <p>Bank : {parsedData?.bank} </p>
-      <p>Issued Date : {dayjs(parsedData?.statementDate).format("DD MMM YYYY")}</p>
-      <p>Total Amount : {parsedData?.totalAmount}</p>
+      <p>Bank : {parsedStatement?.bank} </p>
+      <p>Issued Date : {dayjs(parsedStatement?.statementDate).format("DD MMM YYYY")}</p>
+      <p>Total Amount : {parsedStatement?.totalAmount}</p>
       <div className="h-[500px] overflow-y-scroll rounded-md border border-gray-700">
         <Table>
           <TableHeader>

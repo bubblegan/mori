@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { nextAuthOptions } from "@/utils/auth/nextAuthOption";
-import mapCategory from "@/utils/mapCategory";
 import { prisma } from "@/utils/prisma";
 import { Expense } from "@prisma/client";
 import dayjs from "dayjs";
@@ -9,12 +8,22 @@ import { Request, Response } from "express";
 import fs from "fs";
 import multer from "multer";
 import { getServerSession } from "next-auth";
-import generateCategorisePrompt, { CategorizableExpense } from "../../server/ai/generateCategorisePrompt";
-import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
-import openAi from "../../server/ai/openAi";
+import { z } from "zod";
 
 const upload = multer({ dest: "/tmp" });
 dayjs.extend(customParseFormat);
+
+const statmentPayloadSchema = z.object({
+  bank: z.string(),
+  date: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }),
+  expenses: z.array(
+    z.object({
+      categoryId: z.number().optional(),
+      description: z.string().trim().min(1),
+      amount: z.number().multipleOf(0.01),
+    })
+  ),
+});
 
 export type CreateExpense = Pick<Expense, "description" | "date"> & {
   tempId?: number;
@@ -41,206 +50,47 @@ export type ParsedResponse = {
   expenses: CreateExpense[];
 };
 
-const processPdf = async (req: Request, res: Response) => {
-  const formData = req.body;
-  const enableAiCategorise = formData?.enableAiCategorise ?? false;
-  const { statementText } = formData;
-
-  const parseResult: {
-    expenses: CreateExpense[];
-    totalAmount?: string;
-    statementDate?: Date;
-    bank?: string;
-  } = {
-    bank: undefined,
-    statementDate: undefined,
-    totalAmount: undefined,
-    expenses: [],
-  };
-
-  const session = await getServerSession(req, res, nextAuthOptions);
-  if (!session?.user?.id) return;
-
-  const userId = session.user.id;
-
-  // ask Ai to extract all lines
-  await prisma.eventLog.create({
-    data: { type: "PDF_UPLOAD", message: "start writing prompt...", userId },
-  });
-
-  // generate the prompt
-  const prompt = await generateParsingPrompt(statementText);
-  await prisma.eventLog.create({
-    data: {
-      type: "AI_PARSING_PROMPT",
-      message: "prompting open AI...",
-      detail: prompt,
-      userId,
-    },
-  });
-
-  // call openAi API
-  const response = await openAi(prompt);
-  const parsedContent = response.choices[0].message.content;
-  await prisma.eventLog.create({
-    data: {
-      type: "AI_PARSING_PROMPT",
-      message: "processing Open AI response..",
-      detail: parsedContent,
-      userId,
-    },
-  });
-
-  // process the repsonse
-  parsedContent?.split("\n").forEach((line, index) => {
-    if (line.indexOf("bank:") === 0) {
-      parseResult.bank = line.slice(line.indexOf(":") + 1).trim();
-    }
-
-    if (line.indexOf("total amount:") === 0) {
-      parseResult.totalAmount = line.slice(line.indexOf(":") + 1).trim();
-    }
-
-    if (line.indexOf("statement date:") === 0) {
-      const dateArr = line
-        .slice(line.indexOf(":") + 1)
-        .trim()
-        .toLocaleLowerCase()
-        .split(" ");
-      dateArr[1] = dateArr[1].charAt(0).toUpperCase() + dateArr[1].slice(1);
-      parseResult.statementDate = dayjs(dateArr.join(" "), "DD MMM YYYY").toDate();
-    }
-
-    if (line.split(",").length === 3) {
-      const data = line.split(",").map((data) => data.trim());
-      const date = dayjs(data[0], "DD MMM YYYY");
-
-      parseResult.expenses.push({
-        tempId: index,
-        date: date.isValid() ? date.toDate() : new Date(),
-        description: data[1],
-        amount: Number(data[2]),
-      });
-    }
-  });
-
-  // add in categories
-  await prisma.eventLog.create({
-    data: { type: "PDF_UPLOAD", message: "Categorizing...", userId },
-  });
-
-  const categories = await prisma.category.findMany();
-  const categoriesMap: Record<number, string> = {};
-  categories.forEach((category) => {
-    categoriesMap[category.id] = category.title;
-  });
-  mapCategory(categories, parseResult.expenses);
-
-  // ask AI for the rest of categories
-  if (enableAiCategorise) {
-    await prisma.eventLog.create({
-      data: { type: "PDF_UPLOAD", message: "start writing prompt for categorize...", userId },
-    });
-    const categorizableExpense: CategorizableExpense[] = parseResult.expenses.map((expense) => {
-      return {
-        description: expense.description,
-        tempId: expense.tempId,
-        categoryId: expense.categoryId || null,
-      };
-    });
-    const categorisePrompt = await generateCategorisePrompt(categorizableExpense, {
-      skipCategorised: true,
-    });
-
-    await prisma.eventLog.create({
-      data: {
-        type: "AI_PARSING_PROMPT",
-        message: "prompting open AI...",
-        detail: categorisePrompt,
-        userId,
-      },
-    });
-
-    const categoriseRes = await openAi(categorisePrompt);
-
-    const categoriseContent = categoriseRes.choices[0].message.content;
-
-    await prisma.eventLog.create({
-      data: {
-        type: "AI_PARSING_PROMPT",
-        message: "processing Open AI response..",
-        detail: categoriseContent,
-        userId,
-      },
-    });
-
-    const categorisedRecord: Record<string, string> = {};
-    categoriseContent?.split("\n").forEach((line) => {
-      const data = line.split(",");
-      categorisedRecord[data[0]] = data[3];
-    });
-
-    parseResult.expenses.forEach((expense) => {
-      if (expense.tempId && categorisedRecord[expense.tempId]) {
-        expense.categoryId = Number(categorisedRecord[expense.tempId]);
-        expense.categoryName = categoriesMap[Number(categorisedRecord[expense.tempId])];
-      }
-    });
-
-    await prisma.eventLog.create({
-      data: { type: "PDF_UPLOAD", message: "categorize with AI complete", userId },
-    });
-  }
-
-  const parsedExpenses = parseResult.expenses.map((expense) => {
-    const filteredExpense = { ...expense, userId: session?.user?.id };
-    delete filteredExpense.tempId;
-    return filteredExpense;
-  });
-
-  return {
-    statementDate: parseResult.statementDate,
-    bank: parseResult.bank,
-    totalAmount: parseResult.totalAmount,
-    expenses: parsedExpenses,
-  };
-};
-
 async function handler(req: NextApiRequest & Request, res: NextApiResponse & Response) {
   const { method } = req;
 
   switch (method) {
     case "POST":
       const middleware = upload.single("statement");
-
       middleware(req, res, async () => {
         const session = await getServerSession(req, res, nextAuthOptions);
         if (!session?.user?.id) return;
 
-        await prisma.eventLog.create({
-          data: { type: "PDF_UPLOAD", message: "upload complete", userId: session?.user?.id },
-        });
+        const userId = session?.user?.id;
 
         if (req.file?.mimetype === "application/pdf") {
           try {
             const fileBuffer = fs.readFileSync(req.file?.path);
             const fileName = req.file?.originalname;
+            const { payload } = req.body;
 
-            // process pdf
-            const result = await processPdf(req, res);
+            const statementPayload: z.infer<typeof statmentPayloadSchema> = JSON.parse(payload);
+            statmentPayloadSchema.parse(statementPayload);
 
-            // store temp statement
-            const storeResult = await prisma.tempFile.create({
-              data: { name: fileName, file: fileBuffer, userId: session.user.id },
+            const result = await prisma.statement.create({
+              data: {
+                name: fileName,
+                date: new Date(statementPayload.date),
+                bank: statementPayload.bank || "No",
+                file: fileBuffer,
+                userId: session?.user?.id,
+                Expense: {
+                  createMany: {
+                    data: statementPayload.expenses.map((expense) => {
+                      return { ...expense, userId };
+                    }),
+                  },
+                },
+              },
             });
 
+            console.log(result);
+
             res.status(200).json({
-              fileId: storeResult.id,
-              fileName,
-              statementDate: result?.statementDate,
-              bank: result?.bank,
-              expenses: result?.expenses,
-              totalAmount: result?.totalAmount,
               message: "Parse Successfully",
             });
           } catch (error) {

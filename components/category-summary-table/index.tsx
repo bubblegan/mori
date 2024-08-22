@@ -51,7 +51,7 @@ const CategorySummaryTable = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-md border border-gray-700 w-[600px]">
+      <div className="w-[600px] rounded-md border border-gray-700">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -73,7 +73,7 @@ const CategorySummaryTable = () => {
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="text-neutral-100 py-5 w-fit" key={cell.id}>
+                  <TableCell className="w-fit py-5 text-neutral-100" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
