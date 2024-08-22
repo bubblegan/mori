@@ -16,7 +16,7 @@ import dayjs from "dayjs";
 import { atom, useAtom } from "jotai";
 import { StatementFormAtom } from "../statement-form";
 
-interface StatementTableData {
+type StatementTableData = {
   id: number;
   name: string;
   date: string;
@@ -26,7 +26,7 @@ interface StatementTableData {
   createdAt: string;
   option: number;
   onEdit?: () => void;
-}
+};
 
 export const checkedStatementAtom = atom<number[]>([]);
 

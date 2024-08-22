@@ -6,11 +6,11 @@ import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "
 import { useAtom } from "jotai";
 import { TagFormAtom } from "../tag-form";
 
-interface TableData {
+type TableData = {
   id: number;
   title: string;
   onEdit: () => void;
-}
+};
 
 const columnHelper = createColumnHelper<TableData>();
 

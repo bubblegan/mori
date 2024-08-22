@@ -6,13 +6,13 @@ import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "
 import { useAtom } from "jotai";
 import { CategoryFormAtom } from "../category-form";
 
-interface TableData {
+type TableData = {
   id: number;
   title: string;
   keyword: string;
   color: string;
   onEdit: () => void;
-}
+};
 
 const columnHelper = createColumnHelper<TableData>();
 
@@ -26,7 +26,7 @@ const columns = [
     header: () => <span className="uppercase">Keyword</span>,
   }),
   columnHelper.accessor("color", {
-    cell: (info) => <div className="w-12 h-6 rounded" style={{ backgroundColor: info.getValue() }} />,
+    cell: (info) => <div className="h-6 w-12 rounded" style={{ backgroundColor: info.getValue() }} />,
     header: () => <span className="uppercase">Color</span>,
   }),
   columnHelper.accessor("onEdit", {
@@ -75,7 +75,7 @@ const CategoryTable = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-md border border-gray-700 w-[800px]">
+      <div className="w-[800px] rounded-md border border-gray-700">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -97,7 +97,7 @@ const CategoryTable = () => {
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="text-neutral-100 py-5 w-fit" key={cell.id}>
+                  <TableCell className="w-fit py-5 text-neutral-100" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

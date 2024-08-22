@@ -1,10 +1,10 @@
 import { prisma } from "@/utils/prisma";
 
-export interface CategorizableExpense {
+export type CategorizableExpense = {
   description: string;
   tempId: number | undefined;
   categoryId: number | null;
-}
+};
 
 async function generateCategorisePrompt(
   expenses: CategorizableExpense[],

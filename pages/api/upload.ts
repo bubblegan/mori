@@ -71,7 +71,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
             const statementPayload: z.infer<typeof statmentPayloadSchema> = JSON.parse(payload);
             statmentPayloadSchema.parse(statementPayload);
 
-            const result = await prisma.statement.create({
+            await prisma.statement.create({
               data: {
                 name: fileName,
                 date: new Date(statementPayload.date),
@@ -87,8 +87,6 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
                 },
               },
             });
-
-            console.log(result);
 
             res.status(200).json({
               message: "Parse Successfully",

@@ -4,16 +4,16 @@ import openAi from "../../server/ai/openAi";
 import generateCategorisePrompt, { CategorizableExpense } from "../ai/generateCategorisePrompt";
 import { protectedProcedure, router } from "../trpc";
 
-interface MonthlyAmount {
+type MonthlyAmount = {
   sum: number;
   month: Date;
-}
-interface CategoryAmount {
+};
+type CategoryAmount = {
   id?: number;
   sum: string;
   title?: string;
   color?: string;
-}
+};
 
 export const expenseRouter = router({
   list: protectedProcedure

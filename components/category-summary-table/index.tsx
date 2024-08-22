@@ -6,10 +6,10 @@ import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "
 import { useAtom } from "jotai";
 import { CategoryFormAtom } from "../category-form";
 
-interface TableData {
+type TableData = {
   title: string;
   amount: string;
-}
+};
 
 const columnHelper = createColumnHelper<TableData>();
 

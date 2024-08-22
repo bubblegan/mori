@@ -9,12 +9,12 @@ import { Expense } from "@prisma/client";
 import { atom, useAtom } from "jotai";
 import { useForm, SubmitHandler } from "react-hook-form";
 
-interface ExpenseFormInput {
+type ExpenseFormInput = {
   description: string;
   categoryId: string;
   note: string;
   amount: number;
-}
+};
 
 export const ExpenseFormAtom = atom<{
   isOpen: boolean;

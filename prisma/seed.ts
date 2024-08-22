@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 
-interface CategorySeed {
+type CategorySeed = {
   categories: {
     title: string;
     keyword: string[];
   }[];
-}
+};
 
 const prisma = new PrismaClient();
 async function main() {

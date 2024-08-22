@@ -4,12 +4,12 @@ import fs from "fs";
 import { z } from "zod";
 import { procedure, router } from "../trpc";
 
-interface CategorySeed {
+type CategorySeed = {
   categories: {
     title: string;
     keyword: string[];
   }[];
-}
+};
 
 export const authRouter = router({
   create: procedure

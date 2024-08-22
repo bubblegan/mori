@@ -7,9 +7,9 @@ import { trpc } from "@/utils/trpc";
 import { atom, useAtom } from "jotai";
 import { useForm, SubmitHandler } from "react-hook-form";
 
-interface StatementFormInput {
+type StatementFormInput = {
   fileName: string;
-}
+};
 
 export const StatementFormAtom = atom<{
   isOpen: boolean;

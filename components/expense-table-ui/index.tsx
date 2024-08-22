@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-table";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
-export interface ExpenseTableData {
+export type ExpenseTableData = {
   id?: number;
   amount?: string;
   statement?: string;
@@ -26,7 +26,7 @@ export interface ExpenseTableData {
   description?: string;
   date?: string;
   onEdit?: () => void;
-}
+};
 
 const ExpenseTableUi = ({
   data,
