@@ -3,8 +3,8 @@ import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Switch } from "@/ui/switch";
 import { trpc } from "@/utils/trpc";
-import { Loader2 } from "lucide-react";
 import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
+import { toast } from "../ui/use-toast";
 import extractTextFromPDF from "./extractTextFromPdf";
 import UploadSummary from "./upload-summary";
 import useParsingCompletion from "./useParsingCompletion";
@@ -42,7 +42,7 @@ const UploadStatementForm = ({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const { complete, isLoading, parsedStatement, parsedExpense, setEnableAiCategorise, enableAiCategorise } =
+  const { complete, parsedStatement, parsedExpense, setEnableAiCategorise, enableAiCategorise } =
     useParsingCompletion(setUploadingState);
 
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -51,10 +51,14 @@ const UploadStatementForm = ({
     }
     setUploadingState("reading");
     const statement = e.target.files[0];
+
+    // for pdf statements
     const statementText = await extractTextFromPDF(statement);
     const prompt = generateParsingPrompt(statementText);
+
     setPdfFile(statement);
     setUploadingState("prompting");
+
     complete(prompt);
   };
 
@@ -84,7 +88,7 @@ const UploadStatementForm = ({
     });
 
     if (response.ok) {
-      console.log("upload success");
+      toast({ description: "uploaded successfully" });
     }
 
     utils.statement.invalidate();
@@ -127,10 +131,7 @@ const UploadStatementForm = ({
         )}
         {(uploadingState === "prompting" || uploadingState === "reading") && (
           <>
-            <Button className="w-fit" disabled>
-              Loading
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            </Button>
+            <p>{uploadingState}...</p>
           </>
         )}
         {uploadingState === "done" && (

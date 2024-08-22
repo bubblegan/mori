@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
-import { flexRender, useReactTable, createColumnHelper, getCoreRowModel } from "@tanstack/react-table";
+import {
+  flexRender,
+  useReactTable,
+  createColumnHelper,
+  getCoreRowModel,
+  getSortedRowModel,
+  SortingState,
+} from "@tanstack/react-table";
 import dayjs from "dayjs";
 import { ParsedExpense, ParsedStatement } from "./index";
 
@@ -61,6 +68,7 @@ const UploadSummary = (props: UploadSummaryProps) => {
   const { parsedExpenses, parsedStatement, onCreateClick, onCloseClick, onDownloadCsvClick } = props;
 
   const [data, setTableData] = useState<ParsedExpenseTable[]>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
     const tableData: ParsedExpenseTable[] =
@@ -79,7 +87,12 @@ const UploadSummary = (props: UploadSummaryProps) => {
   const table = useReactTable({
     data,
     columns,
+    state: {
+      sorting,
+    },
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
   });
 
   return (
