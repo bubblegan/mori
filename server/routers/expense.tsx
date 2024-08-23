@@ -1,7 +1,5 @@
 import { prisma } from "@/utils/prisma";
 import { z } from "zod";
-import openAi from "../../server/ai/openAi";
-import generateCategorisePrompt, { CategorizableExpense } from "../ai/generateCategorisePrompt";
 import { protectedProcedure, router } from "../trpc";
 
 type MonthlyAmount = {
@@ -79,81 +77,23 @@ export const expenseRouter = router({
     }),
   categorise: protectedProcedure
     .input(
-      z.object({
-        page: z.number().optional(),
-        statementIds: z.number().array().optional(),
-        categoryIds: z.number().array().optional(),
-        keyword: z.string().optional(),
-        dateRange: z
-          .object({
-            start: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
-            end: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
-          })
-          .optional(),
-      })
+      z.array(
+        z.object({
+          expenseId: z.number(),
+          categoryId: z.number(),
+        })
+      )
     )
-    .mutation(async ({ input, ctx }) => {
-      const result = await prisma.expense.findMany({
-        // skip: page * 15,
-        take: 100,
-        where: {
-          ...(input.statementIds && input.statementIds?.length > 0
-            ? { statementId: { in: input.statementIds } }
-            : {}),
-          ...(input.categoryIds && input.categoryIds?.length > 0
-            ? {
-                categoryId: { in: input.categoryIds },
-              }
-            : {}),
-          ...(input.dateRange?.start && input.dateRange?.end
-            ? {
-                date: {
-                  gte: input.dateRange.start,
-                  lte: input.dateRange.end,
-                },
-              }
-            : {}),
-          ...(input.keyword
-            ? {
-                description: {
-                  contains: input.keyword,
-                  mode: "insensitive",
-                },
-              }
-            : {}),
-          userId: ctx.auth.userId,
-        },
-        include: {
-          Category: true,
-          Statement: {
-            select: {
-              name: true,
-            },
-          },
-        },
-        orderBy: { date: "desc" },
-      });
-
-      const categorizableExpense: CategorizableExpense[] = result.map((expense) => {
-        return {
-          description: expense.description,
-          tempId: expense.id,
-          categoryId: expense.categoryId,
-        };
-      });
-
-      const categorisePrompt = await generateCategorisePrompt(categorizableExpense, {
-        skipCategorised: false,
-      });
-      const categoriseRes = await openAi(categorisePrompt);
-      const categoriseContent = categoriseRes.choices[0].message.content;
-
+    .mutation(async ({ input }) => {
       const sqlIds: string[] = [];
       const sqlUpdatedExpense: string[] = [];
-      categoriseContent?.split("\n").forEach((line) => {
-        const data = line.split(",");
-        sqlIds.push(data[0]);
-        sqlUpdatedExpense.push(`WHEN id = ${data[0]} THEN ${data[3]}`);
+
+      input.forEach((expense) => {
+        const expenseId = expense.expenseId.toString();
+        const categoryId = expense.categoryId.toString();
+
+        sqlIds.push(expenseId);
+        sqlUpdatedExpense.push(`WHEN id = ${expenseId} THEN ${categoryId}`);
       });
 
       const bulkUpdateCategoryResult = await prisma.$executeRawUnsafe<CategoryAmount[]>(`

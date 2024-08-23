@@ -29,7 +29,6 @@ import {
 import UploadStatementForm from "@/components/upload-statement-form";
 import { Button } from "@/ui/button";
 import { downloadCsv } from "@/utils/download-as-csv";
-import useHandleAiCategorize from "@/utils/hooks/useHandleAiCategorize";
 import useHandleExpenseFetch from "@/utils/hooks/useHandleExpenseFetch";
 import dayjs from "dayjs";
 import { useAtom } from "jotai";
@@ -45,11 +44,15 @@ export default function Expenses() {
 
   const view = searchParams?.get("view");
 
-  // if not filter, default to year to date
-
   // get data here
-  const expenses = useHandleExpenseFetch();
-  const handleAiCategorize = useHandleAiCategorize();
+  const { expenses, handleAiCategorize } = useHandleExpenseFetch(() => {
+    setValue({
+      isOpen: false,
+      onConfirm: () => null,
+      title: "",
+      message: "",
+    });
+  });
 
   const donwloadAsCsv = useCallback(() => {
     if (expenses.data) {

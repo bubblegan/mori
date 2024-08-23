@@ -1,18 +1,11 @@
-import { prisma } from "@/utils/prisma";
+import { Category } from "@prisma/client";
 
-export type CategorizableExpense = {
+type CategorizableExpense = {
   description: string;
   tempId: number | undefined;
-  categoryId: number | null;
 };
 
-async function generateCategorisePrompt(
-  expenses: CategorizableExpense[],
-  options: { skipCategorised?: boolean }
-) {
-  const { skipCategorised = true } = options;
-
-  const categories = await prisma.category.findMany();
+function generateCategorisePrompt(expenses: CategorizableExpense[], categories: Category[]) {
   const categoriesLine = categories.map((cat) => {
     return cat.title;
   });
@@ -32,13 +25,7 @@ async function generateCategorisePrompt(
     " Help me categorize the following expenses with the format of {expenseId},{expense} into the format of {expenseId},{expense},{category},{category id} . Without the line numbering.  \n";
 
   expenses.forEach((expense) => {
-    if (skipCategorised) {
-      if (!expense.categoryId) {
-        prompt += expense.tempId + "," + expense.description + "\n";
-      }
-    } else {
-      prompt += expense.tempId + "," + expense.description + "\n";
-    }
+    prompt += expense.tempId + "," + expense.description + "\n";
   });
 
   return prompt;

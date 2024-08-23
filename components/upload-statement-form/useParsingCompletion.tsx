@@ -3,11 +3,11 @@ import { trpc } from "@/utils/trpc";
 import { useCompletion } from "ai/react";
 import dayjs from "dayjs";
 import { ParsedStatement, PromptingState, ParsedExpense, UploadingState } from ".";
-import generateCategorisePrompt from "../../server/ai/generateCategorisePromptNew";
+import generateCategorisePrompt from "../../server/ai/generateCategorisePrompt";
 
 const useParsingCompletion = (setUploadingState: Dispatch<SetStateAction<UploadingState>>) => {
   const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
-  const [parsedExpense, setParsedExpense] = useState<ParsedExpense[] | []>([]);
+  const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
   const [promptState, setPromptState] = useState<PromptingState>("parsing");
   const [enableAiCategorise, setEnableAiCategorise] = useState(false);
 
@@ -112,6 +112,7 @@ const useParsingCompletion = (setUploadingState: Dispatch<SetStateAction<Uploadi
       const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data?.result || []);
       complete(promptText);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promptState, enableAiCategorise]);
 
   return {

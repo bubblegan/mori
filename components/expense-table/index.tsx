@@ -105,7 +105,7 @@ const columns = [
 const ExpenseTable = () => {
   const [, setvalue] = useAtom(ExpenseFormAtom);
 
-  const expenses = useHandleExpenseFetch();
+  const { expenses } = useHandleExpenseFetch();
 
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
