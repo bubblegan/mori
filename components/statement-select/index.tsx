@@ -4,6 +4,7 @@ import { Checkbox } from "@/ui/checkbox";
 import { Popover, PopoverTrigger, PopoverContent } from "@/ui/popover";
 import { trpc } from "@/utils/trpc";
 import { PlusCircleIcon } from "lucide-react";
+import { StatementAggregate } from "../../server/routers/statement";
 
 const StatementSelect = () => {
   const statements = trpc.statement.list.useQuery({});
@@ -15,6 +16,18 @@ const StatementSelect = () => {
   if (statements.data && "result" in statements.data) {
     results = statements.data?.result;
   }
+
+  const grouped: Record<number, StatementAggregate[]> =
+    results?.reduce((byYear: Record<number, StatementAggregate[]>, statement) => {
+      const year = statement.date.getFullYear();
+      if (!byYear[year]) {
+        byYear[year] = [];
+      }
+      byYear[year].push(statement);
+      return byYear;
+    }, {}) || {};
+
+  console.log(grouped);
 
   const params = new URLSearchParams(window.location.search);
   let statementIds = params.get("statementIds")?.split(",") || [];
@@ -31,41 +44,56 @@ const StatementSelect = () => {
       </PopoverTrigger>
       <PopoverContent className="w-[180px] border-slate-700 p-1" align="start">
         <div className="flex flex-col gap-1">
-          {results?.map((statement) => {
+          {Object.keys(grouped).map((key) => {
+            const statements = grouped[Number(key)];
+
             return (
-              <div
-                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
-                key={statement.id}>
-                <Checkbox
-                  checked={statementIds.includes(statement.id.toString())}
-                  onCheckedChange={() => {
-                    if (!statementIds.includes(statement.id.toString())) {
-                      // check
-                      statementIds =
-                        statementIds.length > 0
-                          ? [...statementIds, statement.id.toString()]
-                          : [statement.id.toString()];
-                    } else {
-                      statementIds = statementIds.filter((id) => id !== statement.id.toString());
-                    }
-                    if (statementIds.length > 0) {
-                      params.set("statementIds", statementIds.join(","));
-                    } else {
-                      params.delete("statementIds");
-                    }
-                    params.delete("dateRange");
-                    params.delete("startDate");
-                    params.delete("endDate");
-                    router.push(`/expenses?${params.toString()}`, undefined, {
-                      shallow: true,
-                    });
-                  }}
-                  id={`${statement.id}`}
-                />
-                <label htmlFor={`${statement.id}`} className="w-32">
-                  {statement.name}
-                </label>
-              </div>
+              <Popover key={key}>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" className="text-white">
+                    <div className="flex items-center">{key}</div>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="mt-6 w-[180px] border-slate-700 p-1" sideOffset={10} side="right">
+                  {statements?.map((statement) => {
+                    return (
+                      <div
+                        className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
+                        key={statement.id}>
+                        <Checkbox
+                          checked={statementIds.includes(statement.id.toString())}
+                          onCheckedChange={() => {
+                            if (!statementIds.includes(statement.id.toString())) {
+                              // check
+                              statementIds =
+                                statementIds.length > 0
+                                  ? [...statementIds, statement.id.toString()]
+                                  : [statement.id.toString()];
+                            } else {
+                              statementIds = statementIds.filter((id) => id !== statement.id.toString());
+                            }
+                            if (statementIds.length > 0) {
+                              params.set("statementIds", statementIds.join(","));
+                            } else {
+                              params.delete("statementIds");
+                            }
+                            params.delete("dateRange");
+                            params.delete("startDate");
+                            params.delete("endDate");
+                            router.push(`/expenses?${params.toString()}`, undefined, {
+                              shallow: true,
+                            });
+                          }}
+                          id={`${statement.id}`}
+                        />
+                        <label htmlFor={`${statement.id}`} className="w-32">
+                          {statement.name}
+                        </label>
+                      </div>
+                    );
+                  })}
+                </PopoverContent>
+              </Popover>
             );
           })}
         </div>

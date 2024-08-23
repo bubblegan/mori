@@ -3,11 +3,11 @@ import { Prisma, Statement } from "@prisma/client";
 import { z } from "zod";
 import { procedure, protectedProcedure, router } from "../trpc";
 
-interface StatementAggregate extends Statement {
+export type StatementAggregate = Statement & {
   total: number;
   startdate: Date;
   enddate: Date;
-}
+};
 
 export const statementRouter = router({
   list: protectedProcedure

@@ -72,7 +72,7 @@ const ExpenseForm = () => {
     <Dialog open={isOpen}>
       <DialogContent onCloseClick={() => setValue({ isOpen: false, expense: undefined })}>
         <DialogHeader>
-          <DialogTitle>Expense</DialogTitle>
+          <DialogTitle>Expense Form</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -89,19 +89,48 @@ const ExpenseForm = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input className="mt-1" {...field} value={isNaN(field.value) ? 0 : field.value} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex w-full flex-row items-center gap-4">
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Amount</FormLabel>
+                    <FormControl>
+                      <Input className="mt-1" {...field} value={isNaN(field.value) ? 0 : field.value} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Category</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="gap- h-10 w-full px-3 py-2">
+                          <SelectValue className="mr-2 text-white" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent side="bottom">
+                        {categories.data?.result?.map((category) => (
+                          <SelectItem
+                            className="text-neutral-200"
+                            key={category.id}
+                            value={category.id.toString()}>
+                            {category.title[0].toLocaleUpperCase() + category.title.substring(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="note"
@@ -115,35 +144,12 @@ const ExpenseForm = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-8 w-fit border-neutral-500">
-                        <SelectValue className="mr-2 text-white" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent side="bottom">
-                      {categories.data?.result?.map((category) => (
-                        <SelectItem
-                          className="text-neutral-200"
-                          key={category.id}
-                          value={category.id.toString()}>
-                          {category.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            <Button className="w-fit" type="submit">
-              Submit
-            </Button>
+
+            <div className="flex w-full flex-row-reverse">
+              <Button className="w-fit" type="submit">
+                Submit
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

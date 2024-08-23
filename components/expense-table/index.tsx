@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
 import dayjs from "dayjs";
 import { useAtom } from "jotai";
-import { StickyNoteIcon } from "lucide-react";
+import { Edit, StickyNoteIcon } from "lucide-react";
 import { ExpenseFormAtom } from "../expense-form";
 import ExpenseTableUi, { ExpenseTableData } from "../expense-table-ui";
 
@@ -95,7 +95,7 @@ const columns = [
   columnHelper.accessor("onEdit", {
     cell: (info) => (
       <span className="cursor-pointer" onClick={info.getValue()}>
-        Edit
+        <Edit size={16} />
       </span>
     ),
     header: () => <span>Options</span>,
