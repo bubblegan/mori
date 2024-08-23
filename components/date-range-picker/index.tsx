@@ -28,6 +28,7 @@ const DateRangePicker = () => {
       params.set("startDate", dayjs(startDate).format("YYYY-MM-DD"));
       params.set("endDate", dayjs(endDate).format("YYYY-MM-DD"));
       params.delete("dateRange");
+      params.delete("statementIds");
     }
 
     router.push(`/expenses?${params.toString()}`, undefined, {
@@ -52,6 +53,7 @@ const DateRangePicker = () => {
     const params = new URLSearchParams(window.location.search);
     params.delete("startDate");
     params.delete("endDate");
+    params.delete("statementIds");
     params.set("dateRange", dateRange);
 
     setCalendarOpen(false);

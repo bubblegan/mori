@@ -53,6 +53,9 @@ const StatementSelect = () => {
                     } else {
                       params.delete("statementIds");
                     }
+                    params.delete("dateRange");
+                    params.delete("startDate");
+                    params.delete("endDate");
                     router.push(`/expenses?${params.toString()}`, undefined, {
                       shallow: true,
                     });

@@ -8,5 +8,3 @@
 [ ] handle open ai errors
 [ ] minimize for openai to parse
 [ ] edit PDF
-[ ] add tag
-[ ] add note
