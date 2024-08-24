@@ -27,8 +27,6 @@ const StatementSelect = () => {
       return byYear;
     }, {}) || {};
 
-  console.log(grouped);
-
   const params = new URLSearchParams(window.location.search);
   let statementIds = params.get("statementIds")?.split(",") || [];
 

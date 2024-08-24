@@ -67,7 +67,6 @@ const useParsingCompletion = (setUploadingState: Dispatch<SetStateAction<Uploadi
             if (Array.isArray(category.keyword) && category.keyword.length > 0) {
               category.keyword?.forEach((keyword) => {
                 if (expense.description.toLowerCase().includes(keyword as string) && keyword) {
-                  console.log(keyword);
                   expense.categoryId = category.id;
                   expense.categoryName = category.title;
                 }
