@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
+import { useClickAway } from "@/utils/hooks/useClickAway";
+import { trpc } from "@/utils/trpc";
 import {
   flexRender,
   useReactTable,
@@ -11,18 +13,22 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import dayjs from "dayjs";
+import CustomCell from "./CustomCell";
+import DateCell from "./DateCell";
 import { ParsedExpense, ParsedStatement } from "./index";
 
-type ParsedExpenseTable = {
+export type ParsedExpenseTable = {
+  tempId: number;
   description?: string;
   amount?: string;
-  category?: string;
-  date?: string;
+  category?: number;
+  date?: Date;
 };
 
 type UploadSummaryProps = {
   parsedStatement?: ParsedStatement;
   parsedExpenses?: ParsedExpense[];
+  setParsedExpense: Dispatch<SetStateAction<ParsedExpense[]>>;
   onCreateClick: () => void;
   onCloseClick: () => void;
   onDownloadCsvClick: () => void;
@@ -32,52 +38,72 @@ const columnHelper = createColumnHelper<ParsedExpenseTable>();
 
 const columns = [
   columnHelper.accessor("description", {
-    cell: (info) => info.getValue(),
+    cell: CustomCell,
     header: () => <span>Description</span>,
     meta: {
-      className: "w-[400px]",
+      className: "w-[300px]",
+      editField: "description",
+      type: "text",
     },
   }),
   columnHelper.accessor("category", {
-    cell: (info) => {
-      if (!info.getValue()) return null;
-      return <div className="w-fit rounded-full px-3 py-0.5 capitalize">{info.getValue()}</div>;
-    },
+    cell: CustomCell,
     header: () => <span>Category</span>,
+    meta: {
+      className: "w-[150px]",
+      type: "select",
+      editField: "categoryId",
+    },
   }),
   columnHelper.accessor("amount", {
-    cell: (info) => (
-      <div className="flex justify-between">
-        $<div className="pr-8 text-right">{info.getValue()}</div>
-      </div>
-    ),
+    cell: CustomCell,
     header: () => <span>Amount</span>,
     sortingFn: "alphanumeric",
     enableSorting: true,
     meta: {
       className: "w-[150px]",
+      editField: "amount",
+      type: "number",
     },
   }),
   columnHelper.accessor("date", {
-    cell: (info) => info.getValue(),
+    cell: DateCell,
     header: () => <span>Date</span>,
+    meta: {
+      editField: "date",
+    },
   }),
 ];
 
 const UploadSummary = (props: UploadSummaryProps) => {
-  const { parsedExpenses, parsedStatement, onCreateClick, onCloseClick, onDownloadCsvClick } = props;
+  const {
+    parsedExpenses,
+    parsedStatement,
+    onCreateClick,
+    onCloseClick,
+    onDownloadCsvClick,
+    setParsedExpense,
+  } = props;
 
   const [data, setTableData] = useState<ParsedExpenseTable[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [editCellId, setEditCellId] = useState<string | undefined>(undefined);
+  const ref = useClickAway<HTMLTableSectionElement>(() => {
+    setTimeout(() => {
+      setEditCellId(undefined);
+    }, 300);
+  });
+  const categories = trpc.category.list.useQuery();
 
   useEffect(() => {
     const tableData: ParsedExpenseTable[] =
       parsedExpenses?.map((expense) => {
         return {
+          tempId: expense.tempId,
           description: expense.description,
           amount: expense.amount.toString(),
-          category: expense.categoryName,
-          date: dayjs(expense.date).format("DD MMM YYYY"),
+          category: expense.categoryId,
+          date: expense.date,
         };
       }) || [];
 
@@ -90,6 +116,32 @@ const UploadSummary = (props: UploadSummaryProps) => {
     state: {
       sorting,
     },
+    meta: {
+      editCellId,
+      updateData: (rowIndex: number, columnName: string, newValue: string | number) => {
+        const tempId = data[rowIndex]?.tempId;
+        setParsedExpense((old) => {
+          return old.map((row) => {
+            if (row.tempId === tempId) {
+              if (columnName === "categoryId") {
+                const selectedCat = categories.data?.result.find((cat) => cat.id === Number(newValue));
+
+                return {
+                  ...row,
+                  [columnName]: Number(newValue),
+                  categoryName: selectedCat?.title,
+                };
+              }
+              return {
+                ...row,
+                [columnName]: newValue,
+              };
+            }
+            return row;
+          });
+        });
+      },
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
@@ -100,7 +152,7 @@ const UploadSummary = (props: UploadSummaryProps) => {
       <p>Bank : {parsedStatement?.bank} </p>
       <p>Issued Date : {dayjs(parsedStatement?.statementDate).format("DD MMM YYYY")}</p>
       <p>Total Amount : {parsedStatement?.totalAmount}</p>
-      <div className="h-[500px] overflow-y-scroll rounded-md border border-gray-700">
+      <div className="max-h-[500px] overflow-y-scroll rounded-md border border-gray-700">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -127,11 +179,16 @@ const UploadSummary = (props: UploadSummaryProps) => {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody ref={ref}>
             {table.getRowModel().rows.map((row) => (
               <TableRow className="hover:bg-muted/50" key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="w-fit py-4 text-neutral-100" key={cell.id}>
+                  <TableCell
+                    onClick={() => {
+                      setEditCellId(cell.id);
+                    }}
+                    className="w-fit py-4 text-neutral-100"
+                    key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

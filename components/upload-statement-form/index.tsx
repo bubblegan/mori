@@ -42,8 +42,14 @@ const UploadStatementForm = ({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const { complete, parsedStatement, parsedExpense, setEnableAiCategorise, enableAiCategorise } =
-    useParsingCompletion(setUploadingState);
+  const {
+    complete,
+    parsedStatement,
+    parsedExpense,
+    setEnableAiCategorise,
+    enableAiCategorise,
+    setParsedExpense,
+  } = useParsingCompletion(setUploadingState);
 
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -87,12 +93,15 @@ const UploadStatementForm = ({
       body: formData,
     });
 
-    if (response.ok) {
-      toast({ description: "uploaded successfully" });
-    }
-
     utils.statement.invalidate();
     utils.expense.invalidate();
+
+    if (response.ok) {
+      toast({ description: "uploaded successfully" });
+      setIsOpen(false);
+      setPdfFile(null);
+      setUploadingState("default");
+    }
   };
 
   return (
@@ -138,6 +147,7 @@ const UploadStatementForm = ({
           <UploadSummary
             parsedStatement={parsedStatement}
             parsedExpenses={parsedExpense}
+            setParsedExpense={setParsedExpense}
             onCreateClick={() => {
               handleUpload();
             }}

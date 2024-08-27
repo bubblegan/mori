@@ -23,6 +23,7 @@ const useParsingCompletion = (setUploadingState: Dispatch<SetStateAction<Uploadi
     onFinish: (_, completion) => {
       if (promptState === "parsing") {
         const parsedExpense: ParsedExpense[] = [];
+
         const parseStatementResult: ParsedStatement = {
           bank: "",
           statementDate: null,
@@ -120,6 +121,7 @@ const useParsingCompletion = (setUploadingState: Dispatch<SetStateAction<Uploadi
     completion,
     parsedStatement,
     parsedExpense,
+    setParsedExpense,
     setEnableAiCategorise,
     enableAiCategorise,
   };
