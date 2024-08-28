@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { ParsedStatement, PromptingState, ParsedExpense, UploadingState } from ".";
 import generateCategorisePrompt from "../../server/ai/generateCategorisePrompt";
 
-const useParsingCompletion = (setUploadingState: Dispatch<SetStateAction<UploadingState>>) => {
+export function useParsingCompletion(setUploadingState: Dispatch<SetStateAction<UploadingState>>) {
   const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
   const [promptState, setPromptState] = useState<PromptingState>("parsing");
@@ -125,6 +125,4 @@ const useParsingCompletion = (setUploadingState: Dispatch<SetStateAction<Uploadi
     setEnableAiCategorise,
     enableAiCategorise,
   };
-};
-
-export default useParsingCompletion;
+}

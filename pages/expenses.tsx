@@ -29,7 +29,7 @@ import {
 import UploadStatementForm from "@/components/upload-statement-form";
 import { Button } from "@/ui/button";
 import { downloadCsv } from "@/utils/download-as-csv";
-import useHandleExpenseFetch from "@/utils/hooks/useHandleExpenseFetch";
+import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import dayjs from "dayjs";
 import { useAtom } from "jotai";
 

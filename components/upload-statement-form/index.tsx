@@ -7,7 +7,7 @@ import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
 import { toast } from "../ui/use-toast";
 import extractTextFromPDF from "./extractTextFromPdf";
 import UploadSummary from "./upload-summary";
-import useParsingCompletion from "./useParsingCompletion";
+import { useParsingCompletion } from "./use-parsing-completion";
 
 export type UploadingState = "default" | "reading" | "prompting" | "done";
 

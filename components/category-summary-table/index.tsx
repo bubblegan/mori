@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
-import useHandleAggregateSum from "@/utils/hooks/useHandleAggregateSum";
+import { useHandleAggregateSum } from "@/utils/hooks/use-handle-aggregate-sum";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useAtom } from "jotai";
 import { CategoryFormAtom } from "../category-form";

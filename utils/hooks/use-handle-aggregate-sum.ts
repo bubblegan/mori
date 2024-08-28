@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { DateRange, dateRangeKeyConvert } from "../dateRangeKey";
 import { trpc } from "../trpc";
 
-const useHandleAggregateSum = () => {
+export function useHandleAggregateSum() {
   const searchParams = useSearchParams();
   const statementIds = searchParams?.get("statementIds")?.split(",").map(Number) || [];
   const startDate = searchParams?.get("startDate");
@@ -38,6 +38,4 @@ const useHandleAggregateSum = () => {
   });
 
   return expenses;
-};
-
-export default useHandleAggregateSum;
+}

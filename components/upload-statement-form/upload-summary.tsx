@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
-import { useClickAway } from "@/utils/hooks/useClickAway";
+import { useClickAway } from "@/utils/hooks/use-click-away";
 import { trpc } from "@/utils/trpc";
 import {
   flexRender,

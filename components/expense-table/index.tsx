@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import useHandleExpenseFetch from "@/utils/hooks/useHandleExpenseFetch";
+import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import { Prisma } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
 import dayjs from "dayjs";

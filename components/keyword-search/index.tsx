@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Input } from "@/ui/input";
-import useDebounceValue from "@/utils/hooks/useDebounceValue";
+import { useDebounceValue } from "@/utils/hooks/use-debounce-value";
 
 const KeywordSearch = () => {
   const [value, setValue] = useState("");

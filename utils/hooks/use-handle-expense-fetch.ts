@@ -11,7 +11,7 @@ type CategorisedExpense = {
   categoryId: number;
 };
 
-const useHandleExpenseFetch = (onFinishCategorising: () => void = () => null) => {
+export function useHandleExpenseFetch(onFinishCategorising: () => void = () => null) {
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
@@ -89,6 +89,4 @@ const useHandleExpenseFetch = (onFinishCategorising: () => void = () => null) =>
   };
 
   return { expenses, handleAiCategorize };
-};
-
-export default useHandleExpenseFetch;
+}
