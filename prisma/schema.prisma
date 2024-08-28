@@ -78,7 +78,6 @@ model Tag {
 model TagsOnExpenses {
   tagId      Int
   assignedAt DateTime @default(now())
-  assignedBy String
   expensesId Int
   expenses   Expense  @relation(fields: [expensesId], references: [id])
   tag        Tag      @relation(fields: [tagId], references: [id])

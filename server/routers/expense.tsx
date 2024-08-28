@@ -67,6 +67,7 @@ export const expenseRouter = router({
               name: true,
             },
           },
+          tags: true,
         },
         orderBy: { date: "desc" },
       });
@@ -170,10 +171,12 @@ export const expenseRouter = router({
         categoryId: z.number(),
         amount: z.number().multipleOf(0.01),
         note: z.string().optional(),
+        date: z.string().datetime(),
+        tags: z.number().array().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { description, categoryId, amount, note } = input;
+      const { description, categoryId, amount, note, date, tags } = input;
       const result = await prisma.expense.update({
         where: {
           id: input.id,
@@ -184,6 +187,20 @@ export const expenseRouter = router({
           categoryId,
           amount,
           note,
+          date,
+          tags: {
+            deleteMany: {},
+            create: tags?.map((tag) => {
+              return {
+                assignedAt: new Date(),
+                tag: {
+                  connect: {
+                    id: tag,
+                  },
+                },
+              };
+            }),
+          },
         },
       });
 
@@ -196,13 +213,34 @@ export const expenseRouter = router({
         categoryId: z.number(),
         amount: z.number().multipleOf(0.01),
         note: z.string().optional(),
+        date: z.string().datetime(),
+        tags: z.number().array().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { description, categoryId, amount, note } = input;
+      const { description, categoryId, amount, note, date, tags } = input;
 
       const result = await prisma.expense.create({
-        data: { description, categoryId, amount, note, userId: ctx.auth.userId },
+        data: {
+          description,
+          categoryId,
+          amount,
+          note,
+          date,
+          userId: ctx.auth.userId,
+          tags: {
+            create: tags?.map((tag) => {
+              return {
+                assignedAt: new Date(),
+                tag: {
+                  connect: {
+                    id: tag,
+                  },
+                },
+              };
+            }),
+          },
+        },
       });
 
       return result;

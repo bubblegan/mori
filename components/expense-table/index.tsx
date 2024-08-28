@@ -123,6 +123,7 @@ const ExpenseTable = () => {
           categoryId: expense.categoryId,
           userId: expense.userId,
           note: expense.note,
+          tags: expense.tags.map((tag) => tag.tagId),
         };
 
         return {
