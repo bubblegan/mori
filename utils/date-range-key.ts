@@ -1,6 +1,6 @@
 export type DateRange = "YearToDate" | "LastMonth" | "LastYear";
 
-const dateRangeKeyConvert = (dateRange: DateRange) => {
+export function dateRangeKeyConvert(dateRange: DateRange) {
   const today = new Date();
   let startDate = new Date();
   let endDate = new Date();
@@ -25,12 +25,10 @@ const dateRangeKeyConvert = (dateRange: DateRange) => {
   endDate.setHours(23, 59, 59, 0);
 
   return [startDate, endDate];
-};
+}
 
-const dateRangeTitleMap: Record<DateRange, string> = {
+export const dateRangeTitleMap: Record<DateRange, string> = {
   LastMonth: "LAST MONTH",
   YearToDate: "YEAR TO DATE",
   LastYear: "LAST YEAR",
 };
-
-export { dateRangeKeyConvert, dateRangeTitleMap };

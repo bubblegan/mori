@@ -13,8 +13,8 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import dayjs from "dayjs";
-import CustomCell from "./CustomCell";
-import DateCell from "./DateCell";
+import CustomCell from "./custom-cell";
+import DateCell from "./date-cell";
 import { ParsedExpense, ParsedStatement } from "./index";
 
 export type ParsedExpenseTable = {

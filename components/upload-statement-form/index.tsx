@@ -5,7 +5,7 @@ import { Switch } from "@/ui/switch";
 import { trpc } from "@/utils/trpc";
 import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
 import { toast } from "../ui/use-toast";
-import extractTextFromPDF from "./extractTextFromPdf";
+import extractTextFromPDF from "./extract-from-pdf";
 import UploadSummary from "./upload-summary";
 import { useParsingCompletion } from "./use-parsing-completion";
 

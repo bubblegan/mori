@@ -1,6 +1,6 @@
 import { useSearchParams } from "next/navigation";
 import dayjs from "dayjs";
-import { DateRange, dateRangeKeyConvert } from "../dateRangeKey";
+import { DateRange, dateRangeKeyConvert } from "../date-range-key";
 import { trpc } from "../trpc";
 
 export function useHandleAggregateSum() {

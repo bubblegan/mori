@@ -6,7 +6,7 @@ import { Calendar } from "@/ui/calendar";
 import { Input } from "@/ui/input";
 import { Popover, PopoverContent } from "@/ui/popover";
 import cn from "@/utils/cn";
-import { dateRangeTitleMap } from "@/utils/dateRangeKey";
+import { dateRangeTitleMap } from "@/utils/date-range-key";
 import { PopoverTrigger } from "@radix-ui/react-popover";
 import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";

@@ -3,7 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useCompletion } from "ai/react";
 import dayjs from "dayjs";
 import generateCategorisePrompt from "../../server/ai/generateCategorisePrompt";
-import { DateRange, dateRangeKeyConvert } from "../dateRangeKey";
+import { DateRange, dateRangeKeyConvert } from "../date-range-key";
 import { trpc } from "../trpc";
 
 type CategorisedExpense = {
