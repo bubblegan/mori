@@ -149,9 +149,11 @@ const UploadSummary = (props: UploadSummaryProps) => {
 
   return (
     <>
-      <p>Bank : {parsedStatement?.bank} </p>
-      <p>Issued Date : {dayjs(parsedStatement?.statementDate).format("DD MMM YYYY")}</p>
-      <p>Total Amount : {parsedStatement?.totalAmount}</p>
+      <div>
+        <p>Bank : {parsedStatement?.bank} </p>
+        <p>Issued Date : {dayjs(parsedStatement?.statementDate).format("DD MMM YYYY")}</p>
+        <p>Total Amount : {parsedStatement?.totalAmount}</p>
+      </div>
       <div className="max-h-[500px] overflow-y-scroll rounded-md border border-gray-700">
         <Table>
           <TableHeader>

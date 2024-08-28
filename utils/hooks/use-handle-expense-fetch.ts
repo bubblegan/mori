@@ -28,7 +28,7 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
   const categories = trpc.category.list.useQuery();
   const { mutate: updateCategories } = trpc.expense.categorise.useMutation({
     onSuccess() {
-      toast({ description: "Categorized successfully" });
+      toast({ description: "Categorised successfully" });
       utils.expense.invalidate();
     },
   });
@@ -45,6 +45,7 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
         });
       });
 
+      onFinishCategorising();
       updateCategories(categorised);
     },
   });
@@ -74,8 +75,8 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
     categoryIds,
   });
 
-  // handle categorize
-  const handleAiCategorize = () => {
+  // handle categorise
+  const handleAiCategorise = () => {
     const uncategorisedExpense =
       expenses.data?.result.map((expense) => {
         return {
@@ -85,8 +86,7 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
       }) || [];
     const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data?.result || []);
     complete(promptText);
-    onFinishCategorising();
   };
 
-  return { expenses, handleAiCategorize };
+  return { expenses, handleAiCategorise };
 }

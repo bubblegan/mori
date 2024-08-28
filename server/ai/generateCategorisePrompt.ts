@@ -22,7 +22,7 @@ function generateCategorisePrompt(expenses: CategorizableExpense[], categories: 
 
   // provide list of categories
   prompt +=
-    " Help me categorize the following expenses with the format of {expenseId},{expense} into the format of {expenseId},{expense},{category},{category id} . Without the line numbering.  \n";
+    " Help me categorise the following expenses with the format of {expenseId},{expense} into the format of {expenseId},{expense},{category},{category id} . Without the line numbering.  \n";
 
   expenses.forEach((expense) => {
     prompt += expense.tempId + "," + expense.description + "\n";

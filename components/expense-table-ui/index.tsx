@@ -31,10 +31,12 @@ export type ExpenseTableData = {
 const ExpenseTableUi = ({
   data,
   columns,
+  tableWrapperClass,
 }: {
   data: ExpenseTableData[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<ExpenseTableData, any>[];
+  tableWrapperClass?: string;
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -58,7 +60,7 @@ const ExpenseTableUi = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-md border border-gray-700">
+      <div className={cn("rounded-md border border-gray-700", tableWrapperClass)}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

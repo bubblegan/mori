@@ -39,7 +39,7 @@ export function CategoryExpenseChart() {
   const chartConfig: Record<string, { label: string; color: string }> = {} satisfies ChartConfig;
 
   const chartData = categories.data?.map((category) => {
-    const title = category.title || "uncategorize";
+    const title = category.title || "uncategorise";
 
     chartConfig[title] = {
       label: title,

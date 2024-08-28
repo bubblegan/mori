@@ -3,9 +3,9 @@ import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import BasePage from "@/components/base-page";
+import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
 import CategorySelect from "@/components/category-select";
 import CategorySummaryTable from "@/components/category-summary-table";
-import { ConfirmationDialogAtom } from "@/components/confirmation-dialog";
 import DateRangePicker from "@/components/date-range-picker";
 import { ExpenseFilterPills } from "@/components/expense-filter-pills";
 import ExpenseForm from "@/components/expense-form";
@@ -31,11 +31,10 @@ import { Button } from "@/ui/button";
 import { downloadCsv } from "@/utils/download-as-csv";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import dayjs from "dayjs";
-import { useAtom } from "jotai";
 
 export default function Expenses() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [, setValue] = useAtom(ConfirmationDialogAtom);
+  const [isCategoriseDialogOpen, setCategoriseDialog] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -45,14 +44,7 @@ export default function Expenses() {
   const view = searchParams?.get("view");
 
   // get data here
-  const { expenses, handleAiCategorize } = useHandleExpenseFetch(() => {
-    setValue({
-      isOpen: false,
-      onConfirm: () => null,
-      title: "",
-      message: "",
-    });
-  });
+  const { expenses } = useHandleExpenseFetch();
 
   const donwloadAsCsv = useCallback(() => {
     if (expenses.data) {
@@ -125,17 +117,7 @@ export default function Expenses() {
             <DropdownMenu>
               <DropdownMenuTrigger className="rounded-lg border px-4 text-sm">Options</DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setValue({
-                      isOpen: true,
-                      onConfirm: handleAiCategorize,
-                      title: "Categorize Current Selection",
-                      message: "categorize current the filter select?",
-                    });
-                  }}>
-                  Categorize
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem>
                 <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setUploadDialogOpen(true)}>Upload</DropdownMenuItem>
               </DropdownMenuContent>
@@ -143,9 +125,10 @@ export default function Expenses() {
           </div>
           <ExpenseFilterPills />
           {view === "aggregate" ? <CategorySummaryTable /> : <ExpenseTable />}
-          <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />
         </div>
         <ExpenseForm />
+        <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />
+        <CategoriseExpenseForm isOpen={isCategoriseDialogOpen} setIsOpen={setCategoriseDialog} />
       </BasePage>
     </>
   );

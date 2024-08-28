@@ -132,7 +132,7 @@ const UploadStatementForm = ({
             )}
             <input type="file" ref={inputRef} onChange={handleFileUpload} style={{ display: "none" }} />
             <div className="flex w-full justify-between rounded border border-gray-700 p-3">
-              <p>Enable Ai Categorize</p>
+              <p>Enable Ai Categorise</p>
               <Switch checked={enableAiCategorise} onCheckedChange={setEnableAiCategorise} />
             </div>
             <Button onClick={() => handleUpload()}>Upload</Button>
