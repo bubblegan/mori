@@ -129,7 +129,7 @@ const UploadSummary = (props: UploadSummaryProps) => {
                 return {
                   ...row,
                   [columnName]: Number(newValue),
-                  categoryName: selectedCat?.title,
+                  categoryTitle: selectedCat?.title,
                 };
               }
               return {
@@ -149,11 +149,13 @@ const UploadSummary = (props: UploadSummaryProps) => {
 
   return (
     <>
-      <div>
-        <p>Bank : {parsedStatement?.bank} </p>
-        <p>Issued Date : {dayjs(parsedStatement?.statementDate).format("DD MMM YYYY")}</p>
-        <p>Total Amount : {parsedStatement?.totalAmount}</p>
-      </div>
+      {parsedStatement && (
+        <div>
+          <p>Bank : {parsedStatement?.bank} </p>
+          <p>Issued Date : {dayjs(parsedStatement?.statementDate).format("DD MMM YYYY")}</p>
+          <p>Total Amount : {parsedStatement?.totalAmount}</p>
+        </div>
+      )}
       <div className="max-h-[500px] overflow-y-scroll rounded-md border border-gray-700">
         <Table>
           <TableHeader>

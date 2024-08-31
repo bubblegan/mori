@@ -27,7 +27,7 @@ const statmentPayloadSchema = z.object({
 
 export type CreateExpense = Pick<Expense, "description" | "date"> & {
   tempId?: number;
-  categoryName?: string;
+  categoryTitle?: string;
   categoryId?: number;
   amount: number;
 };
