@@ -1,18 +1,20 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Switch } from "@/ui/switch";
 import { trpc } from "@/utils/trpc";
 import dayjs from "dayjs";
+import { useDropzone } from "react-dropzone";
 import generateCategorisePrompt from "../../server/ai/generateCategorisePrompt";
 import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
+import { Progress } from "../ui/progress";
 import { toast } from "../ui/use-toast";
-import extractTextFromPDF from "./extract-from-pdf";
 import UploadSummary from "./upload-summary";
 import { useCategoriseCompletion } from "./use-categorise-completion";
+import { extractTextFromPDF } from "./use-extract-from-pdf";
 import { useParsingCompletion } from "./use-parsing-completion";
 
-export type UploadingState = "default" | "reading" | "prompting" | "done";
+export type UploadingState = "default" | "filepreview" | "reading" | "prompting" | "done";
 
 export type ParsedExpense = {
   tempId: number;
@@ -51,10 +53,10 @@ const UploadStatementForm = ({
   const [enableAiCategorise, setEnableAiCategorise] = useState(false);
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
   const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState({ percent: 0, text: "" });
+  const [file, setFile] = useState<File | undefined>(undefined);
 
   const utils = trpc.useUtils();
-  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const { complete: completeCategorise } = useCategoriseCompletion((categorisedRecord) => {
     const parsedExpenseCategorised = parsedExpense.map((expense) => {
@@ -92,13 +94,10 @@ const UploadStatementForm = ({
     }
   }, [startCategorise]);
 
-  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-    setUploadingState("reading");
-    const statement = e.target.files[0];
-    let prompt = "";
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    // Do something with the files
+    const statement = acceptedFiles[0];
+    setFile(statement);
 
     if (statement.type === "text/csv") {
       const reader = new FileReader();
@@ -155,31 +154,50 @@ const UploadStatementForm = ({
           }
 
           setParsedExpense(expenseCsvList);
-
-          if (enableAiCategorise) {
-            setStartCategorise(true);
-            setUploadingState("prompting");
-          } else {
-            setUploadingState("done");
-          }
+          setUploadingState("done");
         }
       };
       reader.readAsText(statement);
-      setPdfFile(statement);
     }
 
     if (statement.type === "application/pdf") {
-      const statementText = await extractTextFromPDF(statement);
+      setUploadingState("filepreview");
+    }
+    return;
+  }, []);
+
+  const handleParse = async () => {
+    let prompt = "";
+    if (file && file.type === "application/pdf") {
+      setUploadingState("reading");
+      const statementText = await extractTextFromPDF(file, (param) => {
+        const [currPage, totalPage] = param;
+        const percent = (currPage / totalPage) * 100;
+        setProgress({ percent, text: `currently parsing ${currPage} of ${totalPage} page` });
+      });
       prompt = generateParsingPrompt(statementText);
       setUploadingState("prompting");
       completeParsing(prompt);
     }
 
-    return;
+    if (file && file.type === "text/csv") {
+      setStartCategorise(true);
+      setUploadingState("prompting");
+    }
   };
 
-  const handleUpload = async () => {
-    if (!pdfFile) return;
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "text/csv": [".csv"],
+      "application/csv": [".csv"],
+      "application/pdf": [".pdf"],
+    },
+    multiple: false,
+  });
+
+  const handleUploadToDB = async () => {
+    if (!file) return;
 
     const formData = new FormData();
 
@@ -195,7 +213,7 @@ const UploadStatementForm = ({
       }),
     };
 
-    formData.append("statement", pdfFile);
+    formData.append("statement", file);
     formData.append("payload", JSON.stringify(statementPayload));
 
     const response = await fetch("/api/upload", {
@@ -209,7 +227,7 @@ const UploadStatementForm = ({
     if (response.ok) {
       toast({ description: "uploaded successfully" });
       setIsOpen(false);
-      setPdfFile(null);
+      setFile(undefined);
       setUploadingState("default");
     }
   };
@@ -219,7 +237,9 @@ const UploadStatementForm = ({
       <DialogContent
         onCloseClick={() => {
           setIsOpen(false);
-          setPdfFile(null);
+          setFile(undefined);
+          setParsedStatement(undefined);
+          setUploadingState("default");
         }}
         className="min-w-fit">
         <DialogHeader>
@@ -228,27 +248,43 @@ const UploadStatementForm = ({
         {uploadingState === "default" && (
           <>
             <div
-              onClick={() => {
-                inputRef.current?.click();
-              }}
+              {...getRootProps()}
               className="flex w-full cursor-pointer justify-center rounded border border-solid border-gray-700 p-4">
-              <p>Click here to upload</p>
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <p>Drop the files here ...</p>
+              ) : (
+                <p>Drag and drop some files here, or click to select files</p>
+              )}
             </div>
-            {pdfFile && (
+          </>
+        )}
+        {uploadingState === "filepreview" && (
+          <>
+            {file && (
               <div className="flex w-full justify-between rounded border border-solid border-gray-700 p-4">
-                <p>{pdfFile.name}</p>
-                <p>{pdfFile.size / 1000} KB</p>
+                <p>{file.name}</p>
+                <p>{file.size / 1000} KB</p>
               </div>
             )}
-            <input type="file" ref={inputRef} onChange={handleFileUpload} style={{ display: "none" }} />
             <div className="flex w-full justify-between rounded border border-gray-700 p-3">
               <p>Enable Ai Categorise</p>
               <Switch checked={enableAiCategorise} onCheckedChange={setEnableAiCategorise} />
             </div>
-            <Button onClick={() => handleUpload()}>Upload</Button>
+            <div className="flex flex-row-reverse">
+              <Button className="w-fit" onClick={() => handleParse()}>
+                Parse
+              </Button>
+            </div>
           </>
         )}
-        {(uploadingState === "prompting" || uploadingState === "reading") && (
+        {uploadingState === "reading" && (
+          <div className="flex flex-col gap-2">
+            <p>{progress.text}...</p>
+            <Progress value={progress.percent} />
+          </div>
+        )}
+        {uploadingState === "prompting" && (
           <>
             <p>{uploadingState}...</p>
           </>
@@ -259,16 +295,15 @@ const UploadStatementForm = ({
             parsedExpenses={parsedExpense}
             setParsedExpense={setParsedExpense}
             onCreateClick={() => {
-              handleUpload();
+              handleUploadToDB();
             }}
-            onCloseClick={() => {
-              setIsOpen(false);
-              setPdfFile(null);
-              setUploadingState("default");
-            }}
-            onDownloadCsvClick={() => {
-              console.log("todo");
-            }}
+            onParseClick={
+              !startCategorise
+                ? () => {
+                    handleCategorise(parsedExpense);
+                  }
+                : undefined
+            }
           />
         )}
       </DialogContent>

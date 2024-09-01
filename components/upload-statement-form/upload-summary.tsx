@@ -30,8 +30,7 @@ type UploadSummaryProps = {
   parsedExpenses?: ParsedExpense[];
   setParsedExpense: Dispatch<SetStateAction<ParsedExpense[]>>;
   onCreateClick: () => void;
-  onCloseClick: () => void;
-  onDownloadCsvClick: () => void;
+  onParseClick?: () => void | undefined;
 };
 
 const columnHelper = createColumnHelper<ParsedExpenseTable>();
@@ -76,14 +75,7 @@ const columns = [
 ];
 
 const UploadSummary = (props: UploadSummaryProps) => {
-  const {
-    parsedExpenses,
-    parsedStatement,
-    onCreateClick,
-    onCloseClick,
-    onDownloadCsvClick,
-    setParsedExpense,
-  } = props;
+  const { parsedExpenses, parsedStatement, onCreateClick, onParseClick, setParsedExpense } = props;
 
   const [data, setTableData] = useState<ParsedExpenseTable[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -202,15 +194,14 @@ const UploadSummary = (props: UploadSummaryProps) => {
         </Table>
       </div>
       <div className="flex flex-row-reverse gap-3">
-        <Button onClick={onCloseClick} className="w-fit">
-          Close
-        </Button>
         <Button onClick={onCreateClick} className="w-fit">
           Store
         </Button>
-        <Button onClick={onDownloadCsvClick} className="w-fit">
-          Download
-        </Button>
+        {onParseClick && (
+          <Button onClick={onParseClick} className="w-fit">
+            Parse
+          </Button>
+        )}
       </div>
     </>
   );

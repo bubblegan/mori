@@ -2,11 +2,15 @@
 import "pdfjs-dist/build/pdf.worker.mjs";
 import Tesseract from "tesseract.js";
 
-const extractTextFromPDF = async (statement: File) => {
+export async function extractTextFromPDF(
+  statement: File,
+  onProgress: (params: [currentPage: number, totalPage: number]) => void
+) {
   const { getDocument } = await import("pdfjs-dist");
   const pdf = await getDocument(URL.createObjectURL(statement)).promise;
   let pdfText = "";
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    onProgress([pageNum, pdf.numPages]);
     const page = await pdf.getPage(pageNum);
     const viewport = page.getViewport({ scale: 2 });
     const canvas = document.createElement("canvas");
@@ -17,7 +21,6 @@ const extractTextFromPDF = async (statement: File) => {
     if (context) {
       await page.render({ canvasContext: context, viewport }).promise;
       const text = await Tesseract.recognize(canvas, "eng").then(({ data: { text } }) => text);
-
       pdfText += text + "\n\n";
     }
   }
@@ -39,6 +42,4 @@ const extractTextFromPDF = async (statement: File) => {
   }
 
   return pdfText;
-};
-
-export default extractTextFromPDF;
+}
