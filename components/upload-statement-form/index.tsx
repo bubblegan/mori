@@ -5,8 +5,8 @@ import { Switch } from "@/ui/switch";
 import { trpc } from "@/utils/trpc";
 import dayjs from "dayjs";
 import { useDropzone } from "react-dropzone";
-import generateCategorisePrompt from "../../server/ai/generateCategorisePrompt";
-import generateParsingPrompt from "../../server/ai/generateParsingPrompt";
+import { generateCategorisePrompt } from "../../server/ai/generate-categorise-prompt";
+import { generateParsingPrompt } from "../../server/ai/generate-parsing-prompt";
 import { Progress } from "../ui/progress";
 import { toast } from "../ui/use-toast";
 import UploadSummary from "./upload-summary";
@@ -14,7 +14,7 @@ import { useCategoriseCompletion } from "./use-categorise-completion";
 import { extractTextFromPDF } from "./use-extract-from-pdf";
 import { useParsingCompletion } from "./use-parsing-completion";
 
-export type UploadingState = "default" | "filepreview" | "reading" | "prompting" | "done";
+export type UploadingState = "default" | "filepreview" | "reading" | "prompting" | "done" | "error";
 
 export type ParsedExpense = {
   tempId: number;
@@ -30,8 +30,6 @@ export type ParsedStatement = {
   statementDate: Date | null;
   totalAmount: number;
 };
-
-export type PromptingState = "parsing" | "categorise";
 
 const UploadStatementForm = ({
   isOpen = false,
@@ -54,22 +52,29 @@ const UploadStatementForm = ({
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
   const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
   const [progress, setProgress] = useState({ percent: 0, text: "" });
+  const [errorText, setErrorText] = useState("");
   const [file, setFile] = useState<File | undefined>(undefined);
 
   const utils = trpc.useUtils();
 
-  const { complete: completeCategorise } = useCategoriseCompletion((categorisedRecord) => {
-    const parsedExpenseCategorised = parsedExpense.map((expense) => {
-      if (!isNaN(expense.tempId) && categorisedRecord[expense.tempId]) {
-        expense.categoryId = Number(categorisedRecord[expense.tempId]);
-        expense.categoryTitle = categoriesMap[Number(categorisedRecord[expense.tempId])];
-      }
-      return expense;
-    });
-    setStartCategorise(false);
-    setUploadingState("done");
-    setParsedExpense(parsedExpenseCategorised);
-  });
+  const { complete: completeCategorise } = useCategoriseCompletion(
+    (categorisedRecord) => {
+      const parsedExpenseCategorised = parsedExpense.map((expense) => {
+        if (!isNaN(expense.tempId) && categorisedRecord[expense.tempId]) {
+          expense.categoryId = Number(categorisedRecord[expense.tempId]);
+          expense.categoryTitle = categoriesMap[Number(categorisedRecord[expense.tempId])];
+        }
+        return expense;
+      });
+      setStartCategorise(false);
+      setUploadingState("done");
+      setParsedExpense(parsedExpenseCategorised);
+    },
+    (error) => {
+      setUploadingState("error");
+      setErrorText(error.message);
+    }
+  );
 
   const handleCategorise = (parsedExpenses: ParsedExpense[]) => {
     const uncategorisedExpense = parsedExpenses.filter((expense) => !expense.categoryId);
@@ -77,16 +82,22 @@ const UploadStatementForm = ({
     completeCategorise(promptText);
   };
 
-  const { complete: completeParsing } = useParsingCompletion(([parsedStatement, parsedExpenses]) => {
-    setParsedStatement(parsedStatement);
-    setParsedExpense(parsedExpenses);
+  const { complete: completeParsing } = useParsingCompletion(
+    ([parsedStatement, parsedExpenses]) => {
+      setParsedStatement(parsedStatement);
+      setParsedExpense(parsedExpenses);
 
-    if (enableAiCategorise) {
-      setStartCategorise(true);
-    } else {
-      setUploadingState("done");
+      if (enableAiCategorise) {
+        setStartCategorise(true);
+      } else {
+        setUploadingState("done");
+      }
+    },
+    (error) => {
+      setUploadingState("error");
+      setErrorText(error.message);
     }
-  });
+  );
 
   useEffect(() => {
     if (startCategorise) {
@@ -170,11 +181,18 @@ const UploadStatementForm = ({
     let prompt = "";
     if (file && file.type === "application/pdf") {
       setUploadingState("reading");
-      const statementText = await extractTextFromPDF(file, (param) => {
-        const [currPage, totalPage] = param;
-        const percent = (currPage / totalPage) * 100;
-        setProgress({ percent, text: `currently parsing ${currPage} of ${totalPage} page` });
-      });
+      let statementText = "";
+      try {
+        statementText = await extractTextFromPDF(file, (param) => {
+          const [currPage, totalPage] = param;
+          const percent = (currPage / totalPage) * 100;
+          setProgress({ percent, text: `currently parsing ${currPage} of ${totalPage} page` });
+        });
+      } catch (error) {
+        setUploadingState("error");
+        setErrorText("OCR error");
+      }
+
       prompt = generateParsingPrompt(statementText);
       setUploadingState("prompting");
       completeParsing(prompt);
@@ -188,6 +206,10 @@ const UploadStatementForm = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onError: (error: Error) => {
+      setUploadingState("error");
+      setErrorText(error.message);
+    },
     accept: {
       "text/csv": [".csv"],
       "application/csv": [".csv"],
@@ -274,6 +296,24 @@ const UploadStatementForm = ({
             <div className="flex flex-row-reverse">
               <Button className="w-fit" onClick={() => handleParse()}>
                 Parse
+              </Button>
+            </div>
+          </>
+        )}
+        {uploadingState === "error" && (
+          <>
+            <p>{errorText}</p>
+            <div className="flex flex-row-reverse">
+              <Button
+                className="w-fit"
+                onClick={() => {
+                  setUploadingState("default");
+                  setFile(undefined);
+                  setStartCategorise(false);
+                  setParsedExpense([]);
+                  setParsedStatement(undefined);
+                }}>
+                Back
               </Button>
             </div>
           </>

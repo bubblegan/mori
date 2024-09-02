@@ -2,7 +2,7 @@ import { useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { useCompletion } from "ai/react";
 import dayjs from "dayjs";
-import generateCategorisePrompt from "../../server/ai/generateCategorisePrompt";
+import { generateCategorisePrompt } from "../../server/ai/generate-categorise-prompt";
 import { DateRange, dateRangeKeyConvert } from "../date-range-key";
 import { trpc } from "../trpc";
 

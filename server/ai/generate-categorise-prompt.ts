@@ -5,7 +5,7 @@ type CategorizableExpense = {
   tempId: number | undefined;
 };
 
-function generateCategorisePrompt(expenses: CategorizableExpense[], categories: Category[]) {
+export function generateCategorisePrompt(expenses: CategorizableExpense[], categories: Category[]) {
   const categoriesLine = categories.map((cat) => {
     return cat.title;
   });
@@ -30,5 +30,3 @@ function generateCategorisePrompt(expenses: CategorizableExpense[], categories: 
 
   return prompt;
 }
-
-export default generateCategorisePrompt;

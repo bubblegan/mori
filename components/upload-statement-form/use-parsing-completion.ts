@@ -3,7 +3,10 @@ import { useCompletion } from "ai/react";
 import dayjs from "dayjs";
 import { ParsedStatement, ParsedExpense } from ".";
 
-export function useParsingCompletion(onFinish: (parsedData: [ParsedStatement, ParsedExpense[]]) => void) {
+export function useParsingCompletion(
+  onFinish: (parsedData: [ParsedStatement, ParsedExpense[]]) => void,
+  onError: (error: Error) => void
+) {
   const categories = trpc.category.list.useQuery();
   const categoriesMap: Record<number, string> = {};
   if (categories.data?.result) {
@@ -70,6 +73,7 @@ export function useParsingCompletion(onFinish: (parsedData: [ParsedStatement, Pa
 
       onFinish([parseStatementResult, parsedExpenses]);
     },
+    onError,
   });
 
   return {

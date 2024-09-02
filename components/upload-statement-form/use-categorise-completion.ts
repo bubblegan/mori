@@ -1,6 +1,9 @@
 import { useCompletion } from "ai/react";
 
-export function useCategoriseCompletion(onFinish: (parsedData: Record<string, string>) => void) {
+export function useCategoriseCompletion(
+  onFinish: (parsedData: Record<string, string>) => void,
+  onError: (error: Error) => void
+) {
   const { complete, isLoading, completion } = useCompletion({
     onFinish: (_, completion) => {
       const categorisedRecord: Record<string, string> = {};
@@ -10,6 +13,7 @@ export function useCategoriseCompletion(onFinish: (parsedData: Record<string, st
       });
       onFinish(categorisedRecord);
     },
+    onError,
   });
 
   return {

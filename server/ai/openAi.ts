@@ -8,7 +8,7 @@ async function main(prompt: string) {
   const completion = await openai.chat.completions
     .create({
       messages: [{ role: "system", content: prompt }],
-      model: "gpt-4",
+      model: "gpt-4o-mini",
     })
     .catch(async (err) => {
       throw err;

@@ -1,4 +1,4 @@
-function generateParsingPrompt(statementText: string) {
+export function generateParsingPrompt(statementText: string) {
   let prompt =
     "Base on the following lines that read from a credit card statement PDf, help me extract lines of expense in the following template. Note: Please list all the expenses. \n";
   prompt += "{date}, {descrption}, {amount} \n";
@@ -22,5 +22,3 @@ function generateParsingPrompt(statementText: string) {
 
   return prompt;
 }
-
-export default generateParsingPrompt;
