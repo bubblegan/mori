@@ -1,8 +1,10 @@
 import dayjs from "dayjs";
 import { DateRange, dateRangeKeyConvert } from "./date-range-key";
+import { convertToISO } from "./date-util";
 
 export function getExpenseFilterParam() {
   const searchParams = typeof window == "undefined" ? undefined : new URLSearchParams(window.location.search);
+
   const statementIds = searchParams?.get("statement-ids")?.split(",").map(Number) || [];
   const categoryIds = searchParams?.get("category-ids")?.split(",").map(Number) || [];
   const keyword = searchParams?.get("keyword") || "";
@@ -16,8 +18,8 @@ export function getExpenseFilterParam() {
 
   if (dateRange) {
     const [startDate, endDate] = dateRangeKeyConvert(dateRange as DateRange);
-    start = dayjs(startDate).toISOString();
-    end = dayjs(endDate).toISOString();
+    start = convertToISO(startDate);
+    end = convertToISO(endDate);
   }
 
   if (!startDate && endDate) {

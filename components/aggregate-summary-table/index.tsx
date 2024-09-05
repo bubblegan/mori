@@ -34,16 +34,16 @@ const columns = [
 export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
   const { aggregateBy } = props;
 
-  // get data here
-  const categories = useHandleCategoryAggregate();
+  const catAggregate = useHandleCategoryAggregate();
   const monthly = useHandleMonthAggregate();
+  // const categories = trpc.category.list.useQuery();
 
   const [data, setData] = useState<TableData[]>(() => []);
   const [, setValue] = useAtom(CategoryFormAtom);
 
   useEffect(() => {
-    if (categories.isSuccess && categories.data && aggregateBy === "category") {
-      const tableData = categories.data.map((category) => {
+    if (catAggregate.isSuccess && catAggregate.data && aggregateBy === "category") {
+      const tableData = catAggregate.data.map((category) => {
         return {
           title: category.title[0].toLocaleUpperCase() + category.title.substring(1),
           amount: category.amount,
@@ -51,7 +51,7 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
       });
       setData(tableData);
     }
-  }, [categories.data, categories.isSuccess, setValue, aggregateBy]);
+  }, [catAggregate.data, catAggregate.isSuccess, setValue, aggregateBy]);
 
   useEffect(() => {
     if (monthly.isSuccess && monthly.data && aggregateBy === "monthly") {
@@ -95,7 +95,7 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="w-fit py-5 text-neutral-100" key={cell.id}>
+                  <TableCell className="w-fit py-4 text-neutral-100" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

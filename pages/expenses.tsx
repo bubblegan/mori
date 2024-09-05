@@ -3,14 +3,13 @@ import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
-import { AggregateSummaryChart } from "@/components/aggregate-summary-chart";
-import { AggregateSummaryTable } from "@/components/aggregate-summary-table";
 import BasePage from "@/components/base-page";
 import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
 import CategorySelect from "@/components/category-select";
 import DateRangePicker from "@/components/date-range-picker";
 import { ExpenseFilterPills } from "@/components/expense-filter-pills";
 import ExpenseForm from "@/components/expense-form";
+import { ExpenseSummarySection } from "@/components/expense-summary-section";
 import ExpenseTable from "@/components/expense-table";
 import KeywordSearch from "@/components/keyword-search";
 import StatementSelect from "@/components/statement-select";
@@ -57,7 +56,7 @@ export default function Expenses() {
   const view = searchParams?.get("view");
 
   // get data here
-  const { expenses } = useHandleExpenseFetch();
+  const { expenses, amount } = useHandleExpenseFetch();
 
   const donwloadAsCsv = useCallback(() => {
     if (expenses.data) {
@@ -86,7 +85,12 @@ export default function Expenses() {
         <div className="flex w-full flex-col gap-4">
           <div className="flex w-full justify-between">
             {view === "aggregate" ? (
-              <div />
+              <div className="flex gap-3">
+                <DateRangePicker />
+                <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
+                  <span>Total: $ {amount}</span>
+                </div>
+              </div>
             ) : (
               <div className="flex gap-3">
                 <div className="w-64">
@@ -103,6 +107,9 @@ export default function Expenses() {
                   const params = new URLSearchParams(window.location.search);
                   if (value === "aggregate") {
                     params.set("view", value);
+                    params.delete("statement-ids");
+                    params.delete("category-ids");
+                    params.delete("keyword");
                   } else {
                     params.delete("view");
                   }
@@ -110,7 +117,8 @@ export default function Expenses() {
                     shallow: true,
                   });
                 }}
-                defaultValue="expense">
+                defaultValue="expense"
+                value={view || "expense"}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -141,14 +149,7 @@ export default function Expenses() {
             </div>
           </div>
           <ExpenseFilterPills />
-          {view === "aggregate" ? (
-            <div className="flex flex-col gap-4">
-              <AggregateSummaryChart aggregateBy="monthly" />
-              <AggregateSummaryTable aggregateBy="monthly" />
-            </div>
-          ) : (
-            <ExpenseTable />
-          )}
+          {view === "aggregate" ? <ExpenseSummarySection /> : <ExpenseTable />}
         </div>
         <ExpenseForm />
         <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />

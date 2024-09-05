@@ -71,5 +71,12 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
     complete(promptText);
   };
 
-  return { expenses, handleAiCategorise };
+  let totalAmt = 0;
+  expenses.data?.result.forEach((expense) => {
+    totalAmt += Number(expense.amount);
+  });
+
+  const amount = totalAmt.toFixed(2);
+
+  return { amount, expenses, handleAiCategorise };
 }

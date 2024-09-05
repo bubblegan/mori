@@ -41,7 +41,7 @@ export const catergoryRouter = router({
         conditions.push(Prisma.sql`"AND Expense"."statementId" IN (${Prisma.join(input.statementIds)})`);
       }
 
-      const result = await prisma.$queryRaw<{ title: string; amount: number }[]>`
+      const result = await prisma.$queryRaw<{ title: string; amount: number; color: string }[]>`
         Select coalesce("Category"."title", 'uncategorised') as "title", coalesce("Category"."color", '#1e293b') as "color" ,SUM("Expense"."amount") as amount
         From "Expense"
         LEFT JOIN "Category" on "Category"."id" = "Expense"."categoryId" 

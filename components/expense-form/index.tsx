@@ -8,6 +8,7 @@ import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import cn from "@/utils/cn";
+import { convertToISO } from "@/utils/date-util";
 import { trpc } from "@/utils/trpc";
 import { Expense } from "@prisma/client";
 import dayjs from "dayjs";
@@ -77,7 +78,7 @@ const ExpenseForm = () => {
       description: data.description,
       amount: data.amount,
       note: data.note,
-      date: data.date.toISOString(),
+      date: convertToISO(data.date),
       tags: data.tags,
     });
   };

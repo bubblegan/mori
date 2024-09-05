@@ -1,4 +1,4 @@
-export type DateRange = "year-to-date" | "last-month" | "last-year" | "";
+export type DateRange = "year-to-date" | "last-month" | "last-year" | "past-one-year" | "";
 
 export function dateRangeKeyConvert(dateRange: DateRange) {
   const today = new Date();
@@ -30,6 +30,7 @@ export function dateRangeKeyConvert(dateRange: DateRange) {
 export const dateRangeTitleMap: Record<DateRange, string> = {
   ["last-month"]: "LAST MONTH",
   ["year-to-date"]: "YEAR TO DATE",
+  ["past-one-year"]: "PAST ONE YEAR",
   ["last-year"]: "LAST YEAR",
   [""]: "NONE",
 };
