@@ -49,7 +49,7 @@ export default function Expenses() {
     if (params.size === 0) {
       router.push({
         pathname: "/expenses",
-        query: { dateRange: "YearToDate" },
+        query: { ["date-range"]: "year-to-date" },
       });
     }
   }, [router]);
@@ -166,7 +166,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     // Redirect to the same page with the 'pass=true' query parameter
     return {
       redirect: {
-        destination: `${resolvedUrl}?dateRange=YearToDate`,
+        destination: `${resolvedUrl}?date-range=year-to-date`,
         permanent: false,
       },
     };

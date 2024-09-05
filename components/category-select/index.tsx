@@ -45,9 +45,9 @@ const CategorySelect = () => {
                       newCategoryIds = categoryIds.filter((id) => id !== category.id);
                     }
                     if (newCategoryIds.length > 0) {
-                      params.set("categoryIds", newCategoryIds.join(","));
+                      params.set("category-ids", newCategoryIds.join(","));
                     } else {
-                      params.delete("categoryIds");
+                      params.delete("category-ids");
                     }
                     router.push(`/expenses?${params.toString()}`, undefined, {
                       shallow: true,

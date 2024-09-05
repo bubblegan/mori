@@ -10,8 +10,8 @@ export function ExpenseFilterPills() {
   const categories = trpc.category.list.useQuery();
   const statements = trpc.statement.list.useQuery({});
 
-  const categoryIds = searchParams?.get("categoryIds")?.split(",") || [];
-  const statementIds = searchParams?.get("statementIds")?.split(",") || [];
+  const categoryIds = searchParams?.get("category-ids")?.split(",") || [];
+  const statementIds = searchParams?.get("statement-ids")?.split(",") || [];
 
   const selectedCategory =
     categories.data?.result?.filter((category) => categoryIds.includes(category.id.toString())) || [];
@@ -24,11 +24,11 @@ export function ExpenseFilterPills() {
     const params = new URLSearchParams(window.location.search);
     let filteredIds: string[] = [];
 
-    if (param === "categoryIds") {
+    if (param === "category-ids") {
       filteredIds = categoryIds.filter((categoryId) => categoryId !== id.toString());
     }
 
-    if (param === "statementIds") {
+    if (param === "statement-ids") {
       filteredIds = statementIds.filter((statementId) => statementId !== id.toString());
     }
 
@@ -48,7 +48,7 @@ export function ExpenseFilterPills() {
         return (
           <div
             key={category.id}
-            onClick={() => removeFromParam("categoryIds", category.id)}
+            onClick={() => removeFromParam("category-ids", category.id)}
             className="flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xs"
             style={{ background: category.color }}>
             {category.title}
@@ -60,7 +60,7 @@ export function ExpenseFilterPills() {
         return (
           <div
             key={statement.id}
-            onClick={() => removeFromParam("statementIds", statement.id)}
+            onClick={() => removeFromParam("statement-ids", statement.id)}
             className="flex cursor-pointer flex-row items-center gap-2 rounded-md bg-green-800 px-3 py-2 text-xs">
             {statement.name}
             <X size={14} />

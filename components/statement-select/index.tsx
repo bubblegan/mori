@@ -28,7 +28,7 @@ const StatementSelect = () => {
     }, {}) || {};
 
   const params = new URLSearchParams(window.location.search);
-  let statementIds = params.get("statementIds")?.split(",") || [];
+  let statementIds = params.get("statement-ids")?.split(",") || [];
 
   return (
     <Popover>
@@ -71,13 +71,13 @@ const StatementSelect = () => {
                               statementIds = statementIds.filter((id) => id !== statement.id.toString());
                             }
                             if (statementIds.length > 0) {
-                              params.set("statementIds", statementIds.join(","));
+                              params.set("statement-ids", statementIds.join(","));
                             } else {
-                              params.delete("statementIds");
+                              params.delete("statement-ids");
                             }
-                            params.delete("dateRange");
-                            params.delete("startDate");
-                            params.delete("endDate");
+                            params.delete("date-range");
+                            params.delete("start-date");
+                            params.delete("end-date");
                             router.push(`/expenses?${params.toString()}`, undefined, {
                               shallow: true,
                             });

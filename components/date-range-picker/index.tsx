@@ -6,12 +6,10 @@ import { Calendar } from "@/ui/calendar";
 import { Input } from "@/ui/input";
 import { Popover, PopoverContent } from "@/ui/popover";
 import cn from "@/utils/cn";
-import { dateRangeTitleMap } from "@/utils/date-range-key";
+import { DateRange, dateRangeTitleMap } from "@/utils/date-range-key";
 import { PopoverTrigger } from "@radix-ui/react-popover";
 import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
-
-type DateRange = "YearToDate" | "LastMonth" | "LastYear" | "";
 
 const DateRangePicker = () => {
   const searchParams = useSearchParams();
@@ -25,10 +23,10 @@ const DateRangePicker = () => {
   const assignStateToParam = () => {
     const params = new URLSearchParams(window.location.search);
     if (showCustomDate && startDate && endDate) {
-      params.set("startDate", dayjs(startDate).format("YYYY-MM-DD"));
-      params.set("endDate", dayjs(endDate).format("YYYY-MM-DD"));
-      params.delete("dateRange");
-      params.delete("statementIds");
+      params.set("start-date", dayjs(startDate).format("YYYY-MM-DD"));
+      params.set("end-date", dayjs(endDate).format("YYYY-MM-DD"));
+      params.delete("date-range");
+      params.delete("statement-ids");
     }
 
     router.push(`/expenses?${params.toString()}`, undefined, {
@@ -37,8 +35,8 @@ const DateRangePicker = () => {
   };
 
   useEffect(() => {
-    const startDateParam = searchParams?.get("startDate");
-    const endDateParam = searchParams?.get("endDate");
+    const startDateParam = searchParams?.get("start-date");
+    const endDateParam = searchParams?.get("end-date");
 
     const startDateParsed = dayjs(startDateParam, "YYYY-MM-DD");
     const endDateParsed = dayjs(endDateParam, "YYYY-MM-DD");
@@ -51,10 +49,10 @@ const DateRangePicker = () => {
 
   const handleDateRangeClick = (dateRange: DateRange) => {
     const params = new URLSearchParams(window.location.search);
-    params.delete("startDate");
-    params.delete("endDate");
-    params.delete("statementIds");
-    params.set("dateRange", dateRange);
+    params.delete("start-date");
+    params.delete("end-date");
+    params.delete("statement-ids");
+    params.set("date-range", dateRange);
 
     setCalendarOpen(false);
     setShowCustomDate(false);
@@ -65,7 +63,7 @@ const DateRangePicker = () => {
   };
 
   const dateTitle = useMemo(() => {
-    const dateRangeParam = searchParams?.get("dateRange") as DateRange;
+    const dateRangeParam = searchParams?.get("date-range") as DateRange;
 
     if (dateRangeParam) {
       return dateRangeTitleMap[dateRangeParam];
@@ -81,9 +79,9 @@ const DateRangePicker = () => {
   const handleReset = () => {
     const params = new URLSearchParams(window.location.search);
 
-    params.delete("startDate");
-    params.delete("endDate");
-    params.delete("dateRange");
+    params.delete("start-date");
+    params.delete("end-date");
+    params.delete("date-range");
     setCalendarOpen(false);
 
     router.push(`/expenses?${params.toString()}`, undefined, {
@@ -110,13 +108,13 @@ const DateRangePicker = () => {
         className="flex w-auto flex-row gap-6 p-4"
         align="start">
         <div className="flex flex-col gap-2">
-          <Button variant="ghost" onClick={() => handleDateRangeClick("YearToDate")}>
+          <Button variant="ghost" onClick={() => handleDateRangeClick("year-to-date")}>
             Year To Date
           </Button>
-          <Button variant="ghost" onClick={() => handleDateRangeClick("LastYear")}>
+          <Button variant="ghost" onClick={() => handleDateRangeClick("last-year")}>
             Last Year
           </Button>
-          <Button variant="ghost" onClick={() => handleDateRangeClick("LastMonth")}>
+          <Button variant="ghost" onClick={() => handleDateRangeClick("last-month")}>
             Last Month
           </Button>
           <Button variant="ghost" onClick={() => setShowCustomDate(true)}>

@@ -3,12 +3,12 @@ import { DateRange, dateRangeKeyConvert } from "./date-range-key";
 
 export function getExpenseFilterParam() {
   const searchParams = typeof window == "undefined" ? undefined : new URLSearchParams(window.location.search);
-  const statementIds = searchParams?.get("statementIds")?.split(",").map(Number) || [];
-  const categoryIds = searchParams?.get("categoryIds")?.split(",").map(Number) || [];
+  const statementIds = searchParams?.get("statement-ids")?.split(",").map(Number) || [];
+  const categoryIds = searchParams?.get("category-ids")?.split(",").map(Number) || [];
   const keyword = searchParams?.get("keyword") || "";
-  const startDate = searchParams?.get("startDate");
-  const endDate = searchParams?.get("endDate");
-  const dateRange = searchParams?.get("dateRange");
+  const startDate = searchParams?.get("start-date");
+  const endDate = searchParams?.get("end-date");
+  const dateRange = searchParams?.get("date-range");
   const uncategorised = searchParams?.get("uncategorised") === "true";
 
   let start = null;

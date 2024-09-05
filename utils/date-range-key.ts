@@ -1,21 +1,21 @@
-export type DateRange = "YearToDate" | "LastMonth" | "LastYear";
+export type DateRange = "year-to-date" | "last-month" | "last-year" | "";
 
 export function dateRangeKeyConvert(dateRange: DateRange) {
   const today = new Date();
   let startDate = new Date();
   let endDate = new Date();
 
-  if (dateRange === "YearToDate") {
+  if (dateRange === "year-to-date") {
     startDate = new Date(today.getFullYear(), 0, 1);
     endDate = new Date();
   }
 
-  if (dateRange === "LastYear") {
+  if (dateRange === "last-year") {
     startDate = new Date(today.getFullYear() - 1, 0, 1);
     endDate = new Date(today.getFullYear() - 1, 11, 31);
   }
 
-  if (dateRange === "LastMonth") {
+  if (dateRange === "last-month") {
     const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     startDate = new Date(firstDayThisMonth.getDate() - 1);
     endDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
@@ -28,7 +28,8 @@ export function dateRangeKeyConvert(dateRange: DateRange) {
 }
 
 export const dateRangeTitleMap: Record<DateRange, string> = {
-  LastMonth: "LAST MONTH",
-  YearToDate: "YEAR TO DATE",
-  LastYear: "LAST YEAR",
+  ["last-month"]: "LAST MONTH",
+  ["year-to-date"]: "YEAR TO DATE",
+  ["last-year"]: "LAST YEAR",
+  [""]: "NONE",
 };
