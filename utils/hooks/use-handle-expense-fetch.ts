@@ -1,9 +1,7 @@
-import { useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { useCompletion } from "ai/react";
-import dayjs from "dayjs";
 import { generateCategorisePrompt } from "../../server/ai/generate-categorise-prompt";
-import { DateRange, dateRangeKeyConvert } from "../date-range-key";
+import { getExpenseFilterParam } from "../get-expense-filter-params";
 import { trpc } from "../trpc";
 
 type CategorisedExpense = {
@@ -12,18 +10,10 @@ type CategorisedExpense = {
 };
 
 export function useHandleExpenseFetch(onFinishCategorising: () => void = () => null) {
-  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const utils = trpc.useUtils();
-  const statementIds = searchParams?.get("statementIds")?.split(",").map(Number) || [];
-  const categoryIds = searchParams?.get("categoryIds")?.split(",").map(Number) || [];
-  const keyword = searchParams?.get("keyword") || "";
-  const dateRange = searchParams?.get("dateRange");
-  const startDate = searchParams?.get("startDate");
-  const endDate = searchParams?.get("endDate");
-  let start = null;
-  let end = null;
+  const { statementIds, start, end, keyword, categoryIds, uncategorised } = getExpenseFilterParam();
 
   const categories = trpc.category.list.useQuery();
   const { mutate: updateCategories } = trpc.expense.categorise.useMutation({
@@ -35,7 +25,6 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
 
   const { complete } = useCompletion({
     onFinish: (_, completion) => {
-      // {expenseId},{expense},{category},{categoryid}
       const categorised: CategorisedExpense[] = [];
       completion?.split("\n").forEach((line) => {
         const data = line.split(",");
@@ -50,21 +39,6 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
     },
   });
 
-  if (dateRange) {
-    const [startDate, endDate] = dateRangeKeyConvert(dateRange as DateRange);
-    start = dayjs(startDate).toISOString();
-    end = dayjs(endDate).toISOString();
-  }
-
-  if (!dateRange && startDate && endDate) {
-    const startDateParsed = dayjs(startDate, "YYYY-MM-DD");
-    const endDateParsed = dayjs(endDate, "YYYY-MM-DD");
-
-    if (startDateParsed.isValid() && endDateParsed.isValid()) {
-      start = dayjs(startDateParsed).toISOString();
-      end = dayjs(endDateParsed).toISOString();
-    }
-  }
   const expenses = trpc.expense.list.useQuery({
     statementIds,
     dateRange: {
@@ -73,17 +47,26 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
     },
     keyword,
     categoryIds,
+    uncategorised,
   });
 
   // handle categorise
-  const handleAiCategorise = () => {
+  const handleAiCategorise = ({ onlyUncategorise } = { onlyUncategorise: true }) => {
     const uncategorisedExpense =
-      expenses.data?.result.map((expense) => {
-        return {
-          description: expense.description,
-          tempId: expense.id,
-        };
-      }) || [];
+      expenses.data?.result
+        .filter((expense) => {
+          if (onlyUncategorise) {
+            return !expense.categoryId;
+          }
+
+          return true;
+        })
+        .map((expense) => {
+          return {
+            description: expense.description,
+            tempId: expense.id,
+          };
+        }) || [];
     const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data?.result || []);
     complete(promptText);
   };

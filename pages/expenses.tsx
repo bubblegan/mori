@@ -1,22 +1,25 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
+import { AggregateSummaryChart } from "@/components/aggregate-summary-chart";
+import { AggregateSummaryTable } from "@/components/aggregate-summary-table";
 import BasePage from "@/components/base-page";
 import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
 import CategorySelect from "@/components/category-select";
-import CategorySummaryTable from "@/components/category-summary-table";
 import DateRangePicker from "@/components/date-range-picker";
 import { ExpenseFilterPills } from "@/components/expense-filter-pills";
 import ExpenseForm from "@/components/expense-form";
 import ExpenseTable from "@/components/expense-table";
 import KeywordSearch from "@/components/keyword-search";
 import StatementSelect from "@/components/statement-select";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -27,10 +30,12 @@ import {
   SelectContent,
 } from "@/components/ui/select";
 import UploadStatementForm from "@/components/upload-statement-form";
-import { Button } from "@/ui/button";
 import { downloadCsv } from "@/utils/download-as-csv";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import dayjs from "dayjs";
+import { Plus, Settings, Upload } from "lucide-react";
+
+export type AggregateType = "category" | "monthly";
 
 export default function Expenses() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -38,8 +43,16 @@ export default function Expenses() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const isFiltered =
-    searchParams?.has("keyword") || searchParams?.has("categoryIds") || searchParams?.has("statementIds");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.size === 0) {
+      router.push({
+        pathname: "/expenses",
+        query: { dateRange: "YearToDate" },
+      });
+    }
+  }, [router]);
 
   const view = searchParams?.get("view");
 
@@ -72,24 +85,19 @@ export default function Expenses() {
       <BasePage>
         <div className="flex w-full flex-col gap-4">
           <div className="flex w-full justify-between">
-            <div className="flex gap-4">
-              <div className="w-64">
-                <KeywordSearch />
+            {view === "aggregate" ? (
+              <div />
+            ) : (
+              <div className="flex gap-3">
+                <div className="w-64">
+                  <KeywordSearch />
+                </div>
+                <StatementSelect />
+                <CategorySelect />
+                <DateRangePicker />
               </div>
-              <StatementSelect />
-              <CategorySelect />
-              <DateRangePicker />
-              {isFiltered && (
-                <Button
-                  onClick={() => {
-                    router.push(`/expenses`, undefined, {
-                      shallow: true,
-                    });
-                  }}
-                  variant={"ghost"}>
-                  Reset
-                </Button>
-              )}
+            )}
+            <div className="flex flex-row gap-3">
               <Select
                 onValueChange={(value) => {
                   const params = new URLSearchParams(window.location.search);
@@ -104,27 +112,43 @@ export default function Expenses() {
                 }}
                 defaultValue="expense">
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select a fruit" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="expense">Expenses</SelectItem>
-                    <SelectItem value="aggregate">Aggregate</SelectItem>
+                    <SelectItem value="expense">Expenses View</SelectItem>
+                    <SelectItem value="aggregate">Aggregate View</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+                <Plus size={16} />
+              </Button>
+              <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+                <Upload size={16} />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger onClick={() => setUploadDialogOpen(true)} asChild>
+                  <Button variant="outline">
+                    <Settings size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem>
+                  <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="rounded-lg border px-4 text-sm">Options</DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem>
-                <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUploadDialogOpen(true)}>Upload</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
           <ExpenseFilterPills />
-          {view === "aggregate" ? <CategorySummaryTable /> : <ExpenseTable />}
+          {view === "aggregate" ? (
+            <div className="flex flex-col gap-4">
+              <AggregateSummaryChart aggregateBy="monthly" />
+              <AggregateSummaryTable aggregateBy="monthly" />
+            </div>
+          ) : (
+            <ExpenseTable />
+          )}
         </div>
         <ExpenseForm />
         <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />
@@ -132,4 +156,24 @@ export default function Expenses() {
       </BasePage>
     </>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { query, resolvedUrl } = context;
+
+  // Check if 'pass' query param is missing
+  if (Object.keys(query).length === 0) {
+    // Redirect to the same page with the 'pass=true' query parameter
+    return {
+      redirect: {
+        destination: `${resolvedUrl}?dateRange=YearToDate`,
+        permanent: false,
+      },
+    };
+  }
+
+  // Continue with the normal page rendering if 'pass' is present
+  return {
+    props: {}, // Pass any necessary props here
+  };
 }

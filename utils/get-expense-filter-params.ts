@@ -1,14 +1,15 @@
-import { useSearchParams } from "next/navigation";
 import dayjs from "dayjs";
-import { DateRange, dateRangeKeyConvert } from "../date-range-key";
-import { trpc } from "../trpc";
+import { DateRange, dateRangeKeyConvert } from "./date-range-key";
 
-export function useHandleAggregateSum() {
-  const searchParams = useSearchParams();
+export function getExpenseFilterParam() {
+  const searchParams = typeof window == "undefined" ? undefined : new URLSearchParams(window.location.search);
   const statementIds = searchParams?.get("statementIds")?.split(",").map(Number) || [];
+  const categoryIds = searchParams?.get("categoryIds")?.split(",").map(Number) || [];
+  const keyword = searchParams?.get("keyword") || "";
   const startDate = searchParams?.get("startDate");
   const endDate = searchParams?.get("endDate");
   const dateRange = searchParams?.get("dateRange");
+  const uncategorised = searchParams?.get("uncategorised") === "true";
 
   let start = null;
   let end = null;
@@ -29,13 +30,5 @@ export function useHandleAggregateSum() {
     }
   }
 
-  const expenses = trpc.category.aggregate.useQuery({
-    statementIds,
-    dateRange: {
-      start,
-      end,
-    },
-  });
-
-  return expenses;
+  return { statementIds, start, end, keyword, categoryIds, uncategorised };
 }

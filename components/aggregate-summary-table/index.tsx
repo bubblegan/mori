@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
-import { useHandleAggregateSum } from "@/utils/hooks/use-handle-aggregate-sum";
+import { useHandleCategoryAggregate } from "@/utils/hooks/use-handle-category-aggregate";
+import { useHandleMonthAggregate } from "@/utils/hooks/use-handle-monthly-aggregate";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import dayjs from "dayjs";
 import { useAtom } from "jotai";
+import { AggregateType } from "../../pages/expenses";
 import { CategoryFormAtom } from "../category-form";
 
 type TableData = {
   title: string;
-  amount: string;
+  amount: number;
 };
 
 const columnHelper = createColumnHelper<TableData>();
@@ -16,32 +19,51 @@ const columnHelper = createColumnHelper<TableData>();
 const columns = [
   columnHelper.accessor("title", {
     cell: (info) => info.getValue(),
-    header: () => <span className="uppercase">Name</span>,
+    header: () => <span>Title</span>,
   }),
   columnHelper.accessor("amount", {
-    cell: (info) => info.getValue(),
-    header: () => <span className="uppercase">Amount</span>,
+    cell: (info) => (
+      <div className="flex w-20 justify-between">
+        $<span> {new Intl.NumberFormat().format(info.getValue())}</span>
+      </div>
+    ),
+    header: () => <span>Amount</span>,
   }),
 ];
 
-const CategorySummaryTable = () => {
+export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
+  const { aggregateBy } = props;
+
   // get data here
-  const categories = useHandleAggregateSum();
+  const categories = useHandleCategoryAggregate();
+  const monthly = useHandleMonthAggregate();
 
   const [data, setData] = useState<TableData[]>(() => []);
   const [, setValue] = useAtom(CategoryFormAtom);
 
   useEffect(() => {
-    if (categories.isSuccess && categories.data) {
-      const tableData = categories.data.result.map((category) => {
+    if (categories.isSuccess && categories.data && aggregateBy === "category") {
+      const tableData = categories.data.map((category) => {
         return {
-          title: category.title,
+          title: category.title[0].toLocaleUpperCase() + category.title.substring(1),
           amount: category.amount,
         };
       });
       setData(tableData);
     }
-  }, [categories.data, categories.isSuccess, setValue]);
+  }, [categories.data, categories.isSuccess, setValue, aggregateBy]);
+
+  useEffect(() => {
+    if (monthly.isSuccess && monthly.data && aggregateBy === "monthly") {
+      const tableData = monthly.data?.map((month) => {
+        return {
+          title: dayjs(month.title).format("MMM YYYY"),
+          amount: month.amount,
+        };
+      });
+      setData(tableData);
+    }
+  }, [monthly.data, monthly.isSuccess, setValue, aggregateBy]);
 
   const table = useReactTable({
     data,
@@ -84,6 +106,4 @@ const CategorySummaryTable = () => {
       </div>
     </div>
   );
-};
-
-export default CategorySummaryTable;
+}

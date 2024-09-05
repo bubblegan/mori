@@ -84,7 +84,7 @@ const StatementSelect = () => {
                           }}
                           id={`${statement.id}`}
                         />
-                        <label htmlFor={`${statement.id}`} className="w-32">
+                        <label htmlFor={`${statement.id}`} className="w-32 text-sm">
                           {statement.name}
                         </label>
                       </div>

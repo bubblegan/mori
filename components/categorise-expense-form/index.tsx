@@ -24,7 +24,7 @@ const columns = [
 
       return (
         <div
-          className="w-fit rounded-full px-3 py-0.5 capitalize"
+          className="w-fit rounded-md px-3 py-0.5 capitalize"
           style={{ background: info.getValue()?.color }}>
           {info.getValue()?.title}
         </div>
@@ -115,11 +115,12 @@ export function CategoriseExpenseForm({
         }}
         className="min-w-fit">
         <DialogHeader>
-          <DialogTitle>Upload Statement</DialogTitle>
+          <DialogTitle>Categorise</DialogTitle>
         </DialogHeader>
         {categoriseState === "categorising" && <p>prompting and categorising...</p>}
         {categoriseState === "default" && (
           <>
+            <p>Categorise the following {data.length} expense?</p>
             <ExpenseTableUi
               data={data}
               columns={columns}
@@ -128,7 +129,7 @@ export function CategoriseExpenseForm({
             <div className="flex w-full flex-row-reverse">
               <Button
                 onClick={() => {
-                  handleAiCategorise();
+                  handleAiCategorise({ onlyUncategorise: false });
                   setCategoriseState("categorising");
                 }}>
                 Categorise

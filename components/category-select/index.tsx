@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Checkbox } from "@/ui/checkbox";
 import { Popover, PopoverTrigger, PopoverContent } from "@/ui/popover";
+import { getExpenseFilterParam } from "@/utils/get-expense-filter-params";
 import { trpc } from "@/utils/trpc";
 import { PlusCircleIcon } from "lucide-react";
 
@@ -12,8 +13,8 @@ const CategorySelect = () => {
 
   if (categories.isFetching) return null;
 
+  const { categoryIds, uncategorised } = getExpenseFilterParam();
   const params = new URLSearchParams(window.location.search);
-  let categoryIds = params.get("categoryIds")?.split(",") || [];
 
   return (
     <Popover>
@@ -33,20 +34,18 @@ const CategorySelect = () => {
                 className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
                 key={category.id}>
                 <Checkbox
-                  checked={categoryIds.includes(category.id.toString())}
+                  checked={categoryIds.includes(category.id)}
                   onCheckedChange={() => {
-                    if (!categoryIds.includes(category.id.toString())) {
+                    let newCategoryIds = [];
+                    if (!categoryIds.includes(category.id)) {
                       // check
-                      categoryIds =
-                        categoryIds.length > 0
-                          ? [...categoryIds, category.id.toString()]
-                          : [category.id.toString()];
+                      newCategoryIds = categoryIds.length > 0 ? [...categoryIds, category.id] : [category.id];
                     } else {
                       // uncheck
-                      categoryIds = categoryIds.filter((id) => id !== category.id.toString());
+                      newCategoryIds = categoryIds.filter((id) => id !== category.id);
                     }
-                    if (categoryIds.length > 0) {
-                      params.set("categoryIds", categoryIds.join(","));
+                    if (newCategoryIds.length > 0) {
+                      params.set("categoryIds", newCategoryIds.join(","));
                     } else {
                       params.delete("categoryIds");
                     }
@@ -56,12 +55,35 @@ const CategorySelect = () => {
                   }}
                   id={`${category.id}`}
                 />
-                <label htmlFor={`${category.id}`} className="w-32">
-                  {category.title}
+                <label htmlFor={`${category.id}`} className="w-32 text-sm">
+                  {category.title[0].toLocaleUpperCase() + category.title.substring(1)}
                 </label>
               </div>
             );
           })}
+          <div
+            className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
+            key={"uncategorise"}>
+            <Checkbox
+              checked={uncategorised}
+              onCheckedChange={() => {
+                if (uncategorised) {
+                  // uncheck
+                  params.delete("uncategorised");
+                } else {
+                  // check
+                  params.set("uncategorised", "true");
+                }
+                router.push(`/expenses?${params.toString()}`, undefined, {
+                  shallow: true,
+                });
+              }}
+              id={"uncategorise"}
+            />
+            <label htmlFor={"uncategorise"} className="w-32 text-sm">
+              Uncategorised
+            </label>
+          </div>
         </div>
       </PopoverContent>
     </Popover>

@@ -47,7 +47,7 @@ const columns = [
 
       return (
         <div
-          className="w-fit rounded-full px-3 py-0.5 capitalize"
+          className="w-fit rounded-md px-3 py-0.5 capitalize"
           style={{ background: info.getValue()?.color }}>
           {info.getValue()?.title}
         </div>

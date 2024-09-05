@@ -6,6 +6,7 @@ type MonthlyAmount = {
   sum: number;
   month: Date;
 };
+
 type CategoryAmount = {
   id?: number;
   sum: string;
@@ -21,6 +22,7 @@ export const expenseRouter = router({
         statementIds: z.number().array().optional(),
         categoryIds: z.number().array().optional(),
         keyword: z.string().optional(),
+        uncategorised: z.boolean().optional(),
         dateRange: z
           .object({
             start: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
@@ -31,8 +33,6 @@ export const expenseRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const result = await prisma.expense.findMany({
-        // skip: page * 15,
-        take: 100,
         where: {
           ...(input.statementIds && input.statementIds?.length > 0
             ? { statementId: { in: input.statementIds } }
@@ -40,6 +40,11 @@ export const expenseRouter = router({
           ...(input.categoryIds && input.categoryIds?.length > 0
             ? {
                 categoryId: { in: input.categoryIds },
+              }
+            : {}),
+          ...(input.uncategorised
+            ? {
+                categoryId: null,
               }
             : {}),
           ...(input.dateRange?.start && input.dateRange?.end
@@ -125,6 +130,25 @@ export const expenseRouter = router({
         WHERE date_part('year', "Expense"."date") = ${year} AND "Expense"."userId" = ${ctx.auth.userId}
         GROUP BY month
       `;
+
+      return result;
+    }),
+  aggregateByMonth: protectedProcedure
+    .input(
+      z.object({
+        start: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
+        end: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { start, end } = input;
+
+      const result = await prisma.$queryRaw<{ title: string; amount: number }[]>`
+        Select date_trunc('month', "Expense"."date") AS "title", SUM("Expense"."amount") AS "amount"
+        From "Expense" 
+        WHERE "Expense"."date" BETWEEN DATE(${start}) AND DATE(${end}) AND "Expense"."userId" = ${ctx.auth.userId}
+        GROUP BY "title"
+    `;
 
       return result;
     }),
