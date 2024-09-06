@@ -3,29 +3,30 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Calendar } from "@/ui/calendar";
-import { Input } from "@/ui/input";
 import { Popover, PopoverContent } from "@/ui/popover";
 import cn from "@/utils/cn";
-import { DateRange, dateRangeTitleMap } from "@/utils/date-range-key";
-import { formatToDisplayDate } from "@/utils/date-util";
+import { DateRange as DateRangeType, dateRangeTitleMap } from "@/utils/date-range-key";
 import { PopoverTrigger } from "@radix-ui/react-popover";
 import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
 const DateRangePicker = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [showCustomDate, setShowCustomDate] = useState<boolean>(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: dayjs(new Date()).add(-2, "month").toDate(),
+    to: dayjs(new Date()).add(-1, "month").toDate(),
+  });
 
   const assignStateToParam = () => {
     const params = new URLSearchParams(window.location.search);
-    if (showCustomDate && startDate && endDate) {
-      params.set("start-date", dayjs(startDate).format("YYYY-MM-DD"));
-      params.set("end-date", dayjs(endDate).format("YYYY-MM-DD"));
+    if (showCustomDate && dateRange?.from && dateRange.to) {
+      params.set("start-date", dayjs(dateRange?.from).format("YYYY-MM-DD"));
+      params.set("end-date", dayjs(dateRange.to).format("YYYY-MM-DD"));
       params.delete("date-range");
       params.delete("statement-ids");
     }
@@ -43,12 +44,14 @@ const DateRangePicker = () => {
     const endDateParsed = dayjs(endDateParam, "YYYY-MM-DD");
 
     if (startDateParsed.isValid() && endDateParsed.isValid()) {
-      setStartDate(startDateParsed.toDate());
-      setEndDate(endDateParsed.toDate());
+      setDateRange({
+        from: startDateParsed.toDate(),
+        to: endDateParsed.toDate(),
+      });
     }
   }, [searchParams]);
 
-  const handleDateRangeClick = (dateRange: DateRange) => {
+  const handleDateRangeClick = (dateRange: DateRangeType) => {
     const params = new URLSearchParams(window.location.search);
     params.delete("start-date");
     params.delete("end-date");
@@ -64,31 +67,18 @@ const DateRangePicker = () => {
   };
 
   const dateTitle = useMemo(() => {
-    const dateRangeParam = searchParams?.get("date-range") as DateRange;
+    const dateRangeParam = searchParams?.get("date-range") as DateRangeType;
 
     if (dateRangeParam) {
       return dateRangeTitleMap[dateRangeParam];
     }
 
-    if (startDate && endDate) {
-      return `${dayjs(startDate).format("MMM DD, YYYY")} TO ${dayjs(endDate).format("MMM DD, YYYY")}`;
+    if (dateRange?.from && dateRange.to) {
+      return `${dayjs(dateRange?.from).format("MMM DD, YYYY")} - ${dayjs(dateRange.to).format("MMM DD, YYYY")}`;
     }
 
     return "Pick a date";
-  }, [searchParams, endDate, startDate]);
-
-  const handleReset = () => {
-    const params = new URLSearchParams(window.location.search);
-
-    params.delete("start-date");
-    params.delete("end-date");
-    params.delete("date-range");
-    setCalendarOpen(false);
-
-    router.push(`/expenses?${params.toString()}`, undefined, {
-      shallow: true,
-    });
-  };
+  }, [searchParams, dateRange]);
 
   return (
     <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
@@ -97,7 +87,7 @@ const DateRangePicker = () => {
           variant={"outline"}
           className={cn(
             "flex items-center gap-8 pl-3 text-left font-normal",
-            !startDate && "text-muted-foreground"
+            !dateRange?.from && "text-muted-foreground"
           )}>
           {dateTitle}
           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -109,8 +99,14 @@ const DateRangePicker = () => {
         className="flex w-auto flex-row gap-6 p-4"
         align="start">
         <div className="flex flex-col gap-2">
-          <Button variant="ghost" onClick={() => handleDateRangeClick("year-to-date")}>
+          <Button
+            variant="ghost"
+            className="border-primary"
+            onClick={() => handleDateRangeClick("year-to-date")}>
             Year To Date
+          </Button>
+          <Button variant="ghost" onClick={() => handleDateRangeClick("past-one-year")}>
+            Past One year
           </Button>
           <Button variant="ghost" onClick={() => handleDateRangeClick("last-year")}>
             Last Year
@@ -121,33 +117,17 @@ const DateRangePicker = () => {
           <Button variant="ghost" onClick={() => setShowCustomDate(true)}>
             Custom Date
           </Button>
-          <Button variant="ghost" onClick={() => handleReset()}>
-            Reset
-          </Button>
         </div>
         {showCustomDate && (
           <>
-            <div className="flex flex-col gap-3">
-              <Input value={formatToDisplayDate(startDate)} readOnly />
-              <Calendar
-                mode="single"
-                defaultMonth={startDate}
-                selected={startDate}
-                onSelect={setStartDate}
-                className="p-0"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Input value={formatToDisplayDate(endDate)} readOnly />
-              <Calendar
-                mode="single"
-                defaultMonth={endDate}
-                selected={endDate}
-                onSelect={setEndDate}
-                className="p-0"
-              />
-            </div>
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={setDateRange}
+              numberOfMonths={2}
+            />
           </>
         )}
       </PopoverContent>

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import { Prisma } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
-import dayjs from "dayjs";
 import { useAtom } from "jotai";
 import { Edit, StickyNoteIcon } from "lucide-react";
 import { ExpenseFormAtom } from "../expense-form";
@@ -82,7 +82,7 @@ const columns = [
     },
   }),
   columnHelper.accessor("date", {
-    cell: (info) => dayjs(info.getValue()).format("YYYY MMM DD"),
+    cell: (info) => formatToDisplayDate(info.getValue()),
     header: () => <span>Date</span>,
     sortingFn: (a, b) => {
       return new Date(b.original?.date || "").valueOf() - new Date(a.original?.date || "").valueOf();

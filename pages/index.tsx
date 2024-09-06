@@ -1,7 +1,5 @@
 import Head from "next/head";
 import BasePage from "@/components/base-page";
-import { CategoryExpenseChart } from "@/components/category-expense-chart";
-import { MonthlyExpenseChart } from "@/components/monthly-expense-chart";
 
 export default function Home() {
   return (
@@ -12,14 +10,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <BasePage>
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-6 rounded-lg border border-gray-700 p-6">
-            <MonthlyExpenseChart />
-          </div>
-          <div className="col-span-6 rounded-lg border border-gray-700 p-6">
-            <CategoryExpenseChart />
-          </div>
-        </div>
+        <div />
       </BasePage>
     </>
   );

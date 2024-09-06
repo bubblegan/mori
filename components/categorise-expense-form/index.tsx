@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import { createColumnHelper } from "@tanstack/react-table";
-import dayjs from "dayjs";
 import ExpenseTableUi, { ExpenseTableData } from "../expense-table-ui";
 import { Button } from "../ui/button";
 
@@ -59,7 +59,7 @@ const columns = [
     },
   }),
   columnHelper.accessor("date", {
-    cell: (info) => dayjs(info.getValue()).format("YYYY MMM DD"),
+    cell: (info) => formatToDisplayDate(info.getValue()),
     header: () => <span>Date</span>,
     sortingFn: (a, b) => {
       return new Date(b.original?.date || "").valueOf() - new Date(a.original?.date || "").valueOf();

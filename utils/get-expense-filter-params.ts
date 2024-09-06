@@ -22,7 +22,7 @@ export function getExpenseFilterParam() {
     end = convertToISO(endDate);
   }
 
-  if (!startDate && endDate) {
+  if (startDate && endDate) {
     const startDateParsed = dayjs(startDate, "YYYY-MM-DD");
     const endDateParsed = dayjs(endDate, "YYYY-MM-DD");
 

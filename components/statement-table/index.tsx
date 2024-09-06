@@ -3,6 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { Checkbox } from "@/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { trpc } from "@/utils/trpc";
 import {
   createColumnHelper,
@@ -12,7 +13,6 @@ import {
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import dayjs from "dayjs";
 import { atom, useAtom } from "jotai";
 import { StatementFormAtom } from "../statement-form";
 
@@ -118,13 +118,11 @@ const StatementTable = () => {
           return {
             id: statement.id,
             name: statement.name,
-            date: dayjs(statement.date).format("YYYY MMM DD"),
-            range: `${dayjs(statement.startdate).format("YYYY MMM DD")} - ${dayjs(statement.enddate).format(
-              "YYYY MMM DD"
-            )}`,
+            date: formatToDisplayDate(statement.date),
+            range: `${formatToDisplayDate(statement.startdate)} - ${formatToDisplayDate(statement.enddate)}`,
             bank: statement.bank,
             totalAmount: statement.total,
-            createdAt: dayjs(statement.createdAt).format("YYYY MMM DD"),
+            createdAt: formatToDisplayDate(statement.createdAt),
             option: statement.id,
             onEdit: () =>
               setValue({ isOpen: true, statement: { id: statement.id, fileName: statement.name } }),

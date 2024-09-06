@@ -29,9 +29,9 @@ import {
   SelectContent,
 } from "@/components/ui/select";
 import UploadStatementForm from "@/components/upload-statement-form";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { downloadCsv } from "@/utils/download-as-csv";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
-import dayjs from "dayjs";
 import { Plus, Settings, Upload } from "lucide-react";
 
 export type AggregateType = "category" | "monthly";
@@ -66,7 +66,7 @@ export default function Expenses() {
           amount: `${Number(expense.amount).toFixed(2).toLocaleString()}`,
           statement: expense.Statement?.name || "",
           description: expense.description,
-          date: dayjs(expense.date).format("YYYY MMM DD"),
+          date: formatToDisplayDate(expense.date),
           category: expense.Category?.title || "",
         };
       });
@@ -88,7 +88,7 @@ export default function Expenses() {
               <div className="flex gap-3">
                 <DateRangePicker />
                 <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
-                  <span>Total: $ {amount}</span>
+                  <span>Total: $ {new Intl.NumberFormat().format(Number(amount))}</span>
                 </div>
               </div>
             ) : (
