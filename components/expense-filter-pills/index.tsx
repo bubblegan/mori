@@ -1,35 +1,33 @@
-import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
+import { getExpenseFilterParam } from "@/utils/get-expense-filter-params";
 import { trpc } from "@/utils/trpc";
 import { X } from "lucide-react";
 
 export function ExpenseFilterPills() {
-  const searchParams = useSearchParams();
   const router = useRouter();
 
   const categories = trpc.category.list.useQuery();
   const statements = trpc.statement.list.useQuery({});
 
-  const categoryIds = searchParams?.get("category-ids")?.split(",") || [];
-  const statementIds = searchParams?.get("statement-ids")?.split(",") || [];
+  const { categoryIds, statementIds, uncategorised } = getExpenseFilterParam();
 
   const selectedCategory =
-    categories.data?.result?.filter((category) => categoryIds.includes(category.id.toString())) || [];
+    categories.data?.result?.filter((category) => categoryIds.includes(category.id)) || [];
 
   const selectedStatement = statements.data?.result?.filter((statement) =>
-    statementIds.includes(statement.id.toString())
+    statementIds.includes(statement.id)
   );
 
-  const removeFromParam = (param: string, id: number) => {
+  const removeFromParam = (param: string, id?: number) => {
     const params = new URLSearchParams(window.location.search);
-    let filteredIds: string[] = [];
+    let filteredIds: number[] = [];
 
     if (param === "category-ids") {
-      filteredIds = categoryIds.filter((categoryId) => categoryId !== id.toString());
+      filteredIds = categoryIds.filter((categoryId) => categoryId !== id);
     }
 
     if (param === "statement-ids") {
-      filteredIds = statementIds.filter((statementId) => statementId !== id.toString());
+      filteredIds = statementIds.filter((statementId) => statementId !== id);
     }
 
     if (filteredIds.length > 0) {
@@ -44,6 +42,14 @@ export function ExpenseFilterPills() {
 
   return (
     <div className="flex flex-row gap-2">
+      {uncategorised && (
+        <div
+          onClick={() => removeFromParam("uncategorised")}
+          className="flex cursor-pointer flex-row items-center gap-2 rounded-md bg-slate-500 px-3 py-2 text-xs">
+          Uncategorised
+          <X size={14} />
+        </div>
+      )}
       {selectedCategory?.map((category) => {
         return (
           <div
