@@ -116,7 +116,7 @@ const UploadSummary = (props: UploadSummaryProps) => {
           return old.map((row) => {
             if (row.tempId === tempId) {
               if (columnName === "categoryId") {
-                const selectedCat = categories.data?.result.find((cat) => cat.id === Number(newValue));
+                const selectedCat = categories.data?.find((cat) => cat.id === Number(newValue));
 
                 return {
                   ...row,

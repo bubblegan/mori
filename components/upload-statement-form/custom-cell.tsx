@@ -57,7 +57,7 @@ const CustomCell = ({
             <SelectValue className="mr-2 text-white" />
           </SelectTrigger>
           <SelectContent side="bottom">
-            {categories.data?.result?.map((category) => (
+            {categories.data?.map((category) => (
               <SelectItem className="text-neutral-200" key={category.id} value={category.id.toString()}>
                 {category.title[0].toLocaleUpperCase() + category.title.substring(1)}
               </SelectItem>
@@ -82,7 +82,7 @@ const CustomCell = ({
   }
 
   if (column.id === "category") {
-    const category = categories.data?.result.find((cat) => cat.id === value);
+    const category = categories.data?.find((cat) => cat.id === value);
     if (category) return <span>{category.title[0].toLocaleUpperCase() + category.title.substring(1)}</span>;
   }
 

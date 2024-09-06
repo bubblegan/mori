@@ -2,11 +2,6 @@ import { prisma } from "@/utils/prisma";
 import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 
-type MonthlyAmount = {
-  sum: number;
-  month: Date;
-};
-
 type CategoryAmount = {
   id?: number;
   sum: string;
@@ -77,9 +72,7 @@ export const expenseRouter = router({
         orderBy: { date: "desc" },
       });
 
-      return {
-        result,
-      };
+      return result;
     }),
   categorise: protectedProcedure
     .input(
@@ -111,27 +104,7 @@ export const expenseRouter = router({
         WHERE "Expense"."id" IN (${sqlIds.join(", ")});
       `);
 
-      return {
-        bulkUpdateCategoryResult,
-      };
-    }),
-  aggregateByYear: protectedProcedure
-    .input(
-      z.object({
-        year: z.number(),
-      })
-    )
-    .query(async ({ input, ctx }) => {
-      const { year } = input;
-
-      const result = await prisma.$queryRaw<MonthlyAmount[]>`
-        Select date_trunc('month', "Expense"."date") AS month, SUM("Expense"."amount") 
-        From "Expense" 
-        WHERE date_part('year', "Expense"."date") = ${year} AND "Expense"."userId" = ${ctx.auth.userId}
-        GROUP BY month
-      `;
-
-      return result;
+      return bulkUpdateCategoryResult;
     }),
   aggregateByMonth: protectedProcedure
     .input(

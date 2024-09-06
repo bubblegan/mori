@@ -38,7 +38,7 @@ const TagTable = () => {
 
   useEffect(() => {
     if (tags.isSuccess && tags.data) {
-      const tableData = tags.data.result.map((tag) => {
+      const tableData = tags.data.map((tag) => {
         const mappedData = {
           ...tag,
           createdAt: new Date(tag.createdAt),

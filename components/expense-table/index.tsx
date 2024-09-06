@@ -111,7 +111,7 @@ const ExpenseTable = () => {
 
   useEffect(() => {
     if (expenses.data) {
-      const tableData = expenses.data.result.map((expense) => {
+      const tableData = expenses.data.map((expense) => {
         const formattedType = {
           id: expense.id,
           createdAt: new Date(expense.createdAt),

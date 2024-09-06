@@ -168,7 +168,7 @@ const ExpenseForm = () => {
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <div className="flex flex-col gap-1">
-                          {tags.data?.result?.map((tag) => {
+                          {tags.data?.map((tag) => {
                             return (
                               <div
                                 className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
@@ -214,7 +214,7 @@ const ExpenseForm = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent side="bottom">
-                        {categories.data?.result?.map((category) => (
+                        {categories.data?.map((category) => (
                           <SelectItem
                             className="text-neutral-200"
                             key={category.id}

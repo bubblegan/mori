@@ -112,9 +112,9 @@ const StatementTable = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
-    if (statements.data && "result" in statements.data) {
+    if (statements.data) {
       const tableData =
-        statements.data?.result?.map((statement) => {
+        statements.data?.map((statement) => {
           return {
             id: statement.id,
             name: statement.name,

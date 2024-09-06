@@ -48,7 +48,7 @@ const CategoryTable = () => {
 
   useEffect(() => {
     if (categories.isSuccess && categories.data) {
-      const tableData = categories.data.result.map((category) => {
+      const tableData = categories.data.map((category) => {
         const mappedData = {
           ...category,
           createdAt: new Date(category.createdAt),

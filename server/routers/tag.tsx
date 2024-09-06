@@ -9,9 +9,7 @@ export const tagRouter = router({
         userId: ctx.auth.userId,
       },
     });
-    return {
-      result,
-    };
+    return result;
   }),
   create: protectedProcedure
     .input(

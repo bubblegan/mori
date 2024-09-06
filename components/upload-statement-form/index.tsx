@@ -40,8 +40,8 @@ const UploadStatementForm = ({
 }) => {
   const categories = trpc.category.list.useQuery();
   const categoriesMap: Record<number, string> = {};
-  if (categories.data?.result) {
-    categories.data?.result.forEach((category) => {
+  if (categories.data) {
+    categories.data?.forEach((category) => {
       categoriesMap[category.id] = category.title;
     });
   }
@@ -78,7 +78,7 @@ const UploadStatementForm = ({
 
   const handleCategorise = (parsedExpenses: ParsedExpense[]) => {
     const uncategorisedExpense = parsedExpenses.filter((expense) => !expense.categoryId);
-    const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data?.result || []);
+    const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data || []);
     completeCategorise(promptText);
   };
 

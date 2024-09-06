@@ -34,11 +34,9 @@ export const statementRouter = router({
 
       `;
 
-      if (!result) return { result: [] };
+      if (!result) return [];
 
-      return {
-        result,
-      };
+      return result;
     }),
   create: protectedProcedure
     .input(
@@ -104,11 +102,9 @@ export const statementRouter = router({
       WHERE "User"."id" = ${userId};
     `;
 
-    if (!result) return { result: [] };
+    if (!result) return [];
 
-    return {
-      result,
-    };
+    return result;
   }),
   download: procedure.input(z.number().array()).query(async ({ input }) => {
     const result = await prisma.statement.findMany({
@@ -122,9 +118,7 @@ export const statementRouter = router({
       },
     });
 
-    return {
-      result,
-    };
+    return result;
   }),
   update: protectedProcedure
     .input(
@@ -157,8 +151,6 @@ export const statementRouter = router({
         userId: ctx.auth.userId,
       },
     });
-    return {
-      result,
-    };
+    return result;
   }),
 });

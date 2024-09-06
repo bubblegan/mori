@@ -85,11 +85,9 @@ export function CategoriseExpenseForm({
 
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
-  // option to categorise with in-house rules first
-
   useEffect(() => {
     if (expenses.data) {
-      const tableData = expenses.data.result.map((expense) => {
+      const tableData = expenses.data.map((expense) => {
         return {
           id: expense.id,
           note: expense.note || "",

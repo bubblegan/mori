@@ -60,7 +60,7 @@ export default function Expenses() {
 
   const donwloadAsCsv = useCallback(() => {
     if (expenses.data) {
-      const csvData = expenses.data.result.map((expense) => {
+      const csvData = expenses.data.map((expense) => {
         return {
           id: expense.id,
           amount: `${Number(expense.amount).toFixed(2).toLocaleString()}`,
@@ -144,6 +144,7 @@ export default function Expenses() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem>
                   <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
+                  <DropdownMenuItem onClick={donwloadAsCsv}>Tag</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

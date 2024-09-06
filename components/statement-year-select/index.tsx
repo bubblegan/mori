@@ -10,13 +10,13 @@ const StatementYearSelect = () => {
   const years = trpc.statement.years.useQuery();
 
   const router = useRouter();
-  let results: string[] = years && years.data ? years.data?.result.map((item) => item.years) : [];
+  let results: string[] = years && years.data ? years.data?.map((item) => item.years) : [];
 
-  if (statements.isFetching) return null;
+  if (!statements.isFetched) return null;
 
-  if (statements.data && "result" in statements.data) {
+  if (statements.data) {
     const years = new Set(
-      statements.data?.result?.map((statement) => {
+      statements.data?.map((statement) => {
         const statementDate = new Date(statement.date);
         return statementDate.getFullYear().toString();
       }) || []

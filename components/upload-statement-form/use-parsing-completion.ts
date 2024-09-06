@@ -9,8 +9,8 @@ export function useParsingCompletion(
 ) {
   const categories = trpc.category.list.useQuery();
   const categoriesMap: Record<number, string> = {};
-  if (categories.data?.result) {
-    categories.data?.result.forEach((category) => {
+  if (categories.data) {
+    categories.data?.forEach((category) => {
       categoriesMap[category.id] = category.title;
     });
   }
@@ -59,7 +59,7 @@ export function useParsingCompletion(
       });
 
       parsedExpenses.forEach((expense) => {
-        categories.data?.result.forEach((category) => {
+        categories.data?.forEach((category) => {
           if (Array.isArray(category.keyword) && category.keyword.length > 0) {
             category.keyword?.forEach((keyword) => {
               if (expense.description.toLowerCase().includes(keyword as string) && keyword) {

@@ -11,12 +11,8 @@ export function ExpenseFilterPills() {
 
   const { categoryIds, statementIds, uncategorised } = getExpenseFilterParam();
 
-  const selectedCategory =
-    categories.data?.result?.filter((category) => categoryIds.includes(category.id)) || [];
-
-  const selectedStatement = statements.data?.result?.filter((statement) =>
-    statementIds.includes(statement.id)
-  );
+  const selectedCategory = categories.data?.filter((category) => categoryIds.includes(category.id)) || [];
+  const selectedStatement = statements.data?.filter((statement) => statementIds.includes(statement.id)) || [];
 
   const removeFromParam = (param: string, id?: number) => {
     const params = new URLSearchParams(window.location.search);

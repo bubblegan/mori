@@ -53,8 +53,8 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
   // handle categorise
   const handleAiCategorise = ({ onlyUncategorise } = { onlyUncategorise: true }) => {
     const uncategorisedExpense =
-      expenses.data?.result
-        .filter((expense) => {
+      expenses.data
+        ?.filter((expense) => {
           if (onlyUncategorise) {
             return !expense.categoryId;
           }
@@ -67,12 +67,12 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
             tempId: expense.id,
           };
         }) || [];
-    const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data?.result || []);
+    const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data || []);
     complete(promptText);
   };
 
   let totalAmt = 0;
-  expenses.data?.result.forEach((expense) => {
+  expenses.data?.forEach((expense) => {
     totalAmt += Number(expense.amount);
   });
 

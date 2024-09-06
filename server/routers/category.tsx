@@ -10,9 +10,7 @@ export const catergoryRouter = router({
         userId: ctx.auth.userId,
       },
     });
-    return {
-      result,
-    };
+    return result;
   }),
   aggregate: protectedProcedure
     .input(

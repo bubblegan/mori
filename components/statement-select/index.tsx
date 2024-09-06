@@ -9,16 +9,11 @@ import { StatementAggregate } from "../../server/routers/statement";
 const StatementSelect = () => {
   const statements = trpc.statement.list.useQuery({});
   const router = useRouter();
-  let results;
 
-  if (statements.isFetching) return null;
-
-  if (statements.data && "result" in statements.data) {
-    results = statements.data?.result;
-  }
+  if (!statements.isFetched) return null;
 
   const grouped: Record<number, StatementAggregate[]> =
-    results?.reduce((byYear: Record<number, StatementAggregate[]>, statement) => {
+    statements.data?.reduce((byYear: Record<number, StatementAggregate[]>, statement) => {
       const year = statement.date.getFullYear();
       if (!byYear[year]) {
         byYear[year] = [];
