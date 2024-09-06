@@ -15,3 +15,7 @@ export function convertToISOFromStr(date: string) {
 
   return undefined;
 }
+
+export function formatToDisplayDate(date: string | Date | undefined | null | number) {
+  return dayjs(date).format("DD MMM YYYY");
+}

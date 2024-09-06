@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import cn from "@/utils/cn";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { CellContext } from "@tanstack/react-table";
-import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
@@ -45,7 +45,7 @@ const DateCell = ({
               !value && "text-muted-foreground"
             )}>
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {value ? dayjs(value).format("DD MMM YYYY") : <span>Pick a date</span>}
+            {value ? formatToDisplayDate(value) : <span>Pick a date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
@@ -55,7 +55,7 @@ const DateCell = ({
     );
   }
 
-  const dateString = dayjs(value).format("DD MMM YYYY");
+  const dateString = formatToDisplayDate(value);
 
   return <span>{dateString}</span>;
 };

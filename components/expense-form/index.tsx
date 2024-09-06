@@ -8,10 +8,9 @@ import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import cn from "@/utils/cn";
-import { convertToISO } from "@/utils/date-util";
+import { convertToISO, formatToDisplayDate } from "@/utils/date-util";
 import { trpc } from "@/utils/trpc";
 import { Expense } from "@prisma/client";
-import dayjs from "dayjs";
 import { atom, useAtom } from "jotai";
 import { CalendarIcon } from "lucide-react";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -133,11 +132,7 @@ const ExpenseForm = () => {
                               "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}>
-                            {field.value ? (
-                              dayjs(field.value).format("DD MMM YYYY")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
+                            {field.value ? formatToDisplayDate(field.value) : <span>Pick a date</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>

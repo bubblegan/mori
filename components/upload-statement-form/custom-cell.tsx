@@ -1,8 +1,8 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { trpc } from "@/utils/trpc";
 import { CellContext } from "@tanstack/react-table";
-import dayjs from "dayjs";
 import { Input } from "../ui/input";
 import { ParsedExpenseTable } from "./upload-summary";
 
@@ -77,7 +77,7 @@ const CustomCell = ({
   }
 
   if (columnMeta?.type === "date") {
-    const dateString = dayjs(value).format("DD MMM YYYY");
+    const dateString = formatToDisplayDate(value);
     return <span>{dateString}</span>;
   }
 

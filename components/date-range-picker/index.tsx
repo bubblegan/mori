@@ -7,6 +7,7 @@ import { Input } from "@/ui/input";
 import { Popover, PopoverContent } from "@/ui/popover";
 import cn from "@/utils/cn";
 import { DateRange, dateRangeTitleMap } from "@/utils/date-range-key";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { PopoverTrigger } from "@radix-ui/react-popover";
 import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
@@ -127,7 +128,7 @@ const DateRangePicker = () => {
         {showCustomDate && (
           <>
             <div className="flex flex-col gap-3">
-              <Input value={dayjs(startDate).format("DD MMM YYYY")} readOnly />
+              <Input value={formatToDisplayDate(startDate)} readOnly />
               <Calendar
                 mode="single"
                 defaultMonth={startDate}
@@ -138,7 +139,7 @@ const DateRangePicker = () => {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Input value={dayjs(endDate).format("DD MMM YYYY")} readOnly />
+              <Input value={formatToDisplayDate(endDate)} readOnly />
               <Calendar
                 mode="single"
                 defaultMonth={endDate}

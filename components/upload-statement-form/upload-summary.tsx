@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { useClickAway } from "@/utils/hooks/use-click-away";
 import { trpc } from "@/utils/trpc";
 import {
@@ -12,7 +13,6 @@ import {
   getSortedRowModel,
   SortingState,
 } from "@tanstack/react-table";
-import dayjs from "dayjs";
 import CustomCell from "./custom-cell";
 import DateCell from "./date-cell";
 import { ParsedExpense, ParsedStatement } from "./index";
@@ -142,10 +142,19 @@ const UploadSummary = (props: UploadSummaryProps) => {
   return (
     <>
       {parsedStatement && (
-        <div>
-          <p>Bank : {parsedStatement?.bank} </p>
-          <p>Issued Date : {dayjs(parsedStatement?.statementDate).format("DD MMM YYYY")}</p>
-          <p>Total Amount : {parsedStatement?.totalAmount}</p>
+        <div className="flex flex-row gap-2">
+          <div className="flex w-[150px] flex-col gap-1 rounded-md border border-input px-3 py-2">
+            <span className="text-xs">Bank</span>
+            <span>{parsedStatement?.bank}</span>
+          </div>
+          <div className="flex w-[150px] flex-col gap-1 rounded-md border border-input px-3 py-2">
+            <span className="text-xs">Issued Date</span>
+            <span>{formatToDisplayDate(parsedStatement?.statementDate)}</span>
+          </div>
+          <div className="flex w-[150px] flex-col gap-1 rounded-md border border-input px-3 py-2">
+            <span className="text-xs">Total Amount</span>
+            <span>$ {parsedStatement?.totalAmount}</span>
+          </div>
         </div>
       )}
       <div className="max-h-[500px] overflow-y-scroll rounded-md border border-gray-700">
