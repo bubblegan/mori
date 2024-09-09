@@ -117,8 +117,8 @@ export const expenseRouter = router({
     .query(async ({ input, ctx }) => {
       const { start, end } = input;
 
-      const result = await prisma.$queryRaw<{ title: string; amount: number }[]>`
-        Select date_trunc('month', "Expense"."date") AS "title", SUM("Expense"."amount") AS "amount"
+      const result = await prisma.$queryRaw<{ title: string; amount: number; count: BigInt }[]>`
+        Select date_trunc('month', "Expense"."date") AS "title", SUM("Expense"."amount") AS "amount", COUNT("Expense"."amount") as count
         From "Expense" 
         WHERE "Expense"."date" BETWEEN DATE(${start}) AND DATE(${end}) AND "Expense"."userId" = ${ctx.auth.userId}
         GROUP BY "title"

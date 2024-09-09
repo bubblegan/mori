@@ -12,6 +12,7 @@ import { CategoryFormAtom } from "../category-form";
 type TableData = {
   title: string;
   amount: number;
+  count: number;
 };
 
 const columnHelper = createColumnHelper<TableData>();
@@ -21,13 +22,17 @@ const columns = [
     cell: (info) => info.getValue(),
     header: () => <span>Title</span>,
   }),
+  columnHelper.accessor("count", {
+    cell: (info) => info.getValue(),
+    header: () => <span>Transactions Count</span>,
+  }),
   columnHelper.accessor("amount", {
     cell: (info) => (
       <div className="flex w-20 justify-between">
         $<span> {new Intl.NumberFormat().format(info.getValue())}</span>
       </div>
     ),
-    header: () => <span>Amount</span>,
+    header: () => <span>Total Amount</span>,
   }),
 ];
 
@@ -36,7 +41,6 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
 
   const catAggregate = useHandleCategoryAggregate();
   const monthly = useHandleMonthAggregate();
-  // const categories = trpc.category.list.useQuery();
 
   const [data, setData] = useState<TableData[]>(() => []);
   const [, setValue] = useAtom(CategoryFormAtom);
@@ -47,6 +51,7 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
         return {
           title: category.title[0].toLocaleUpperCase() + category.title.substring(1),
           amount: category.amount,
+          count: Number(category.count),
         };
       });
       setData(tableData);
@@ -59,6 +64,7 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
         return {
           title: dayjs(month.title).format("MMM YYYY"),
           amount: month.amount,
+          count: Number(month.count),
         };
       });
       setData(tableData);
