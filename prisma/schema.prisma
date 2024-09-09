@@ -79,8 +79,8 @@ model TagsOnExpenses {
   tagId      Int
   assignedAt DateTime @default(now())
   expensesId Int
-  expenses   Expense  @relation(fields: [expensesId], references: [id])
-  tag        Tag      @relation(fields: [tagId], references: [id])
+  expenses   Expense  @relation(fields: [expensesId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([expensesId, tagId])
 }
