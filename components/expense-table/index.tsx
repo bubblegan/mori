@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
+import { trpc } from "@/utils/trpc";
 import { Prisma } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useAtom } from "jotai";
-import { Edit, StickyNoteIcon } from "lucide-react";
+import { Ellipsis, StickyNoteIcon } from "lucide-react";
 import { ExpenseFormAtom } from "../expense-form";
 import ExpenseTableUi, { ExpenseTableData } from "../expense-table-ui";
+import { useToast } from "../ui/use-toast";
 
 const columnHelper = createColumnHelper<ExpenseTableData>();
 
@@ -92,11 +100,17 @@ const columns = [
     cell: (info) => info.getValue(),
     header: () => <span>Statement</span>,
   }),
-  columnHelper.accessor("onEdit", {
+  columnHelper.accessor("optionClick", {
     cell: (info) => (
-      <span className="cursor-pointer" onClick={info.getValue()}>
-        <Edit size={16} />
-      </span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Ellipsis size={16} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={info.getValue()?.onEdit}>Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={info.getValue()?.onDelete}>Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     ),
     header: () => <span>Options</span>,
   }),
@@ -106,6 +120,15 @@ const ExpenseTable = () => {
   const [, setvalue] = useAtom(ExpenseFormAtom);
 
   const { expenses } = useHandleExpenseFetch();
+  const utils = trpc.useUtils();
+  const { toast } = useToast();
+
+  const { mutate: deleteExpenses } = trpc.expense.delete.useMutation({
+    onSuccess() {
+      utils.expense.invalidate();
+      toast({ description: "Deleted Expense." });
+    },
+  });
 
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
@@ -137,7 +160,14 @@ const ExpenseTable = () => {
             title: expense.Category?.title || "",
             color: expense.Category?.color || "",
           },
-          onEdit: () => setvalue({ isOpen: true, expense: formattedType }),
+          optionClick: {
+            onEdit: () => {
+              setvalue({ isOpen: true, expense: formattedType });
+            },
+            onDelete: () => {
+              deleteExpenses([expense.id]);
+            },
+          },
         };
       });
       setData(tableData);

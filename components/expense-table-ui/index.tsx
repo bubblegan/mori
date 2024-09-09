@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { MouseEventHandler, useState } from "react";
 import { Button } from "@/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
@@ -25,7 +25,10 @@ export type ExpenseTableData = {
   note?: string;
   description?: string;
   date?: string;
-  onEdit?: () => void;
+  optionClick?: {
+    onEdit: MouseEventHandler<HTMLDivElement>;
+    onDelete: MouseEventHandler<HTMLDivElement>;
+  };
 };
 
 const ExpenseTableUi = ({

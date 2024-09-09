@@ -1,5 +1,11 @@
-import { useEffect, useState } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
@@ -14,6 +20,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { atom, useAtom } from "jotai";
+import { Ellipsis } from "lucide-react";
 import { StatementFormAtom } from "../statement-form";
 
 type StatementTableData = {
@@ -25,7 +32,10 @@ type StatementTableData = {
   totalAmount: number;
   createdAt: string;
   option: number;
-  onEdit?: () => void;
+  optionClick?: {
+    onEdit: MouseEventHandler<HTMLDivElement>;
+    onDelete: MouseEventHandler<HTMLDivElement>;
+  };
 };
 
 export const checkedStatementAtom = atom<number[]>([]);
@@ -91,11 +101,17 @@ const columns = [
     },
     header: () => <span>Total Amount</span>,
   }),
-  columnHelper.accessor("onEdit", {
+  columnHelper.accessor("optionClick", {
     cell: (info) => (
-      <span className="cursor-pointer" onClick={info.getValue()}>
-        Edit
-      </span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Ellipsis size={16} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={info.getValue()?.onEdit}>Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={info.getValue()?.onDelete}>Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     ),
     header: () => <span>Options</span>,
   }),
@@ -104,8 +120,16 @@ const columns = [
 const StatementTable = () => {
   const searchParams = useSearchParams();
   const years = searchParams?.get("years")?.split(",").map(Number);
+  const utils = trpc.useUtils();
 
   const statements = trpc.statement.list.useQuery({ years });
+
+  const { mutate: deleteStatement } = trpc.statement.delete.useMutation({
+    onSuccess() {
+      utils.statement.invalidate();
+      utils.expense.invalidate();
+    },
+  });
 
   const [, setValue] = useAtom(StatementFormAtom);
   const [data, setData] = useState<StatementTableData[]>(() => []);
@@ -124,8 +148,14 @@ const StatementTable = () => {
             totalAmount: statement.total,
             createdAt: formatToDisplayDate(statement.createdAt),
             option: statement.id,
-            onEdit: () =>
-              setValue({ isOpen: true, statement: { id: statement.id, fileName: statement.name } }),
+            optionClick: {
+              onEdit: () => {
+                setValue({ isOpen: true, statement: { id: statement.id, fileName: statement.name } });
+              },
+              onDelete: () => {
+                deleteStatement([statement.id]);
+              },
+            },
           };
         }) || [];
       setData(tableData);

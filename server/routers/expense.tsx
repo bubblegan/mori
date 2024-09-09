@@ -1,5 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import { z } from "zod";
+import { expenseSchema } from "../../schema";
 import { protectedProcedure, router } from "../trpc";
 
 type CategoryAmount = {
@@ -161,17 +162,7 @@ export const expenseRouter = router({
       return result;
     }),
   update: protectedProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        description: z.string().trim().min(1),
-        categoryId: z.number(),
-        amount: z.number().multipleOf(0.01),
-        note: z.string().optional(),
-        date: z.string().datetime(),
-        tags: z.number().array().optional(),
-      })
-    )
+    .input(expenseSchema.extend({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const { description, categoryId, amount, note, date, tags } = input;
       const result = await prisma.expense.update({
@@ -203,43 +194,42 @@ export const expenseRouter = router({
 
       return result;
     }),
-  create: protectedProcedure
-    .input(
-      z.object({
-        description: z.string().trim().min(1),
-        categoryId: z.number(),
-        amount: z.number().multipleOf(0.01),
-        note: z.string().optional(),
-        date: z.string().datetime(),
-        tags: z.number().array().optional(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { description, categoryId, amount, note, date, tags } = input;
-
-      const result = await prisma.expense.create({
-        data: {
-          description,
-          categoryId,
-          amount,
-          note,
-          date,
-          userId: ctx.auth.userId,
-          tags: {
-            create: tags?.map((tag) => {
-              return {
-                assignedAt: new Date(),
-                tag: {
-                  connect: {
-                    id: tag,
-                  },
+  create: protectedProcedure.input(expenseSchema).mutation(async ({ input, ctx }) => {
+    const { description, categoryId, amount, note, date, tags } = input;
+    const result = await prisma.expense.create({
+      data: {
+        description,
+        categoryId,
+        amount,
+        note,
+        date,
+        userId: ctx.auth.userId,
+        tags: {
+          create: tags?.map((tag) => {
+            return {
+              assignedAt: new Date(),
+              tag: {
+                connect: {
+                  id: tag,
                 },
-              };
-            }),
-          },
+              },
+            };
+          }),
         },
-      });
+      },
+    });
 
-      return result;
-    }),
+    return result;
+  }),
+  delete: protectedProcedure.input(z.number().array()).mutation(async ({ input, ctx }) => {
+    const result = await prisma.expense.deleteMany({
+      where: {
+        id: {
+          in: input,
+        },
+        userId: ctx.auth.userId,
+      },
+    });
+    return result;
+  }),
 });

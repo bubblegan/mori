@@ -8,21 +8,16 @@ import { Input } from "@/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import cn from "@/utils/cn";
-import { convertToISO, formatToDisplayDate } from "@/utils/date-util";
+import { formatToDisplayDate } from "@/utils/date-util";
 import { trpc } from "@/utils/trpc";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Expense } from "@prisma/client";
 import { atom, useAtom } from "jotai";
 import { CalendarIcon } from "lucide-react";
-import { useForm, SubmitHandler } from "react-hook-form";
-
-type ExpenseFormInput = {
-  description: string;
-  categoryId: string;
-  note: string;
-  amount: number;
-  date: Date;
-  tags: number[];
-};
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { expenseSchema } from "../../schema";
+import { useToast } from "../ui/use-toast";
 
 export const ExpenseFormAtom = atom<{
   isOpen: boolean;
@@ -35,18 +30,21 @@ export const ExpenseFormAtom = atom<{
 const ExpenseForm = () => {
   const [value, setValue] = useAtom(ExpenseFormAtom);
   const { isOpen, expense } = value;
+  const { toast } = useToast();
+
   const utils = trpc.useUtils();
   const categories = trpc.category.list.useQuery();
   const tags = trpc.tag.list.useQuery();
 
-  const form = useForm<ExpenseFormInput>({
+  const form = useForm<z.infer<typeof expenseSchema>>({
+    resolver: zodResolver(expenseSchema),
     defaultValues: useMemo(() => {
       return {
         description: expense?.description,
         amount: Number(expense?.amount),
-        categoryId: expense?.categoryId?.toString(),
+        categoryId: Number(expense?.categoryId?.toString()),
         note: expense?.note || "",
-        date: expense?.date,
+        date: expense?.date || new Date(),
         tags: expense?.tags || [],
       };
     }, [expense]),
@@ -54,11 +52,11 @@ const ExpenseForm = () => {
 
   useEffect(() => {
     form.reset({
-      description: expense?.description,
-      amount: Number(expense?.amount),
-      categoryId: expense?.categoryId?.toString(),
+      description: expense?.description || "",
+      amount: Number(expense?.amount) || 0,
+      categoryId: Number(expense?.categoryId?.toString()),
       note: expense?.note || "",
-      date: expense?.date,
+      date: expense?.date || new Date(),
       tags: expense?.tags || [],
     });
   }, [expense, form]);
@@ -66,27 +64,47 @@ const ExpenseForm = () => {
   const { mutate: updateExpense } = trpc.expense.update.useMutation({
     onSuccess() {
       setValue({ isOpen: false, expense: undefined });
+      toast({ description: "Expense Updated." });
       utils.expense.invalidate();
     },
   });
 
-  const onSubmit: SubmitHandler<ExpenseFormInput> = (data) => {
-    updateExpense({
-      id: Number(value.expense?.id),
-      categoryId: Number(data.categoryId),
-      description: data.description,
-      amount: data.amount,
-      note: data.note,
-      date: convertToISO(data.date),
-      tags: data.tags,
-    });
+  const { mutate: createExpense } = trpc.expense.create.useMutation({
+    onSuccess() {
+      setValue({ isOpen: false, expense: undefined });
+      toast({ description: "Expense Created." });
+      utils.expense.invalidate();
+    },
+  });
+
+  const onSubmit = (data: z.infer<typeof expenseSchema>) => {
+    if (expense) {
+      updateExpense({
+        id: Number(value.expense?.id),
+        categoryId: Number(data.categoryId),
+        description: data.description,
+        amount: Number(data.amount),
+        note: data.note,
+        date: data.date,
+        tags: data.tags,
+      });
+    } else {
+      createExpense({
+        categoryId: Number(data.categoryId),
+        description: data.description,
+        amount: Number(data.amount),
+        note: data.note,
+        date: data.date,
+        tags: data.tags,
+      });
+    }
   };
 
   return (
     <Dialog open={isOpen}>
       <DialogContent onCloseClick={() => setValue({ isOpen: false, expense: undefined })}>
         <DialogHeader>
-          <DialogTitle>Expense Form</DialogTitle>
+          <DialogTitle>{expense ? "Create Expense" : "Update Expense"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -111,7 +129,7 @@ const ExpenseForm = () => {
                   <FormItem className="w-full">
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input className="mt-1" {...field} value={isNaN(field.value) ? 0 : field.value} />
+                      <Input className="mt-1" type="number" {...field} value={field.value} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,12 +195,12 @@ const ExpenseForm = () => {
                                   checked={field.value?.includes(tag.id)}
                                   onCheckedChange={() => {
                                     let tagIds: number[] = [];
-                                    if (!field.value?.includes(tag.id)) {
+                                    if (field.value && !field.value?.includes(tag.id)) {
                                       // check
                                       tagIds = field.value?.length > 0 ? [...field.value, tag.id] : [tag.id];
                                     } else {
                                       // uncheck
-                                      tagIds = field.value?.filter((id) => id !== tag.id);
+                                      tagIds = field.value?.filter((id) => id !== tag.id) || [];
                                     }
 
                                     field.onChange(tagIds);
@@ -207,7 +225,10 @@ const ExpenseForm = () => {
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value.toString()}
+                      value={field.value.toString()}>
                       <FormControl>
                         <SelectTrigger className="gap- h-10 w-full px-3 py-2">
                           <SelectValue className="mr-2 text-white" />

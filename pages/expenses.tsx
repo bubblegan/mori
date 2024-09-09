@@ -8,7 +8,7 @@ import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
 import CategorySelect from "@/components/category-select";
 import DateRangePicker from "@/components/date-range-picker";
 import { ExpenseFilterPills } from "@/components/expense-filter-pills";
-import ExpenseForm from "@/components/expense-form";
+import ExpenseForm, { ExpenseFormAtom } from "@/components/expense-form";
 import { ExpenseSummarySection } from "@/components/expense-summary-section";
 import ExpenseTable from "@/components/expense-table";
 import KeywordSearch from "@/components/keyword-search";
@@ -32,6 +32,7 @@ import UploadStatementForm from "@/components/upload-statement-form";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { downloadCsv } from "@/utils/download-as-csv";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
+import { useAtom } from "jotai";
 import { Plus, Settings, Upload } from "lucide-react";
 
 export type AggregateType = "category" | "monthly";
@@ -39,6 +40,7 @@ export type AggregateType = "category" | "monthly";
 export default function Expenses() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isCategoriseDialogOpen, setCategoriseDialog] = useState(false);
+  const [, setValue] = useAtom(ExpenseFormAtom);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -129,14 +131,14 @@ export default function Expenses() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+              <Button variant="outline" onClick={() => setValue({ isOpen: true, expense: undefined })}>
                 <Plus size={16} />
               </Button>
               <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
                 <Upload size={16} />
               </Button>
               <DropdownMenu>
-                <DropdownMenuTrigger onClick={() => setUploadDialogOpen(true)} asChild>
+                <DropdownMenuTrigger asChild>
                   <Button variant="outline">
                     <Settings size={16} />
                   </Button>
