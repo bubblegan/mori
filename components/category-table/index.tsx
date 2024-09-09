@@ -1,17 +1,28 @@
-import { useEffect, useState } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
 import { trpc } from "@/utils/trpc";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useAtom } from "jotai";
+import { Ellipsis } from "lucide-react";
 import { CategoryFormAtom } from "../category-form";
+import { useToast } from "../ui/use-toast";
 
 type TableData = {
   id: number;
   title: string;
   keyword: string;
   color: string;
-  onEdit: () => void;
+  optionClick?: {
+    onEdit: MouseEventHandler<HTMLDivElement>;
+    onDelete: MouseEventHandler<HTMLDivElement>;
+  };
 };
 
 const columnHelper = createColumnHelper<TableData>();
@@ -29,19 +40,33 @@ const columns = [
     cell: (info) => <div className="h-6 w-12 rounded" style={{ backgroundColor: info.getValue() }} />,
     header: () => <span className="uppercase">Color</span>,
   }),
-  columnHelper.accessor("onEdit", {
+  columnHelper.accessor("optionClick", {
     cell: (info) => (
-      <span className="cursor-pointer uppercase" onClick={info.getValue()}>
-        Edit
-      </span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Ellipsis size={16} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={info.getValue()?.onEdit}>Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={info.getValue()?.onDelete}>Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     ),
     header: () => <span>Options</span>,
   }),
 ];
 
 const CategoryTable = () => {
+  const { toast } = useToast();
+
   // get data here
   const categories = trpc.category.list.useQuery();
+
+  const { mutate: deleteCategory } = trpc.category.delete.useMutation({
+    onSuccess() {
+      toast({ description: "Deleted Category." });
+    },
+  });
 
   const [data, setData] = useState<TableData[]>(() => []);
   const [, setValue] = useAtom(CategoryFormAtom);
@@ -60,12 +85,19 @@ const CategoryTable = () => {
           title: category.title,
           keyword: category.keyword.join(", "),
           color: category.color,
-          onEdit: () => setValue({ isOpen: true, category: mappedData }),
+          optionClick: {
+            onEdit: () => {
+              setValue({ isOpen: true, category: mappedData });
+            },
+            onDelete: () => {
+              deleteCategory(category.id);
+            },
+          },
         };
       });
       setData(tableData);
     }
-  }, [categories.data, categories.isSuccess, setValue]);
+  }, [categories.data, categories.isSuccess, deleteCategory, setValue]);
 
   const table = useReactTable({
     data,

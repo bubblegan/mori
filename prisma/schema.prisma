@@ -45,7 +45,7 @@ model Expense {
   date        DateTime         @default(now())
   statementId Int?
   categoryId  Int?
-  Category    Category?        @relation(fields: [categoryId], references: [id])
+  Category    Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   Statement   Statement?       @relation(fields: [statementId], references: [id], onDelete: Cascade)
   userId      Int
   User        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)

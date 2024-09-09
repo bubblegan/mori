@@ -66,7 +66,6 @@ const UploadStatementForm = ({
         }
         return expense;
       });
-      setStartCategorise(false);
       setUploadingState("done");
       setParsedExpense(parsedExpenseCategorised);
     },

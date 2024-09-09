@@ -172,7 +172,7 @@ const ExpenseTable = () => {
       });
       setData(tableData);
     }
-  }, [expenses.data, setvalue]);
+  }, [expenses.data, setvalue, deleteExpenses]);
 
   return <ExpenseTableUi data={data} columns={columns} />;
 };

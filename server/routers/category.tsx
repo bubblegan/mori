@@ -88,4 +88,13 @@ export const catergoryRouter = router({
 
       return result;
     }),
+  delete: protectedProcedure.input(z.number()).mutation(async ({ input, ctx }) => {
+    const result = await prisma.category.delete({
+      where: {
+        id: input,
+        userId: ctx.auth.userId,
+      },
+    });
+    return result;
+  }),
 });

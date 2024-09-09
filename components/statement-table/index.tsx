@@ -160,7 +160,7 @@ const StatementTable = () => {
         }) || [];
       setData(tableData);
     }
-  }, [statements.data, setValue]);
+  }, [statements.data, setValue, deleteStatement]);
 
   const table = useReactTable({
     data,
