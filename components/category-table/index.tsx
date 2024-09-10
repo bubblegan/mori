@@ -30,15 +30,15 @@ const columnHelper = createColumnHelper<TableData>();
 const columns = [
   columnHelper.accessor("title", {
     cell: (info) => info.getValue(),
-    header: () => <span className="uppercase">Name</span>,
+    header: () => <span>Name</span>,
   }),
   columnHelper.accessor("keyword", {
     cell: (info) => info.getValue(),
-    header: () => <span className="uppercase">Keyword</span>,
+    header: () => <span>Keyword</span>,
   }),
   columnHelper.accessor("color", {
     cell: (info) => <div className="h-6 w-12 rounded" style={{ backgroundColor: info.getValue() }} />,
-    header: () => <span className="uppercase">Color</span>,
+    header: () => <span>Color</span>,
   }),
   columnHelper.accessor("optionClick", {
     cell: (info) => (

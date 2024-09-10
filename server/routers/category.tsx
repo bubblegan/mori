@@ -18,8 +18,8 @@ export const catergoryRouter = router({
         statementIds: z.number().array().optional(),
         dateRange: z
           .object({
-            start: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
-            end: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
+            start: z.date().nullable(),
+            end: z.date().nullable(),
           })
           .optional(),
       })

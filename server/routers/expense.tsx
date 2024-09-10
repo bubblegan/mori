@@ -21,8 +21,8 @@ export const expenseRouter = router({
         uncategorised: z.boolean().optional(),
         dateRange: z
           .object({
-            start: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
-            end: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
+            start: z.date().nullable(),
+            end: z.date().nullable(),
           })
           .optional(),
       })
@@ -110,8 +110,8 @@ export const expenseRouter = router({
   aggregateByMonth: protectedProcedure
     .input(
       z.object({
-        start: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
-        end: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
+        start: z.date().nullable(),
+        end: z.date().nullable(),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -134,33 +134,6 @@ export const expenseRouter = router({
 
     return result;
   }),
-  aggregateByCategory: protectedProcedure
-    .input(
-      z.object({
-        startDate: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
-        endDate: z.string().datetime({ message: "Invalid datetime string! Must be ISO." }).nullable(),
-      })
-    )
-    .query(async ({ input, ctx }) => {
-      const { startDate, endDate } = input;
-
-      if (!startDate || !endDate) {
-        return [];
-      }
-
-      const result = await prisma.$queryRaw<CategoryAmount[]>`
-          Select "Expense"."categoryId" id, SUM("Expense"."amount"), "Category".title, "Category".color
-          From "Expense"
-          LEFT JOIN 
-            "Category"
-          ON 
-            "Expense"."categoryId" = "Category"."id"
-          WHERE "Expense"."date" BETWEEN TO_TIMESTAMP(${startDate},'YYYY-MM-DD') AND TO_TIMESTAMP(${endDate},'YYYY-MM-DD') AND "Expense"."userId" = ${ctx.auth.userId}
-          GROUP BY "Expense"."categoryId", "Category"."title", "Category".color
-      `;
-
-      return result;
-    }),
   update: protectedProcedure
     .input(expenseSchema.extend({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {

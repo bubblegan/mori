@@ -104,7 +104,7 @@ const ExpenseForm = () => {
     <Dialog open={isOpen}>
       <DialogContent onCloseClick={() => setValue({ isOpen: false, expense: undefined })}>
         <DialogHeader>
-          <DialogTitle>{expense ? "Create Expense" : "Update Expense"}</DialogTitle>
+          <DialogTitle>{expense ? "Update Expense" : "Create Expense"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
