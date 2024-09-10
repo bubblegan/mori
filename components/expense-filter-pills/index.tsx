@@ -8,11 +8,13 @@ export function ExpenseFilterPills() {
 
   const categories = trpc.category.list.useQuery();
   const statements = trpc.statement.list.useQuery({});
+  const tags = trpc.tag.list.useQuery();
 
-  const { categoryIds, statementIds, uncategorised } = getExpenseFilterParam();
+  const { categoryIds, statementIds, uncategorised, tagIds } = getExpenseFilterParam();
 
   const selectedCategory = categories.data?.filter((category) => categoryIds.includes(category.id)) || [];
   const selectedStatement = statements.data?.filter((statement) => statementIds.includes(statement.id)) || [];
+  const selectedTag = tags.data?.filter((tag) => tagIds.includes(tag.id)) || [];
 
   const removeFromParam = (param: string, id?: number) => {
     const params = new URLSearchParams(window.location.search);
@@ -24,6 +26,10 @@ export function ExpenseFilterPills() {
 
     if (param === "statement-ids") {
       filteredIds = statementIds.filter((statementId) => statementId !== id);
+    }
+
+    if (param === "statement-ids") {
+      filteredIds = tagIds.filter((tagId) => tagId !== id);
     }
 
     if (filteredIds.length > 0) {
@@ -54,6 +60,17 @@ export function ExpenseFilterPills() {
             className="flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xs"
             style={{ background: category.color }}>
             {category.title[0].toLocaleUpperCase() + category.title.substring(1)}
+            <X size={14} />
+          </div>
+        );
+      })}
+      {selectedTag?.map((tag) => {
+        return (
+          <div
+            key={tag.id}
+            onClick={() => removeFromParam("tag-ids", tag.id)}
+            className="flex cursor-pointer flex-row items-center gap-2 rounded-md bg-orange-400 px-3 py-2 text-xs">
+            {tag.title[0].toLocaleUpperCase() + tag.title.substring(1)}
             <X size={14} />
           </div>
         );

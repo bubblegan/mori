@@ -17,6 +17,7 @@ export const expenseRouter = router({
         page: z.number().optional(),
         statementIds: z.number().array().optional(),
         categoryIds: z.number().array().optional(),
+        tagIds: z.number().array().optional(),
         keyword: z.string().optional(),
         uncategorised: z.boolean().optional(),
         dateRange: z
@@ -36,6 +37,17 @@ export const expenseRouter = router({
           ...(input.categoryIds && input.categoryIds?.length > 0
             ? {
                 categoryId: { in: input.categoryIds },
+              }
+            : {}),
+          ...(input.tagIds && input.tagIds?.length > 0
+            ? {
+                tags: {
+                  some: {
+                    tagId: {
+                      in: input.tagIds,
+                    },
+                  },
+                },
               }
             : {}),
           ...(input.uncategorised
@@ -117,7 +129,7 @@ export const expenseRouter = router({
     .query(async ({ input, ctx }) => {
       const { start, end } = input;
 
-      const result = await prisma.$queryRaw<{ title: string; amount: number; count: BigInt }[]>`
+      const result = await prisma.$queryRaw<{ title: string; amount: number; count: bigint }[]>`
         Select date_trunc('month', "Expense"."date") AS "title", SUM("Expense"."amount") AS "amount", COUNT("Expense"."amount") as count
         From "Expense" 
         WHERE "Expense"."date" BETWEEN DATE(${start}) AND DATE(${end}) AND "Expense"."userId" = ${ctx.auth.userId}

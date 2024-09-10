@@ -130,6 +130,16 @@ const ExpenseTable = () => {
     },
   });
 
+  const tags = trpc.tag.list.useQuery();
+  let tagById: Record<number, string> = {};
+
+  if (tags.data) {
+    tagById = tags.data.reduce((byId: Record<number, string>, curr) => {
+      byId[curr.id] = curr.title;
+      return byId;
+    }, {});
+  }
+
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
   useEffect(() => {
@@ -160,6 +170,7 @@ const ExpenseTable = () => {
             title: expense.Category?.title || "",
             color: expense.Category?.color || "",
           },
+          tags: expense.tags.map((tag) => tagById[tag.tagId]),
           optionClick: {
             onEdit: () => {
               setvalue({ isOpen: true, expense: formattedType });
@@ -170,6 +181,7 @@ const ExpenseTable = () => {
           },
         };
       });
+
       setData(tableData);
     }
   }, [expenses.data, setvalue, deleteExpenses]);

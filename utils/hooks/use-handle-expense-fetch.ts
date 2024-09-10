@@ -13,7 +13,7 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
   const { toast } = useToast();
 
   const utils = trpc.useUtils();
-  const { statementIds, start, end, keyword, categoryIds, uncategorised } = getExpenseFilterParam();
+  const { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds } = getExpenseFilterParam();
 
   const categories = trpc.category.list.useQuery();
   const { mutate: updateCategories } = trpc.expense.categorise.useMutation({
@@ -45,6 +45,7 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
       start,
       end,
     },
+    tagIds,
     keyword,
     categoryIds,
     uncategorised,

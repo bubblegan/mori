@@ -6,6 +6,7 @@ export function getExpenseFilterParam() {
 
   const statementIds = searchParams?.get("statement-ids")?.split(",").map(Number) || [];
   const categoryIds = searchParams?.get("category-ids")?.split(",").map(Number) || [];
+  const tagIds = searchParams?.get("tag-ids")?.split(",").map(Number) || [];
   const keyword = searchParams?.get("keyword") || "";
   const startDate = searchParams?.get("start-date");
   const endDate = searchParams?.get("end-date");
@@ -31,5 +32,5 @@ export function getExpenseFilterParam() {
     }
   }
 
-  return { statementIds, start, end, keyword, categoryIds, uncategorised };
+  return { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds };
 }

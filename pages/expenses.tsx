@@ -13,6 +13,7 @@ import { ExpenseSummarySection } from "@/components/expense-summary-section";
 import ExpenseTable from "@/components/expense-table";
 import KeywordSearch from "@/components/keyword-search";
 import StatementSelect from "@/components/statement-select";
+import { TagSelect } from "@/components/tag-select";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -100,6 +101,7 @@ export default function Expenses() {
                 </div>
                 <StatementSelect />
                 <CategorySelect />
+                <TagSelect />
                 <DateRangePicker />
               </div>
             )}

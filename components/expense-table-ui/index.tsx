@@ -22,6 +22,7 @@ export type ExpenseTableData = {
     title: string;
     color: string;
   };
+  tags?: string[];
   note?: string;
   description?: string;
   date?: string;
