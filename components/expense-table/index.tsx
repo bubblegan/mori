@@ -13,6 +13,7 @@ import { Prisma } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useAtom } from "jotai";
 import { Ellipsis, StickyNoteIcon } from "lucide-react";
+import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { ExpenseFormAtom } from "../expense-form";
 import ExpenseTableUi, { ExpenseTableData } from "../expense-table-ui";
 import { useToast } from "../ui/use-toast";
@@ -118,6 +119,7 @@ const columns = [
 
 const ExpenseTable = () => {
   const [, setvalue] = useAtom(ExpenseFormAtom);
+  const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
 
   const { expenses } = useHandleExpenseFetch();
   const utils = trpc.useUtils();
@@ -125,8 +127,8 @@ const ExpenseTable = () => {
 
   const { mutate: deleteExpenses } = trpc.expense.delete.useMutation({
     onSuccess() {
+      toast({ description: "Expense Deleted." });
       utils.expense.invalidate();
-      toast({ description: "Deleted Expense." });
     },
   });
 
@@ -176,7 +178,14 @@ const ExpenseTable = () => {
               setvalue({ isOpen: true, expense: formattedType });
             },
             onDelete: () => {
-              deleteExpenses([expense.id]);
+              setConfirmationDialog({
+                isOpen: true,
+                title: "Delete Expense",
+                message: `Delete this expense: ${expense.description}`,
+                onConfirm: () => {
+                  deleteExpenses([expense.id]);
+                },
+              });
             },
           },
         };
@@ -184,7 +193,7 @@ const ExpenseTable = () => {
 
       setData(tableData);
     }
-  }, [expenses.data, setvalue, deleteExpenses]);
+  }, [expenses.data, setvalue, deleteExpenses, setConfirmationDialog]);
 
   return <ExpenseTableUi data={data} columns={columns} />;
 };

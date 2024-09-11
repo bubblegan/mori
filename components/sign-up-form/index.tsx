@@ -16,7 +16,7 @@ const SignUpForm = () => {
 
   const { mutate: createUser } = trpc.auth.create.useMutation({
     onSuccess() {
-      toast({ description: "User created" });
+      toast({ description: "User Created" });
     },
   });
 

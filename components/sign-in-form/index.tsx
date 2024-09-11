@@ -19,7 +19,7 @@ const SignInForm = () => {
       try {
         const value = await signIn("credentials", { ...data, callbackUrl: "/" });
         if (value?.ok) {
-          toast({ description: "signed in" });
+          toast({ description: "Signed In." });
         }
       } catch (err) {
         console.error(err);

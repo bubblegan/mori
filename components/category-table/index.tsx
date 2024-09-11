@@ -64,7 +64,7 @@ const CategoryTable = () => {
 
   const { mutate: deleteCategory } = trpc.category.delete.useMutation({
     onSuccess() {
-      toast({ description: "Deleted Category." });
+      toast({ description: "Category Deleted." });
     },
   });
 

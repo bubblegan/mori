@@ -21,7 +21,9 @@ import {
 } from "@tanstack/react-table";
 import { atom, useAtom } from "jotai";
 import { Ellipsis } from "lucide-react";
+import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { StatementFormAtom } from "../statement-form";
+import { useToast } from "../ui/use-toast";
 
 type StatementTableData = {
   id: number;
@@ -121,17 +123,20 @@ const StatementTable = () => {
   const searchParams = useSearchParams();
   const years = searchParams?.get("years")?.split(",").map(Number);
   const utils = trpc.useUtils();
+  const { toast } = useToast();
 
   const statements = trpc.statement.list.useQuery({ years });
 
   const { mutate: deleteStatement } = trpc.statement.delete.useMutation({
     onSuccess() {
+      toast({ description: "Statement Deleted." });
       utils.statement.invalidate();
       utils.expense.invalidate();
     },
   });
 
   const [, setValue] = useAtom(StatementFormAtom);
+  const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
   const [data, setData] = useState<StatementTableData[]>(() => []);
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -153,7 +158,14 @@ const StatementTable = () => {
                 setValue({ isOpen: true, statement: { id: statement.id, fileName: statement.name } });
               },
               onDelete: () => {
-                deleteStatement([statement.id]);
+                setConfirmationDialog({
+                  isOpen: true,
+                  title: "Delete Statement",
+                  message: "Delete this statement will delete its transactions too.",
+                  onConfirm: () => {
+                    deleteStatement([statement.id]);
+                  },
+                });
               },
             },
           };

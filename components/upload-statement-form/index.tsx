@@ -246,7 +246,7 @@ const UploadStatementForm = ({
     utils.expense.invalidate();
 
     if (response.ok) {
-      toast({ description: "uploaded successfully" });
+      toast({ description: "Statement Uploaded Successfully" });
       setIsOpen(false);
       setFile(undefined);
       setUploadingState("default");
