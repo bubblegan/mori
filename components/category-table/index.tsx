@@ -12,6 +12,7 @@ import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "
 import { useAtom } from "jotai";
 import { Ellipsis } from "lucide-react";
 import { CategoryFormAtom } from "../category-form";
+import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { useToast } from "../ui/use-toast";
 
 type TableData = {
@@ -58,6 +59,7 @@ const columns = [
 
 const CategoryTable = () => {
   const { toast } = useToast();
+  const utils = trpc.useUtils();
 
   // get data here
   const categories = trpc.category.list.useQuery();
@@ -65,11 +67,13 @@ const CategoryTable = () => {
   const { mutate: deleteCategory } = trpc.category.delete.useMutation({
     onSuccess() {
       toast({ description: "Category Deleted." });
+      utils.category.invalidate();
     },
   });
 
   const [data, setData] = useState<TableData[]>(() => []);
   const [, setValue] = useAtom(CategoryFormAtom);
+  const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
 
   useEffect(() => {
     if (categories.isSuccess && categories.data) {
@@ -90,7 +94,14 @@ const CategoryTable = () => {
               setValue({ isOpen: true, category: mappedData });
             },
             onDelete: () => {
-              deleteCategory(category.id);
+              setConfirmationDialog({
+                isOpen: true,
+                title: "Delete Category",
+                message: "Delete this category will affect its expenses.",
+                onConfirm: () => {
+                  deleteCategory(category.id);
+                },
+              });
             },
           },
         };
