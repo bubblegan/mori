@@ -119,6 +119,44 @@ export const expenseRouter = router({
 
       return bulkUpdateCategoryResult;
     }),
+  tagMany: protectedProcedure
+    .input(
+      z.array(
+        z.object({
+          expenseId: z.number(),
+          tagIds: z.number().array(),
+        })
+      )
+    )
+    .mutation(async ({ input, ctx }) => {
+      const promises = input.map((line) => {
+        return prisma.expense.update({
+          where: {
+            id: line.expenseId,
+            userId: ctx.auth.userId,
+          },
+          data: {
+            tags: {
+              deleteMany: {},
+              create: line.tagIds?.map((tag) => {
+                return {
+                  assignedAt: new Date(),
+                  tag: {
+                    connect: {
+                      id: tag,
+                    },
+                  },
+                };
+              }),
+            },
+          },
+        });
+      });
+
+      const result = await Promise.all(promises);
+
+      return result;
+    }),
   aggregateByMonth: protectedProcedure
     .input(
       z.object({
@@ -130,9 +168,9 @@ export const expenseRouter = router({
       const { start, end } = input;
 
       const result = await prisma.$queryRaw<{ title: string; amount: number; count: bigint }[]>`
-        Select date_trunc('month', "Expense"."date") AS "title", SUM("Expense"."amount") AS "amount", COUNT("Expense"."amount") as count
+        Select date_trunc('month', "Expense"."date" at time zone 'UTC' at time zone 'Asia/Singapore') AS "title", SUM("Expense"."amount") AS "amount", COUNT("Expense"."amount") as count
         From "Expense" 
-        WHERE "Expense"."date" BETWEEN DATE(${start}) AND DATE(${end}) AND "Expense"."userId" = ${ctx.auth.userId}
+        WHERE "Expense"."date" BETWEEN ${start} AND ${end} AND "Expense"."userId" = ${ctx.auth.userId}
         GROUP BY "title"
     `;
 

@@ -13,6 +13,7 @@ import { ExpenseSummarySection } from "@/components/expense-summary-section";
 import ExpenseTable from "@/components/expense-table";
 import KeywordSearch from "@/components/keyword-search";
 import StatementSelect from "@/components/statement-select";
+import { TagExpenseForm } from "@/components/tag-expense-form";
 import { TagSelect } from "@/components/tag-select";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,8 @@ export type AggregateType = "category" | "monthly";
 export default function Expenses() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isCategoriseDialogOpen, setCategoriseDialog] = useState(false);
+  const [isTagDialogOpen, setTagDialog] = useState(false);
+
   const [, setValue] = useAtom(ExpenseFormAtom);
 
   const searchParams = useSearchParams();
@@ -113,6 +116,7 @@ export default function Expenses() {
                     params.set("view", value);
                     params.delete("statement-ids");
                     params.delete("category-ids");
+                    params.delete("tag-ids");
                     params.delete("keyword");
                   } else {
                     params.delete("view");
@@ -147,8 +151,8 @@ export default function Expenses() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTagDialog(true)}>Tag</DropdownMenuItem>
                   <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
-                  <DropdownMenuItem onClick={donwloadAsCsv}>Tag</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -157,6 +161,7 @@ export default function Expenses() {
           {view === "aggregate" ? <ExpenseSummarySection /> : <ExpenseTable />}
         </div>
         <ExpenseForm />
+        <TagExpenseForm isOpen={isTagDialogOpen} setIsOpen={setTagDialog} />
         <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />
         <CategoriseExpenseForm isOpen={isCategoriseDialogOpen} setIsOpen={setCategoriseDialog} />
       </BasePage>

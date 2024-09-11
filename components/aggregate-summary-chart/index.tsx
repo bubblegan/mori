@@ -44,7 +44,7 @@ export function AggregateSummaryChart(props: { aggregateBy: AggregateType }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm">breakdown by {aggregateBy} :</span>
+      <span className="text-sm">{aggregateBy} :</span>
       <div className="flex w-[600px] flex-row gap-[2px]">
         <TooltipProvider>
           {data?.map((item, index) => {
