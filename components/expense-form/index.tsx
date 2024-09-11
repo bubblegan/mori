@@ -199,7 +199,7 @@ const ExpenseForm = () => {
                           {tags.data?.map((tag) => {
                             return (
                               <div
-                                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
+                                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-secondary/50"
                                 key={tag.id}>
                                 <Checkbox
                                   checked={field.value?.includes(tag.id)}

@@ -2,8 +2,8 @@ import SignUpForm from "@/components/sign-up-form";
 
 export default function SignUp() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="w-[500px] h-fit p-10 border-gray-400 border-solid border-2 rounded-md">
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-fit w-[500px] rounded-md border-2 border-solid border-border p-10">
         <SignUpForm />
       </div>
     </div>

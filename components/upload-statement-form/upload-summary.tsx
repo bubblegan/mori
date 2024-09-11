@@ -157,7 +157,7 @@ const UploadSummary = (props: UploadSummaryProps) => {
           </div>
         </div>
       )}
-      <div className="max-h-[500px] overflow-y-scroll rounded-md border border-gray-700">
+      <div className="max-h-[500px] overflow-y-scroll rounded-md border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

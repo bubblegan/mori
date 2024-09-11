@@ -26,12 +26,12 @@ const CategorySelect = () => {
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[180px] border-slate-700 p-1" align="start">
+      <PopoverContent className="border-boder w-[180px] p-1" align="start">
         <div className="flex flex-col gap-1">
           {categories.data?.map((category) => {
             return (
               <div
-                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
+                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-secondary/50"
                 key={category.id}>
                 <Checkbox
                   checked={categoryIds.includes(category.id)}
@@ -62,7 +62,7 @@ const CategorySelect = () => {
             );
           })}
           <div
-            className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
+            className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-secondary/50"
             key={"uncategorise"}>
             <Checkbox
               checked={uncategorised}

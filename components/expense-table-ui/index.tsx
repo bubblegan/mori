@@ -64,7 +64,7 @@ const ExpenseTableUi = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className={cn("rounded-md border border-gray-700", tableWrapperClass)}>
+      <div className={cn("rounded-md border border-border", tableWrapperClass)}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

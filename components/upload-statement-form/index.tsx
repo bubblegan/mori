@@ -270,7 +270,7 @@ const UploadStatementForm = ({
           <>
             <div
               {...getRootProps()}
-              className="flex w-full cursor-pointer justify-center rounded border border-solid border-gray-700 p-4">
+              className="flex w-full cursor-pointer justify-center rounded border border-solid border-border p-4">
               <input {...getInputProps()} />
               {isDragActive ? (
                 <p>Drop the files here ...</p>
@@ -283,12 +283,12 @@ const UploadStatementForm = ({
         {uploadingState === "filepreview" && (
           <>
             {file && (
-              <div className="flex w-full justify-between rounded border border-solid border-gray-700 p-4">
+              <div className="flex w-full justify-between rounded border border-solid border-border p-4">
                 <p>{file.name}</p>
                 <p>{file.size / 1000} KB</p>
               </div>
             )}
-            <div className="flex w-full justify-between rounded border border-gray-700 p-3">
+            <div className="flex w-full justify-between rounded border border-border p-3">
               <p>Enable Ai Categorise</p>
               <Switch checked={enableAiCategorise} onCheckedChange={setEnableAiCategorise} />
             </div>

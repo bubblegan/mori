@@ -35,7 +35,7 @@ const StatementSelect = () => {
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[180px] border-slate-700 p-1" align="start">
+      <PopoverContent className="w-[180px] border-border p-1" align="start">
         <div className="flex flex-col gap-1">
           {Object.keys(grouped).map((key) => {
             const statements = grouped[Number(key)];
@@ -47,11 +47,11 @@ const StatementSelect = () => {
                     <div className="flex items-center">{key}</div>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="mt-6 w-[180px] border-slate-700 p-1" sideOffset={10} side="right">
+                <PopoverContent className="mt-6 w-[180px] border-border p-1" sideOffset={10} side="right">
                   {statements?.map((statement) => {
                     return (
                       <div
-                        className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-slate-800"
+                        className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-secondary/50"
                         key={statement.id}>
                         <Checkbox
                           checked={statementIds.includes(statement.id.toString())}

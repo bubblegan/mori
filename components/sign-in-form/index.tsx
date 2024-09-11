@@ -31,13 +31,13 @@ const SignInForm = () => {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label htmlFor="title" className="text-white">
+        <label htmlFor="title" className="text-sm text-white">
           Username
         </label>
         <Input className="mt-1 text-white" {...form.register("username")} />
       </div>
       <div className="flex flex-col gap-1">
-        <label htmlFor="title" className="text-white">
+        <label htmlFor="title" className="text-sm text-white">
           Password
         </label>
         <Input type="password" className="mt-1 text-white" {...form.register("password")} />

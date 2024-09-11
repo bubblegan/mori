@@ -124,7 +124,7 @@ export default function Expenses() {
                 }}
                 defaultValue="expense"
                 value={view || "expense"}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="h-10 w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

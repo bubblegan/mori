@@ -63,7 +63,7 @@ const TagTable = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="w-[200px] rounded-md border border-gray-700">
+      <div className="w-[200px] rounded-md border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -79,7 +79,7 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="w-[600px] rounded-md border border-gray-700">
+      <div className="w-[600px] rounded-md border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
