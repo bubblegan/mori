@@ -12,7 +12,7 @@ import { trpc } from "@/utils/trpc";
 import { Prisma } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useAtom } from "jotai";
-import { Ellipsis, StickyNoteIcon } from "lucide-react";
+import { Ellipsis, StickyNoteIcon, Tag } from "lucide-react";
 import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { ExpenseFormAtom } from "../expense-form";
 import ExpenseTableUi, { ExpenseTableData } from "../expense-table-ui";
@@ -75,6 +75,32 @@ const columns = [
 
       // names must be equal
       return 0;
+    },
+  }),
+  columnHelper.accessor("tags", {
+    cell: (info) => {
+      if (!info.getValue() || info.getValue()?.length === 0) return null;
+
+      return (
+        <TooltipProvider>
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger>
+              <Tag size={16} />
+            </TooltipTrigger>
+            <TooltipContent className="border-input">
+              <div className="flex flex-col gap-1">
+                {info.getValue()?.map((tag) => {
+                  return <p key={tag}>{tag}</p>;
+                })}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
+    header: () => <span />,
+    meta: {
+      className: "w-[20px]",
     },
   }),
   columnHelper.accessor("amount", {

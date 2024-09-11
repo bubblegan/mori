@@ -72,6 +72,7 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
     complete(promptText);
   };
 
+  // TODO: use currencyjs to add up
   let totalAmt = 0;
   expenses.data?.forEach((expense) => {
     totalAmt += Number(expense.amount);

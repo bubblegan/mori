@@ -93,9 +93,6 @@ export default function Expenses() {
             {view === "aggregate" ? (
               <div className="flex gap-3">
                 <DateRangePicker />
-                <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
-                  <span>Total: $ {new Intl.NumberFormat().format(Number(amount))}</span>
-                </div>
               </div>
             ) : (
               <div className="flex gap-3">
@@ -157,7 +154,15 @@ export default function Expenses() {
               </DropdownMenu>
             </div>
           </div>
-          <ExpenseFilterPills />
+          <div className="flex flex-row gap-2">
+            <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
+              <span>Total: $ {new Intl.NumberFormat().format(Number(amount))}</span>
+            </div>
+            <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
+              <span>Count: {expenses.data?.length}</span>
+            </div>
+            <ExpenseFilterPills />
+          </div>
           {view === "aggregate" ? <ExpenseSummarySection /> : <ExpenseTable />}
         </div>
         <ExpenseForm />
