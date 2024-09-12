@@ -29,7 +29,7 @@ export function ExpenseFilterPills() {
       filteredIds = statementIds.filter((statementId) => statementId !== id);
     }
 
-    if (param === "statement-ids") {
+    if (param === "tag-ids") {
       filteredIds = tagIds.filter((tagId) => tagId !== id);
     }
 
@@ -43,8 +43,17 @@ export function ExpenseFilterPills() {
     });
   };
 
+  if (
+    !uncategorised &&
+    selectedCategory.length === 0 &&
+    selectedTag.length === 0 &&
+    selectedStatement.length === 0
+  ) {
+    return null;
+  }
+
   return (
-    <div className="flex flex-row gap-2">
+    <div className="flex h-10 w-fit flex-row gap-2 rounded-md border border-input px-3 py-2">
       {uncategorised && (
         <div
           onClick={() => removeFromParam("uncategorised")}
