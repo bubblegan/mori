@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import cn from "@/utils/cn";
 import { formatToDisplayDate } from "@/utils/date-util";
+import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Expense } from "@prisma/client";
@@ -251,7 +252,7 @@ const ExpenseForm = () => {
                             className="text-neutral-200"
                             key={category.id}
                             value={category.id.toString()}>
-                            {category.title[0].toLocaleUpperCase() + category.title.substring(1)}
+                            {sentenceCase(category.title)}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -3,9 +3,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import cn from "@/utils/cn";
 import { useHandleCategoryAggregate } from "@/utils/hooks/use-handle-category-aggregate";
 import { useHandleMonthAggregate } from "@/utils/hooks/use-handle-monthly-aggregate";
-import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { sentenceCase } from "@/utils/sentence-case";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  SortingState,
+  useReactTable,
+  getSortedRowModel,
+} from "@tanstack/react-table";
 import dayjs from "dayjs";
 import { useAtom } from "jotai";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { AggregateType } from "../../pages/expenses";
 import { CategoryFormAtom } from "../category-form";
 
@@ -32,6 +41,7 @@ const columns = [
         $<span> {new Intl.NumberFormat().format(info.getValue())}</span>
       </div>
     ),
+    sortingFn: "alphanumeric",
     header: () => <span>Total Amount</span>,
   }),
 ];
@@ -43,13 +53,14 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
   const monthly = useHandleMonthAggregate();
 
   const [data, setData] = useState<TableData[]>(() => []);
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [, setValue] = useAtom(CategoryFormAtom);
 
   useEffect(() => {
     if (catAggregate.isSuccess && catAggregate.data && aggregateBy === "category") {
       const tableData = catAggregate.data.map((category) => {
         return {
-          title: category.title[0].toLocaleUpperCase() + category.title.substring(1),
+          title: sentenceCase(category.title),
           amount: category.amount,
           count: Number(category.count),
         };
@@ -75,6 +86,11 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
   });
 
   return (
@@ -86,12 +102,19 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
-                    className={cn("text-neutral-100", header.column.columnDef.meta?.className)}
+                    className={cn("cursor-pointer text-neutral-100", header.column.columnDef.meta?.className)}
                     key={header.id}
+                    onClick={header.column.getToggleSortingHandler()}
                     colSpan={header.colSpan}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    <span className="flex flex-row items-center gap-1">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      {{
+                        asc: <ChevronUp size={16} />,
+                        desc: <ChevronDown size={16} />,
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </span>
                   </TableHead>
                 ))}
               </TableRow>

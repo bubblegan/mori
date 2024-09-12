@@ -3,6 +3,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import cn from "@/utils/cn";
 import { useHandleCategoryAggregate } from "@/utils/hooks/use-handle-category-aggregate";
 import { useHandleMonthAggregate } from "@/utils/hooks/use-handle-monthly-aggregate";
+import { sentenceCase } from "@/utils/sentence-case";
 import dayjs from "dayjs";
 import { AggregateType } from "../../pages/expenses";
 
@@ -14,6 +15,21 @@ export function AggregateSummaryChart(props: { aggregateBy: AggregateType }) {
   const monthly = useHandleMonthAggregate();
 
   const data = useMemo(() => {
+    const monthColor = [
+      "#a6cee3",
+      "#1f78b4",
+      "#b2df8a",
+      "#33a02c",
+      "#fb9a99",
+      "#e31a1c",
+      "#fdbf6f",
+      "#ff7f00",
+      "#cab2d6",
+      "#6a3d9a",
+      "#ffff99",
+      "#b15928",
+    ];
+
     if (aggregateBy === "category") {
       const total = aggregateCategories.data?.map((category) => {
         return {
@@ -27,11 +43,11 @@ export function AggregateSummaryChart(props: { aggregateBy: AggregateType }) {
     }
 
     if (aggregateBy === "monthly") {
-      return monthly.data?.map((month) => {
+      return monthly.data?.map((month, index) => {
         return {
           title: dayjs(month.title).format("MMM YYYY"),
           amount: Number(month.amount),
-          color: "#65a30d",
+          color: monthColor[index],
         };
       });
     }
@@ -44,7 +60,7 @@ export function AggregateSummaryChart(props: { aggregateBy: AggregateType }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm">{aggregateBy} :</span>
+      <span className="text-sm">{sentenceCase(aggregateBy)} :</span>
       <div className="flex w-[600px] flex-row gap-[2px]">
         <TooltipProvider>
           {data?.map((item, index) => {

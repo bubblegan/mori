@@ -4,6 +4,7 @@ import { Button } from "@/ui/button";
 import { Checkbox } from "@/ui/checkbox";
 import { Popover, PopoverTrigger, PopoverContent } from "@/ui/popover";
 import { getExpenseFilterParam } from "@/utils/get-expense-filter-params";
+import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { PlusCircleIcon } from "lucide-react";
 
@@ -57,7 +58,7 @@ export function TagSelect() {
                   id={`${tag.id}`}
                 />
                 <label htmlFor={`${tag.id}`} className="w-32 text-sm">
-                  {tag.title[0].toLocaleUpperCase() + tag.title.substring(1)}
+                  {sentenceCase(tag.title)}
                 </label>
               </div>
             );

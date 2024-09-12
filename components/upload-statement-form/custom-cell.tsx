@@ -1,6 +1,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { formatToDisplayDate } from "@/utils/date-util";
+import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { CellContext } from "@tanstack/react-table";
 import { Input } from "../ui/input";
@@ -59,7 +60,7 @@ const CustomCell = ({
           <SelectContent side="bottom">
             {categories.data?.map((category) => (
               <SelectItem className="text-neutral-200" key={category.id} value={category.id.toString()}>
-                {category.title[0].toLocaleUpperCase() + category.title.substring(1)}
+                {sentenceCase(category.title)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -83,7 +84,7 @@ const CustomCell = ({
 
   if (column.id === "category") {
     const category = categories.data?.find((cat) => cat.id === value);
-    if (category) return <span>{category.title[0].toLocaleUpperCase() + category.title.substring(1)}</span>;
+    if (category) return <span>{sentenceCase(category.title)}</span>;
   }
 
   return <span>{value}</span>;

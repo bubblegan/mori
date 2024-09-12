@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { getExpenseFilterParam } from "@/utils/get-expense-filter-params";
+import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { X } from "lucide-react";
 
@@ -59,7 +60,7 @@ export function ExpenseFilterPills() {
             onClick={() => removeFromParam("category-ids", category.id)}
             className="flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xs"
             style={{ background: category.color }}>
-            {category.title[0].toLocaleUpperCase() + category.title.substring(1)}
+            {sentenceCase(category.title)}
             <X size={14} />
           </div>
         );
@@ -70,7 +71,7 @@ export function ExpenseFilterPills() {
             key={tag.id}
             onClick={() => removeFromParam("tag-ids", tag.id)}
             className="flex cursor-pointer flex-row items-center gap-2 rounded-md bg-orange-400 px-3 py-2 text-xs">
-            {tag.title[0].toLocaleUpperCase() + tag.title.substring(1)}
+            {sentenceCase(tag.title)}
             <X size={14} />
           </div>
         );

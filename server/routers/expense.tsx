@@ -166,12 +166,14 @@ export const expenseRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const { start, end } = input;
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
       const result = await prisma.$queryRaw<{ title: string; amount: number; count: bigint }[]>`
-        Select date_trunc('month', "Expense"."date" at time zone 'UTC' at time zone 'Asia/Singapore') AS "title", SUM("Expense"."amount") AS "amount", COUNT("Expense"."amount") as count
+        Select date_trunc('month', "Expense"."date" at time zone 'UTC' at time zone ${timeZone}) AS "title", SUM("Expense"."amount") AS "amount", COUNT("Expense"."amount") as count
         From "Expense" 
         WHERE "Expense"."date" BETWEEN ${start} AND ${end} AND "Expense"."userId" = ${ctx.auth.userId}
         GROUP BY "title"
+        ORDER BY "title" ASC
     `;
 
       return result;
