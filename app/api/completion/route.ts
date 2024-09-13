@@ -1,15 +1,15 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText } from "ai";
+import { generateText } from "ai";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const { prompt } = await req.json();
 
-  const result = await streamText({
+  const result = await generateText({
     model: openai("gpt-4"),
     prompt,
   });
 
-  return result.toDataStreamResponse();
+  return Response.json(result);
 }

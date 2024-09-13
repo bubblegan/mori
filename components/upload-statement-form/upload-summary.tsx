@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
+import { ParsedStatement, ParsedExpense } from "@/utils/completion-to-parsed-data";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { useClickAway } from "@/utils/hooks/use-click-away";
 import { trpc } from "@/utils/trpc";
@@ -15,7 +16,6 @@ import {
 } from "@tanstack/react-table";
 import CustomCell from "./custom-cell";
 import DateCell from "./date-cell";
-import { ParsedExpense, ParsedStatement } from "./index";
 
 export type ParsedExpenseTable = {
   tempId: number;
@@ -30,7 +30,7 @@ type UploadSummaryProps = {
   parsedExpenses?: ParsedExpense[];
   setParsedExpense: Dispatch<SetStateAction<ParsedExpense[]>>;
   onCreateClick: () => void;
-  onParseClick?: () => void | undefined;
+  onParseClick?: () => Promise<void> | undefined;
 };
 
 const columnHelper = createColumnHelper<ParsedExpenseTable>();

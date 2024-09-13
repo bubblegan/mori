@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Switch } from "@/ui/switch";
+import { completionToCategorise } from "@/utils/completion-to-categorise";
+import { completionToParsedDate, ParsedExpense, ParsedStatement } from "@/utils/completion-to-parsed-data";
+import { fetchCompletion } from "@/utils/fetch-completion";
 import { trpc } from "@/utils/trpc";
 import dayjs from "dayjs";
 import { useDropzone } from "react-dropzone";
@@ -10,26 +13,9 @@ import { generateParsingPrompt } from "../../server/ai/generate-parsing-prompt";
 import { Progress } from "../ui/progress";
 import { toast } from "../ui/use-toast";
 import UploadSummary from "./upload-summary";
-import { useCategoriseCompletion } from "./use-categorise-completion";
 import { extractTextFromPDF } from "./use-extract-from-pdf";
-import { useParsingCompletion } from "./use-parsing-completion";
 
 export type UploadingState = "default" | "filepreview" | "reading" | "prompting" | "done" | "error";
-
-export type ParsedExpense = {
-  tempId: number;
-  amount: number;
-  date: Date;
-  description: string;
-  categoryTitle?: string;
-  categoryId?: number;
-};
-
-export type ParsedStatement = {
-  bank: string;
-  statementDate: Date | null;
-  totalAmount: number;
-};
 
 const UploadStatementForm = ({
   isOpen = false,
@@ -47,7 +33,6 @@ const UploadStatementForm = ({
   }
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
-  const [startCategorise, setStartCategorise] = useState<boolean>(false);
   const [enableAiCategorise, setEnableAiCategorise] = useState(false);
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
   const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
@@ -57,52 +42,20 @@ const UploadStatementForm = ({
 
   const utils = trpc.useUtils();
 
-  const { complete: completeCategorise } = useCategoriseCompletion(
-    (categorisedRecord) => {
-      const parsedExpenseCategorised = parsedExpense.map((expense) => {
-        if (!isNaN(expense.tempId) && categorisedRecord[expense.tempId]) {
-          expense.categoryId = Number(categorisedRecord[expense.tempId]);
-          expense.categoryTitle = categoriesMap[Number(categorisedRecord[expense.tempId])];
-        }
-        return expense;
-      });
-      setUploadingState("done");
-      setParsedExpense(parsedExpenseCategorised);
-    },
-    (error) => {
-      setUploadingState("error");
-      setErrorText(error.message);
-    }
-  );
-
-  const handleCategorise = (parsedExpenses: ParsedExpense[]) => {
-    const uncategorisedExpense = parsedExpenses.filter((expense) => !expense.categoryId);
-    const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data || []);
-    completeCategorise(promptText);
-  };
-
-  const { complete: completeParsing } = useParsingCompletion(
-    ([parsedStatement, parsedExpenses]) => {
-      setParsedStatement(parsedStatement);
-      setParsedExpense(parsedExpenses);
-
-      if (enableAiCategorise) {
-        setStartCategorise(true);
-      } else {
-        setUploadingState("done");
+  const handleCategorise = async (expenseParam: ParsedExpense[]) => {
+    const uncategorisedExpense = expenseParam.filter((expense) => !expense.categoryId);
+    const categorisePrompt = generateCategorisePrompt(uncategorisedExpense, categories.data || []);
+    const completion = await fetchCompletion(categorisePrompt);
+    const categoryMap = completionToCategorise(completion);
+    const parsedExpenseCategorised = expenseParam.map((expense) => {
+      if (!isNaN(expense.tempId) && categoryMap[expense.tempId]) {
+        expense.categoryId = Number(categoryMap[expense.tempId]);
+        expense.categoryTitle = categoriesMap[Number(categoryMap[expense.tempId])];
       }
-    },
-    (error) => {
-      setUploadingState("error");
-      setErrorText(error.message);
-    }
-  );
-
-  useEffect(() => {
-    if (startCategorise) {
-      handleCategorise(parsedExpense);
-    }
-  }, [startCategorise]);
+      return expense;
+    });
+    return parsedExpenseCategorised;
+  };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     // Do something with the files
@@ -177,7 +130,6 @@ const UploadStatementForm = ({
   }, []);
 
   const handleParse = async () => {
-    let prompt = "";
     if (file && file.type === "application/pdf") {
       setUploadingState("reading");
       let statementText = "";
@@ -191,14 +143,22 @@ const UploadStatementForm = ({
         setUploadingState("error");
         setErrorText("OCR error");
       }
-
-      prompt = generateParsingPrompt(statementText);
       setUploadingState("prompting");
-      completeParsing(prompt);
+      const parsingPrompt = generateParsingPrompt(statementText);
+      const completion = await fetchCompletion(parsingPrompt);
+      const [parsedStatement, parsedExpenses] = completionToParsedDate(completion, categories.data);
+      if (enableAiCategorise) {
+        const parsedExpenseCategorised = await handleCategorise(parsedExpenses);
+        setParsedExpense(parsedExpenseCategorised);
+      } else {
+        setParsedExpense(parsedExpenses);
+      }
+      setParsedStatement(parsedStatement);
+      setUploadingState("done");
     }
 
     if (file && file.type === "text/csv") {
-      setStartCategorise(true);
+      // TODO
       setUploadingState("prompting");
     }
   };
@@ -308,7 +268,6 @@ const UploadStatementForm = ({
                 onClick={() => {
                   setUploadingState("default");
                   setFile(undefined);
-                  setStartCategorise(false);
                   setParsedExpense([]);
                   setParsedStatement(undefined);
                 }}>
@@ -336,13 +295,11 @@ const UploadStatementForm = ({
             onCreateClick={() => {
               handleUploadToDB();
             }}
-            onParseClick={
-              !startCategorise
-                ? () => {
-                    handleCategorise(parsedExpense);
-                  }
-                : undefined
-            }
+            onParseClick={async () => {
+              // use param way instaead
+              const parsedExpenseCategorised = await handleCategorise(parsedExpense);
+              setParsedExpense(parsedExpenseCategorised);
+            }}
           />
         )}
       </DialogContent>
