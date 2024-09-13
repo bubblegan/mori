@@ -64,16 +64,17 @@ const CategoryTable = () => {
   // get data here
   const categories = trpc.category.list.useQuery();
 
-  const { mutate: deleteCategory } = trpc.category.delete.useMutation({
-    onSuccess() {
-      toast({ description: "Category Deleted." });
-      utils.category.invalidate();
-    },
-  });
-
   const [data, setData] = useState<TableData[]>(() => []);
   const [, setValue] = useAtom(CategoryFormAtom);
   const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
+
+  const { mutate: deleteCategory } = trpc.category.delete.useMutation({
+    onSuccess() {
+      toast({ description: "Category Deleted." });
+      setConfirmationDialog({ isOpen: false });
+      utils.category.invalidate();
+    },
+  });
 
   useEffect(() => {
     if (categories.isSuccess && categories.data) {

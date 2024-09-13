@@ -127,18 +127,19 @@ const StatementTable = () => {
 
   const statements = trpc.statement.list.useQuery({ years });
 
-  const { mutate: deleteStatement } = trpc.statement.delete.useMutation({
-    onSuccess() {
-      toast({ description: "Statement Deleted." });
-      utils.statement.invalidate();
-      utils.expense.invalidate();
-    },
-  });
-
   const [, setValue] = useAtom(StatementFormAtom);
   const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
   const [data, setData] = useState<StatementTableData[]>(() => []);
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const { mutate: deleteStatement } = trpc.statement.delete.useMutation({
+    onSuccess() {
+      toast({ description: "Statement Deleted." });
+      setConfirmationDialog({ isOpen: false });
+      utils.statement.invalidate();
+      utils.expense.invalidate();
+    },
+  });
 
   useEffect(() => {
     if (statements.data) {

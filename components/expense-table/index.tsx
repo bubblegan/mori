@@ -154,6 +154,7 @@ const ExpenseTable = () => {
   const { mutate: deleteExpenses } = trpc.expense.delete.useMutation({
     onSuccess() {
       toast({ description: "Expense Deleted." });
+      setConfirmationDialog({ isOpen: false });
       utils.expense.invalidate();
     },
   });
