@@ -30,7 +30,8 @@ type UploadSummaryProps = {
   parsedExpenses?: ParsedExpense[];
   setParsedExpense: Dispatch<SetStateAction<ParsedExpense[]>>;
   onCreateClick: () => void;
-  onParseClick?: () => Promise<void> | undefined;
+  onCategoriseClick?: () => Promise<void> | undefined;
+  disableCategorise: boolean;
 };
 
 const columnHelper = createColumnHelper<ParsedExpenseTable>();
@@ -75,7 +76,14 @@ const columns = [
 ];
 
 const UploadSummary = (props: UploadSummaryProps) => {
-  const { parsedExpenses, parsedStatement, onCreateClick, onParseClick, setParsedExpense } = props;
+  const {
+    parsedExpenses,
+    parsedStatement,
+    onCreateClick,
+    onCategoriseClick,
+    setParsedExpense,
+    disableCategorise,
+  } = props;
 
   const [data, setTableData] = useState<ParsedExpenseTable[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -206,9 +214,9 @@ const UploadSummary = (props: UploadSummaryProps) => {
         <Button onClick={onCreateClick} className="w-fit">
           Store
         </Button>
-        {onParseClick && (
-          <Button onClick={onParseClick} className="w-fit">
-            Parse
+        {!disableCategorise && (
+          <Button onClick={onCategoriseClick} className="w-fit">
+            AI Categorise
           </Button>
         )}
       </div>

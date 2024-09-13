@@ -5,6 +5,7 @@ import { Switch } from "@/ui/switch";
 import { completionToCategorise } from "@/utils/completion-to-categorise";
 import { completionToParsedDate, ParsedExpense, ParsedStatement } from "@/utils/completion-to-parsed-data";
 import { fetchCompletion } from "@/utils/fetch-completion";
+import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import dayjs from "dayjs";
 import { useDropzone } from "react-dropzone";
@@ -34,6 +35,7 @@ const UploadStatementForm = ({
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
   const [enableAiCategorise, setEnableAiCategorise] = useState(false);
+  const [aiCategorised, setAiCategorised] = useState(false);
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
   const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
   const [progress, setProgress] = useState({ percent: 0, text: "" });
@@ -129,40 +131,6 @@ const UploadStatementForm = ({
     return;
   }, []);
 
-  const handleParse = async () => {
-    if (file && file.type === "application/pdf") {
-      setUploadingState("reading");
-      let statementText = "";
-      try {
-        statementText = await extractTextFromPDF(file, (param) => {
-          const [currPage, totalPage] = param;
-          const percent = (currPage / totalPage) * 100;
-          setProgress({ percent, text: `currently parsing ${currPage} of ${totalPage} page` });
-        });
-      } catch (error) {
-        setUploadingState("error");
-        setErrorText("OCR error");
-      }
-      setUploadingState("prompting");
-      const parsingPrompt = generateParsingPrompt(statementText);
-      const completion = await fetchCompletion(parsingPrompt);
-      const [parsedStatement, parsedExpenses] = completionToParsedDate(completion, categories.data);
-      if (enableAiCategorise) {
-        const parsedExpenseCategorised = await handleCategorise(parsedExpenses);
-        setParsedExpense(parsedExpenseCategorised);
-      } else {
-        setParsedExpense(parsedExpenses);
-      }
-      setParsedStatement(parsedStatement);
-      setUploadingState("done");
-    }
-
-    if (file && file.type === "text/csv") {
-      // TODO
-      setUploadingState("prompting");
-    }
-  };
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     onError: (error: Error) => {
@@ -176,42 +144,6 @@ const UploadStatementForm = ({
     },
     multiple: false,
   });
-
-  const handleUploadToDB = async () => {
-    if (!file) return;
-
-    const formData = new FormData();
-
-    const statementPayload = {
-      bank: parsedStatement?.bank,
-      date: parsedStatement?.statementDate?.toISOString(),
-      expenses: parsedExpense.map((expense) => {
-        return {
-          description: expense.description,
-          amount: expense.amount,
-          ...(expense.categoryId ? { categoryId: expense.categoryId } : {}),
-        };
-      }),
-    };
-
-    formData.append("statement", file);
-    formData.append("payload", JSON.stringify(statementPayload));
-
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    utils.statement.invalidate();
-    utils.expense.invalidate();
-
-    if (response.ok) {
-      toast({ description: "Statement Uploaded Successfully" });
-      setIsOpen(false);
-      setFile(undefined);
-      setUploadingState("default");
-    }
-  };
 
   return (
     <Dialog open={isOpen}>
@@ -253,8 +185,49 @@ const UploadStatementForm = ({
               <Switch checked={enableAiCategorise} onCheckedChange={setEnableAiCategorise} />
             </div>
             <div className="flex flex-row-reverse">
-              <Button className="w-fit" onClick={() => handleParse()}>
-                Parse
+              <Button
+                className="w-fit"
+                onClick={async () => {
+                  if (file && file.type === "application/pdf") {
+                    setUploadingState("reading");
+                    let statementText = "";
+                    try {
+                      statementText = await extractTextFromPDF(file, (param) => {
+                        const [currPage, totalPage] = param;
+                        const percent = (currPage / totalPage) * 100;
+                        setProgress({ percent, text: `Currently reading ${currPage} of ${totalPage} page` });
+                      });
+                    } catch (error) {
+                      setUploadingState("error");
+                      setErrorText("OCR error");
+                    }
+
+                    setUploadingState("prompting");
+
+                    const parsingPrompt = generateParsingPrompt(statementText);
+                    const completion = await fetchCompletion(parsingPrompt);
+                    const [parsedStatement, parsedExpenses] = completionToParsedDate(
+                      completion,
+                      categories.data
+                    );
+                    if (enableAiCategorise) {
+                      const parsedExpenseCategorised = await handleCategorise(parsedExpenses);
+                      setParsedExpense(parsedExpenseCategorised);
+                      setAiCategorised(true);
+                    } else {
+                      setParsedExpense(parsedExpenses);
+                    }
+                    setParsedStatement(parsedStatement);
+                    setUploadingState("done");
+                  }
+
+                  if (file && file.type === "text/csv") {
+                    handleCategorise(parsedExpense);
+                    setAiCategorised(true);
+                    setUploadingState("prompting");
+                  }
+                }}>
+                AI Parsing
               </Button>
             </div>
           </>
@@ -284,7 +257,7 @@ const UploadStatementForm = ({
         )}
         {uploadingState === "prompting" && (
           <>
-            <p>{uploadingState}...</p>
+            <p>{sentenceCase(uploadingState)}...</p>
           </>
         )}
         {uploadingState === "done" && (
@@ -292,13 +265,46 @@ const UploadStatementForm = ({
             parsedStatement={parsedStatement}
             parsedExpenses={parsedExpense}
             setParsedExpense={setParsedExpense}
-            onCreateClick={() => {
-              handleUploadToDB();
+            onCreateClick={async () => {
+              if (!file) return;
+
+              const formData = new FormData();
+
+              const statementPayload = {
+                bank: parsedStatement?.bank,
+                date: parsedStatement?.statementDate?.toISOString(),
+                expenses: parsedExpense.map((expense) => {
+                  return {
+                    description: expense.description,
+                    amount: expense.amount,
+                    ...(expense.categoryId ? { categoryId: expense.categoryId } : {}),
+                  };
+                }),
+              };
+
+              formData.append("statement", file);
+              formData.append("payload", JSON.stringify(statementPayload));
+
+              const response = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+              });
+
+              utils.statement.invalidate();
+              utils.expense.invalidate();
+
+              if (response.ok) {
+                toast({ description: "Statement Uploaded Successfully" });
+                setIsOpen(false);
+                setFile(undefined);
+                setUploadingState("default");
+              }
             }}
-            onParseClick={async () => {
-              // use param way instaead
+            disableCategorise={aiCategorised}
+            onCategoriseClick={async () => {
               const parsedExpenseCategorised = await handleCategorise(parsedExpense);
               setParsedExpense(parsedExpenseCategorised);
+              setAiCategorised(true);
             }}
           />
         )}
