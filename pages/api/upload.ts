@@ -19,6 +19,7 @@ const statmentPayloadSchema = z.object({
   expenses: z.array(
     z.object({
       categoryId: z.number().optional(),
+      date: z.coerce.date(),
       description: z.string().trim().min(1),
       amount: z.number().multipleOf(0.01),
     })

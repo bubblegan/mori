@@ -1,5 +1,6 @@
 import { useToast } from "@/components/ui/use-toast";
 import { useCompletion } from "ai/react";
+import currency from "currency.js";
 import { generateCategorisePrompt } from "../../server/ai/generate-categorise-prompt";
 import { getExpenseFilterParam } from "../get-expense-filter-params";
 import { trpc } from "../trpc";
@@ -72,10 +73,9 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
     complete(promptText);
   };
 
-  // TODO: use currencyjs to add up
   let totalAmt = 0;
   expenses.data?.forEach((expense) => {
-    totalAmt += Number(expense.amount);
+    totalAmt = currency(totalAmt).add(Number(expense.amount)).value;
   });
 
   const amount = totalAmt.toFixed(2);

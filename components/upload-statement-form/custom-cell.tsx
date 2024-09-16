@@ -4,6 +4,7 @@ import { formatToDisplayDate } from "@/utils/date-util";
 import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { CellContext } from "@tanstack/react-table";
+import currency from "currency.js";
 import { Input } from "../ui/input";
 import { ParsedExpenseTable } from "./upload-summary";
 
@@ -72,7 +73,7 @@ const CustomCell = ({
   if (columnMeta?.type === "number") {
     return (
       <div className="flex justify-between">
-        $<div className="pr-8 text-right">{value}</div>
+        $<div className="pr-8 text-right">{currency(value as string).format({ symbol: "" })}</div>
       </div>
     );
   }

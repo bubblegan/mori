@@ -13,7 +13,7 @@ export async function extractTextFromPDF(
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
       onProgress([pageNum, pdf.numPages]);
       const page = await pdf.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 2 });
+      const viewport = page.getViewport({ scale: 3 });
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
       canvas.height = viewport.height;
@@ -28,8 +28,8 @@ export async function extractTextFromPDF(
 
     // trimming
     // for DBS cut off
-    if (pdfText.includes("SPECIALLY FOR YOU")) {
-      pdfText = pdfText.substring(0, pdfText.indexOf("SPECIALLY FOR YOU"));
+    if (pdfText.includes("UPDATE YOUR MAILING ADDRESS")) {
+      pdfText = pdfText.substring(0, pdfText.indexOf("UPDATE YOUR MAILING ADDRESS"));
     }
 
     // for AMEX cut off

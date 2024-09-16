@@ -14,6 +14,7 @@ import {
   getSortedRowModel,
   SortingState,
 } from "@tanstack/react-table";
+import currency from "currency.js";
 import CustomCell from "./custom-cell";
 import DateCell from "./date-cell";
 
@@ -161,7 +162,11 @@ const UploadSummary = (props: UploadSummaryProps) => {
           </div>
           <div className="flex w-[150px] flex-col gap-1 rounded-md border border-input px-3 py-2">
             <span className="text-xs">Total Amount</span>
-            <span>$ {parsedStatement?.totalAmount}</span>
+            <span>{currency(parsedStatement?.totalAmount).format()}</span>
+          </div>
+          <div className="flex w-[150px] flex-col gap-1 rounded-md border border-input px-3 py-2">
+            <span className="text-xs">Total Transactions</span>
+            <span>{parsedExpenses?.length}</span>
           </div>
         </div>
       )}

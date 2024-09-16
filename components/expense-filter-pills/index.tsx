@@ -38,6 +38,14 @@ export function ExpenseFilterPills() {
     } else {
       params.delete(param);
     }
+
+    if (params.toString().length === 0) {
+      router.push(`/expenses?date-range=year-to-date`, undefined, {
+        shallow: true,
+      });
+      return;
+    }
+
     router.push(`/expenses?${params.toString()}`, undefined, {
       shallow: true,
     });

@@ -1,5 +1,6 @@
 import { MouseEventHandler, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -35,6 +36,7 @@ type StatementTableData = {
   createdAt: string;
   option: number;
   optionClick?: {
+    viewExpenses: MouseEventHandler<HTMLDivElement>;
     onEdit: MouseEventHandler<HTMLDivElement>;
     onDelete: MouseEventHandler<HTMLDivElement>;
   };
@@ -110,6 +112,7 @@ const columns = [
           <Ellipsis size={16} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={info.getValue()?.viewExpenses}>View Expenses</DropdownMenuItem>
           <DropdownMenuItem onClick={info.getValue()?.onEdit}>Edit</DropdownMenuItem>
           <DropdownMenuItem onClick={info.getValue()?.onDelete}>Delete</DropdownMenuItem>
         </DropdownMenuContent>
@@ -124,6 +127,7 @@ const StatementTable = () => {
   const years = searchParams?.get("years")?.split(",").map(Number);
   const utils = trpc.useUtils();
   const { toast } = useToast();
+  const router = useRouter();
 
   const statements = trpc.statement.list.useQuery({ years });
 
@@ -155,6 +159,9 @@ const StatementTable = () => {
             createdAt: formatToDisplayDate(statement.createdAt),
             option: statement.id,
             optionClick: {
+              viewExpenses: () => {
+                router.push(`/expenses?statement-ids=${statement.id}`);
+              },
               onEdit: () => {
                 setValue({ isOpen: true, statement: { id: statement.id, fileName: statement.name } });
               },

@@ -12,11 +12,19 @@ import { useDropzone } from "react-dropzone";
 import { generateCategorisePrompt } from "../../server/ai/generate-categorise-prompt";
 import { generateParsingPrompt } from "../../server/ai/generate-parsing-prompt";
 import { Progress } from "../ui/progress";
+import { Textarea } from "../ui/textarea";
 import { toast } from "../ui/use-toast";
 import UploadSummary from "./upload-summary";
 import { extractTextFromPDF } from "./use-extract-from-pdf";
 
-export type UploadingState = "default" | "filepreview" | "reading" | "prompting" | "done" | "error";
+export type UploadingState =
+  | "default"
+  | "filepreview"
+  | "reading"
+  | "promptpreview"
+  | "prompting"
+  | "done"
+  | "error";
 
 const UploadStatementForm = ({
   isOpen = false,
@@ -35,9 +43,14 @@ const UploadStatementForm = ({
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
   const [enableAiCategorise, setEnableAiCategorise] = useState(false);
+
   const [aiCategorised, setAiCategorised] = useState(false);
+  const [promptPreview, setPromptPreview] = useState(false);
+  const [promptText, setPromptText] = useState("");
+
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
   const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
+
   const [progress, setProgress] = useState({ percent: 0, text: "" });
   const [errorText, setErrorText] = useState("");
   const [file, setFile] = useState<File | undefined>(undefined);
@@ -184,6 +197,10 @@ const UploadStatementForm = ({
               <p>Enable Ai Categorise</p>
               <Switch checked={enableAiCategorise} onCheckedChange={setEnableAiCategorise} />
             </div>
+            <div className="flex w-full justify-between rounded border border-border p-3">
+              <p>Show Prompt Preview</p>
+              <Switch checked={promptPreview} onCheckedChange={setPromptPreview} />
+            </div>
             <div className="flex flex-row-reverse">
               <Button
                 className="w-fit"
@@ -205,6 +222,13 @@ const UploadStatementForm = ({
                     setUploadingState("prompting");
 
                     const parsingPrompt = generateParsingPrompt(statementText);
+
+                    if (promptPreview) {
+                      setPromptText(parsingPrompt);
+                      setUploadingState("promptpreview");
+                      return;
+                    }
+
                     const completion = await fetchCompletion(parsingPrompt);
                     const [parsedStatement, parsedExpenses] = completionToParsedDate(
                       completion,
@@ -232,6 +256,7 @@ const UploadStatementForm = ({
             </div>
           </>
         )}
+        {uploadingState === "promptpreview" && <Textarea className="mt-1 text-white" value={promptText} />}
         {uploadingState === "error" && (
           <>
             <p>{errorText}</p>
@@ -277,6 +302,7 @@ const UploadStatementForm = ({
                   return {
                     description: expense.description,
                     amount: expense.amount,
+                    date: expense.date,
                     ...(expense.categoryId ? { categoryId: expense.categoryId } : {}),
                   };
                 }),
