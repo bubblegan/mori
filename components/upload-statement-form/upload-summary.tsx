@@ -1,9 +1,10 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
 import { ParsedStatement, ParsedExpense } from "@/utils/completion-to-parsed-data";
 import { formatToDisplayDate } from "@/utils/date-util";
+import { downloadCsv } from "@/utils/download-as-csv";
 import { useClickAway } from "@/utils/hooks/use-click-away";
 import { trpc } from "@/utils/trpc";
 import {
@@ -148,6 +149,20 @@ const UploadSummary = (props: UploadSummaryProps) => {
     onSortingChange: setSorting,
   });
 
+  const donwloadAsCsv = useCallback(() => {
+    if (parsedExpenses) {
+      const csvData = parsedExpenses.map((expense) => {
+        return {
+          description: expense.description,
+          category: expense.categoryTitle || "",
+          amount: `${Number(expense.amount).toFixed(2).toLocaleString()}`,
+          date: formatToDisplayDate(expense.date),
+        };
+      });
+      downloadCsv(csvData);
+    }
+  }, [parsedExpenses]);
+
   return (
     <>
       {parsedStatement && (
@@ -218,6 +233,9 @@ const UploadSummary = (props: UploadSummaryProps) => {
       <div className="flex flex-row-reverse gap-3">
         <Button onClick={onCreateClick} className="w-fit">
           Store
+        </Button>
+        <Button onClick={donwloadAsCsv} className="w-fit">
+          Download CSV
         </Button>
         {!disableCategorise && (
           <Button onClick={onCategoriseClick} className="w-fit">
