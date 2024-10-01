@@ -256,7 +256,23 @@ const UploadStatementForm = ({
             </div>
           </>
         )}
-        {uploadingState === "promptpreview" && <Textarea className="mt-1 text-white" value={promptText} />}
+        {uploadingState === "promptpreview" && (
+          <>
+            <Textarea className="mt-1 h-52 text-white" value={promptText} />
+            <div className="flex flex-row-reverse">
+              <Button
+                className="w-fit"
+                onClick={() => {
+                  setUploadingState("default");
+                  setFile(undefined);
+                  setParsedExpense([]);
+                  setParsedStatement(undefined);
+                }}>
+                Start Parsing
+              </Button>
+            </div>
+          </>
+        )}
         {uploadingState === "error" && (
           <>
             <p>{errorText}</p>
