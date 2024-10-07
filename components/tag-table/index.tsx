@@ -21,7 +21,7 @@ const columns = [
   }),
   columnHelper.accessor("onEdit", {
     cell: (info) => (
-      <span className="cursor-pointer uppercase" onClick={info.getValue()}>
+      <span className="cursor-pointer" onClick={info.getValue()}>
         Edit
       </span>
     ),

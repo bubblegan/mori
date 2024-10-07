@@ -25,7 +25,7 @@ export type categoryMap =
 
 export function completionToParsedDate(
   completion: string,
-  categoryMap: categoryMap
+  categoryMap?: categoryMap
 ): [ParsedStatement, ParsedExpense[]] {
   const parsedExpenses: ParsedExpense[] = [];
 
@@ -55,7 +55,7 @@ export function completionToParsedDate(
       parseStatementResult.statementDate = dayjs(dateArr.join(" "), "DD MMM YYYY").toDate();
     }
 
-    if (line.split(",").length === 3) {
+    if (line.split(",").length >= 3) {
       const data = line.split(",").map((data) => data.trim());
       const date = dayjs(data[0], "DD MMM YYYY");
 
@@ -68,18 +68,20 @@ export function completionToParsedDate(
     }
   });
 
-  parsedExpenses.forEach((expense) => {
-    categoryMap?.forEach((category) => {
-      if (Array.isArray(category.keyword) && category.keyword.length > 0) {
-        category.keyword?.forEach((keyword) => {
-          if (expense.description.toLowerCase().includes(keyword as string) && keyword) {
-            expense.categoryId = category.id;
-            expense.categoryTitle = category.title;
-          }
-        });
-      }
+  if (categoryMap) {
+    parsedExpenses.forEach((expense) => {
+      categoryMap?.forEach((category) => {
+        if (Array.isArray(category.keyword) && category.keyword.length > 0) {
+          category.keyword?.forEach((keyword) => {
+            if (expense.description.toLowerCase().includes(keyword as string) && keyword) {
+              expense.categoryId = category.id;
+              expense.categoryTitle = category.title;
+            }
+          });
+        }
+      });
     });
-  });
+  }
 
   return [parseStatementResult, parsedExpenses];
 }

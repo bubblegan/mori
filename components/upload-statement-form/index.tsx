@@ -141,6 +141,24 @@ const UploadStatementForm = ({
     if (statement.type === "application/pdf") {
       setUploadingState("filepreview");
     }
+
+    if (statement.type === "application/zip") {
+      const formData = new FormData();
+      formData.append("statement", statement);
+
+      const response = await fetch("/api/task", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast({ description: "Uploaded to background process" });
+        setFile(undefined);
+        setIsOpen(false);
+        setParsedStatement(undefined);
+        setUploadingState("default");
+      }
+    }
     return;
   }, []);
 
@@ -154,6 +172,7 @@ const UploadStatementForm = ({
       "text/csv": [".csv"],
       "application/csv": [".csv"],
       "application/pdf": [".pdf"],
+      "application/zip": [".zip"],
     },
     multiple: false,
   });

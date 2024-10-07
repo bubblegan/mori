@@ -38,60 +38,6 @@ export const statementRouter = router({
 
       return result;
     }),
-  create: protectedProcedure
-    .input(
-      z.object({
-        fileId: z.number(),
-        fileName: z.string(),
-        statementDate: z.date(),
-        bank: z.string(),
-        expenses: z.array(
-          z.object({
-            description: z.string().trim().min(1),
-            categoryId: z.number().optional().nullable(),
-            amount: z.number().multipleOf(0.01),
-            date: z.date(),
-          })
-        ),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.auth.userId;
-
-      // get file name and buffer
-      const statement = await prisma.tempFile.findFirst({
-        where: { id: input.fileId, userId },
-      });
-
-      if (statement) {
-        await prisma.statement.create({
-          data: {
-            name: input.fileName,
-            date: input.statementDate,
-            bank: input.bank || "No",
-            file: statement.file,
-            userId,
-            Expense: {
-              createMany: {
-                data: input.expenses.map((expense) => {
-                  return { ...expense, userId };
-                }),
-              },
-            },
-          },
-        });
-
-        await prisma.tempFile.delete({
-          where: {
-            id: input.fileId,
-          },
-        });
-
-        return { message: "success" };
-      }
-
-      return { result: [] };
-    }),
   years: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.auth.userId;
 

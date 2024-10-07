@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Toaster } from "@/ui/toaster";
 import cn from "@/utils/cn";
-import { DollarSign, Layers3, SquareGanttChart, LogOut } from "lucide-react";
+import { DollarSign, Layers3, SquareGanttChart, LogOut, LayoutList } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ConfirmationDialog } from "../confirmation-dialog";
 import MessageAlert from "../message-alert";
@@ -34,6 +34,7 @@ const BasePage = (props: { children: React.ReactNode }) => {
             <NavigationLink icon={<DollarSign size={16} />} title="Expenses" route="/expenses" />
             <NavigationLink icon={<SquareGanttChart size={16} />} title="Statement" route="/statements" />
             <NavigationLink icon={<Layers3 size={16} />} title="Category" route="/categories" />
+            <NavigationLink icon={<LayoutList size={16} />} title="Task" route="/task" />
             <div
               className={cn(
                 "flex w-full cursor-pointer items-center gap-2 rounded-md py-2 pl-4 text-white hover:bg-muted-foreground/40"
