@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Switch } from "@/ui/switch";
@@ -7,12 +8,14 @@ import { completionToParsedDate, ParsedExpense, ParsedStatement } from "@/utils/
 import { fetchCompletion } from "@/utils/fetch-completion";
 import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
+import { Statement } from "@prisma/client";
 import dayjs from "dayjs";
 import { useDropzone } from "react-dropzone";
 import { generateCategorisePrompt } from "../../server/ai/generate-categorise-prompt";
 import { generateParsingPrompt } from "../../server/ai/generate-parsing-prompt";
 import { Progress } from "../ui/progress";
 import { Textarea } from "../ui/textarea";
+import { ToastAction } from "../ui/toast";
 import { toast } from "../ui/use-toast";
 import UploadSummary from "./upload-summary";
 import { extractTextFromPDF } from "./use-extract-from-pdf";
@@ -34,6 +37,7 @@ const UploadStatementForm = ({
   setIsOpen: (param: boolean) => void;
 }) => {
   const categories = trpc.category.list.useQuery();
+  const router = useRouter();
   const categoriesMap: Record<number, string> = {};
   if (categories.data) {
     categories.data?.forEach((category) => {
@@ -42,9 +46,7 @@ const UploadStatementForm = ({
   }
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
-  const [enableAiCategorise, setEnableAiCategorise] = useState(false);
 
-  const [aiCategorised, setAiCategorised] = useState(false);
   const [promptPreview, setPromptPreview] = useState(false);
   const [promptText, setPromptText] = useState("");
 
@@ -152,7 +154,18 @@ const UploadStatementForm = ({
       });
 
       if (response.ok) {
-        toast({ description: "Uploaded to background process" });
+        toast({
+          description: "Uploaded to background process",
+          action: (
+            <ToastAction
+              onClick={() => {
+                router.push("/task");
+              }}
+              altText="View">
+              View
+            </ToastAction>
+          ),
+        });
         setFile(undefined);
         setIsOpen(false);
         setParsedStatement(undefined);
@@ -213,10 +226,6 @@ const UploadStatementForm = ({
               </div>
             )}
             <div className="flex w-full justify-between rounded border border-border p-3">
-              <p>Enable Ai Categorise</p>
-              <Switch checked={enableAiCategorise} onCheckedChange={setEnableAiCategorise} />
-            </div>
-            <div className="flex w-full justify-between rounded border border-border p-3">
               <p>Show Prompt Preview</p>
               <Switch checked={promptPreview} onCheckedChange={setPromptPreview} />
             </div>
@@ -237,36 +246,25 @@ const UploadStatementForm = ({
                       setUploadingState("error");
                       setErrorText("OCR error");
                     }
-
                     setUploadingState("prompting");
-
-                    const parsingPrompt = generateParsingPrompt(statementText);
-
+                    const parsingPrompt = generateParsingPrompt(statementText, categories.data || []);
                     if (promptPreview) {
                       setPromptText(parsingPrompt);
                       setUploadingState("promptpreview");
                       return;
                     }
-
                     const completion = await fetchCompletion(parsingPrompt);
                     const [parsedStatement, parsedExpenses] = completionToParsedDate(
                       completion,
-                      categories.data
+                      categories.data || []
                     );
-                    if (enableAiCategorise) {
-                      const parsedExpenseCategorised = await handleCategorise(parsedExpenses);
-                      setParsedExpense(parsedExpenseCategorised);
-                      setAiCategorised(true);
-                    } else {
-                      setParsedExpense(parsedExpenses);
-                    }
+                    setParsedExpense(parsedExpenses);
                     setParsedStatement(parsedStatement);
                     setUploadingState("done");
                   }
 
                   if (file && file.type === "text/csv") {
                     handleCategorise(parsedExpense);
-                    setAiCategorised(true);
                     setUploadingState("prompting");
                   }
                 }}>
@@ -355,17 +353,26 @@ const UploadStatementForm = ({
               utils.expense.invalidate();
 
               if (response.ok) {
-                toast({ description: "Statement Uploaded Successfully" });
+                const statement = (await response.json()) as Statement;
+
+                toast({
+                  description: "Statement Uploaded Successfully",
+                  action: (
+                    <ToastAction
+                      onClick={() => {
+                        router.push(`/expenses?statement-ids=${statement.id}`, undefined, {
+                          shallow: true,
+                        });
+                      }}
+                      altText="View">
+                      View
+                    </ToastAction>
+                  ),
+                });
                 setIsOpen(false);
                 setFile(undefined);
                 setUploadingState("default");
               }
-            }}
-            disableCategorise={aiCategorised}
-            onCategoriseClick={async () => {
-              const parsedExpenseCategorised = await handleCategorise(parsedExpense);
-              setParsedExpense(parsedExpenseCategorised);
-              setAiCategorised(true);
             }}
           />
         )}

@@ -17,10 +17,7 @@ const DateRangePicker = () => {
 
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [showCustomDate, setShowCustomDate] = useState<boolean>(false);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: dayjs(new Date()).add(-2, "month").toDate(),
-    to: dayjs(new Date()).add(-1, "month").toDate(),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const assignStateToParam = () => {
     const params = new URLSearchParams(window.location.search);
@@ -68,7 +65,6 @@ const DateRangePicker = () => {
 
   const dateTitle = useMemo(() => {
     const dateRangeParam = searchParams?.get("date-range") as DateRangeType;
-
     if (dateRangeParam) {
       return dateRangeTitleMap[dateRangeParam];
     }

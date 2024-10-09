@@ -25,18 +25,23 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
   });
 
   const { complete } = useCompletion({
-    onFinish: (_, completion) => {
-      const categorised: CategorisedExpense[] = [];
-      completion?.split("\n").forEach((line) => {
-        const data = line.split(",");
-        categorised.push({
-          expenseId: Number(data[0]),
-          categoryId: Number(data[3]),
+    onResponse: async (res) => {
+      if (res.ok) {
+        const response = await res.json();
+        const completion = response.text;
+        const categorised: CategorisedExpense[] = [];
+        completion?.split("\n").forEach((line: string) => {
+          const data = line.split(",");
+          if (data.length === 4) {
+            categorised.push({
+              expenseId: Number(data[0]),
+              categoryId: Number(data[3]),
+            });
+          }
         });
-      });
-
-      onFinishCategorising();
-      updateCategories(categorised);
+        onFinishCategorising();
+        updateCategories(categorised);
+      }
     },
   });
 
@@ -53,22 +58,14 @@ export function useHandleExpenseFetch(onFinishCategorising: () => void = () => n
   });
 
   // handle categorise
-  const handleAiCategorise = ({ onlyUncategorise } = { onlyUncategorise: true }) => {
+  const handleAiCategorise = () => {
     const uncategorisedExpense =
-      expenses.data
-        ?.filter((expense) => {
-          if (onlyUncategorise) {
-            return !expense.categoryId;
-          }
-
-          return true;
-        })
-        .map((expense) => {
-          return {
-            description: expense.description,
-            tempId: expense.id,
-          };
-        }) || [];
+      expenses.data?.map((expense) => {
+        return {
+          description: expense.description,
+          tempId: expense.id,
+        };
+      }) || [];
     const promptText = generateCategorisePrompt(uncategorisedExpense, categories.data || []);
     complete(promptText);
   };

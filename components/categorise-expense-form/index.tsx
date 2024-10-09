@@ -127,7 +127,7 @@ export function CategoriseExpenseForm({
             <div className="flex w-full flex-row-reverse">
               <Button
                 onClick={() => {
-                  handleAiCategorise({ onlyUncategorise: false });
+                  handleAiCategorise();
                   setCategoriseState("categorising");
                 }}>
                 Categorise

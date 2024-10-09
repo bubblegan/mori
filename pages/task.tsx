@@ -3,10 +3,13 @@ import Head from "next/head";
 import BasePage from "@/components/base-page";
 import TaskTable, { checkedTaskAtom } from "@/components/parsing-task-table";
 import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 
 export default function Task() {
   const [checkedList] = useAtom(checkedTaskAtom);
+  const queryClient = useQueryClient();
+
   const insertParseDataToDb = useCallback(async () => {
     const response = await fetch("/api/task", {
       method: "PATCH",
@@ -16,7 +19,9 @@ export default function Task() {
       }),
     });
 
-    console.log(response);
+    if (response.ok) {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    }
   }, [checkedList]);
 
   return (

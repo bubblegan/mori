@@ -218,7 +218,7 @@ const ExpenseForm = () => {
                                   }}
                                   id={`${tag.id}`}
                                 />
-                                <label htmlFor={`${tag.id}`} className="w-32">
+                                <label htmlFor={`${tag.id}`} className="w-fit min-w-32">
                                   {tag.title}
                                 </label>
                               </div>

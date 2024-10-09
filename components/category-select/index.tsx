@@ -56,7 +56,7 @@ const CategorySelect = () => {
                   }}
                   id={`${category.id}`}
                 />
-                <label htmlFor={`${category.id}`} className="w-32 text-sm">
+                <label htmlFor={`${category.id}`} className="w-fit min-w-32 text-sm">
                   {sentenceCase(category.title)}
                 </label>
               </div>

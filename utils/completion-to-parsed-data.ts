@@ -29,6 +29,14 @@ export function completionToParsedDate(
 ): [ParsedStatement, ParsedExpense[]] {
   const parsedExpenses: ParsedExpense[] = [];
 
+  let categoryIdByName: Record<string, number> = {};
+  if (categoryMap && categoryMap?.length > 0) {
+    categoryIdByName = categoryMap.reduce((byId: Record<string, number>, curr) => {
+      byId[curr.title] = curr.id;
+      return byId;
+    }, {});
+  }
+
   const parseStatementResult: ParsedStatement = {
     bank: "",
     statementDate: null,
@@ -58,30 +66,21 @@ export function completionToParsedDate(
     if (line.split(",").length >= 3) {
       const data = line.split(",").map((data) => data.trim());
       const date = dayjs(data[0], "DD MMM YYYY");
+      let categoryId;
+
+      if (data[3]) {
+        categoryId = categoryIdByName[data[3].toLowerCase()];
+      }
 
       parsedExpenses.push({
         tempId: index,
         date: date.isValid() ? date.toDate() : new Date(),
         description: data[1],
         amount: Number(data[2]),
+        categoryId: categoryId,
+        categoryTitle: data[3],
       });
     }
   });
-
-  if (categoryMap) {
-    parsedExpenses.forEach((expense) => {
-      categoryMap?.forEach((category) => {
-        if (Array.isArray(category.keyword) && category.keyword.length > 0) {
-          category.keyword?.forEach((keyword) => {
-            if (expense.description.toLowerCase().includes(keyword as string) && keyword) {
-              expense.categoryId = category.id;
-              expense.categoryTitle = category.title;
-            }
-          });
-        }
-      });
-    });
-  }
-
   return [parseStatementResult, parsedExpenses];
 }

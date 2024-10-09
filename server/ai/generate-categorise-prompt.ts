@@ -1,28 +1,34 @@
-import { Category } from "@prisma/client";
-
 type CategorizableExpense = {
   description: string;
   tempId: number | undefined;
 };
 
-export function generateCategorisePrompt(expenses: CategorizableExpense[], categories: Category[]) {
+type CategoryMap = {
+  title: string;
+  keyword: string[];
+};
+
+export function generateCategorisePrompt(expenses: CategorizableExpense[], categories: CategoryMap[]) {
+  let keywordPrompt = "";
   const categoriesLine = categories.map((cat) => {
+    const keywords = cat.keyword.join(", ");
+    if (keywords.length > 0) {
+      keywordPrompt += `if the expense description contain any of keyword {${keywords}} , please categorise as ${cat.title}. \n`;
+    }
+
     return cat.title;
   });
-  const categoriesIdLine = categories.map((cat) => {
-    return cat.id;
-  });
 
-  const promptCat = categoriesLine.join(",");
-  const promptId = categoriesIdLine.join(",");
+  const categoryOptionPrompt = categoriesLine.join(",");
   let prompt = "";
 
-  // base on the current categories
-  prompt += `Given these categories and its category: ${promptCat} . And its corresponding id: ${promptId}`;
-
-  // provide list of categories
   prompt +=
-    " Help me categorise the following expenses with the format of {expenseId},{expense} into the format of {expenseId},{expense},{category},{category id} . Without the line numbering.  \n";
+    " Help me categorise the following expenses with the format of {expenseId},{expense} into the format of {expenseId},{expense},{category} . Without the line numbering.  \n";
+  prompt += `The category should be one of these options: ${categoryOptionPrompt} \n`;
+  prompt += keywordPrompt;
+  prompt += "This is example of output: \n";
+  prompt += "5, Nespresso ION Singapore SG, food \n";
+  prompt += "Here are the expenses need to be categorise: \n";
 
   expenses.forEach((expense) => {
     prompt += expense.tempId + "," + expense.description + "\n";

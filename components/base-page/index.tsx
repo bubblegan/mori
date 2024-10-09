@@ -5,7 +5,6 @@ import cn from "@/utils/cn";
 import { DollarSign, Layers3, SquareGanttChart, LogOut, LayoutList } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ConfirmationDialog } from "../confirmation-dialog";
-import MessageAlert from "../message-alert";
 
 const NavigationLink = (props: { title: string; route: string; icon: React.ReactElement }) => {
   const router = useRouter();
@@ -47,7 +46,6 @@ const BasePage = (props: { children: React.ReactNode }) => {
         </aside>
       </div>
       <div className="w-full py-14 pl-8 pr-32">{props.children}</div>
-      <MessageAlert />
       <ConfirmationDialog />
       <Toaster />
     </div>

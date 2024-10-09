@@ -33,7 +33,6 @@ type UploadSummaryProps = {
   setParsedExpense: Dispatch<SetStateAction<ParsedExpense[]>>;
   onCreateClick: () => void;
   onCategoriseClick?: () => Promise<void> | undefined;
-  disableCategorise: boolean;
 };
 
 const columnHelper = createColumnHelper<ParsedExpenseTable>();
@@ -78,14 +77,7 @@ const columns = [
 ];
 
 const UploadSummary = (props: UploadSummaryProps) => {
-  const {
-    parsedExpenses,
-    parsedStatement,
-    onCreateClick,
-    onCategoriseClick,
-    setParsedExpense,
-    disableCategorise,
-  } = props;
+  const { parsedExpenses, parsedStatement, onCreateClick, setParsedExpense } = props;
 
   const [data, setTableData] = useState<ParsedExpenseTable[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -237,11 +229,6 @@ const UploadSummary = (props: UploadSummaryProps) => {
         <Button onClick={donwloadAsCsv} className="w-fit">
           Download CSV
         </Button>
-        {!disableCategorise && (
-          <Button onClick={onCategoriseClick} className="w-fit">
-            AI Categorise
-          </Button>
-        )}
       </div>
     </>
   );
