@@ -5,7 +5,6 @@ FROM base AS builder
 RUN apk add --no-cache gcompat graphicsmagick ghostscript
 
 WORKDIR /app
-
 COPY package*json tsconfig.json src ./
 
 RUN npm ci && \

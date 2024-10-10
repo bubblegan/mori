@@ -1,5 +1,5 @@
 {
-  "name": "self-hosted-expense-tracker-server",
+  "name": "background-job",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",

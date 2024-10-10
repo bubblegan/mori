@@ -220,7 +220,7 @@ app.post("/upload", async (c) => {
   return c.text("Success");
 });
 
-const port = 8080;
+const port = 3001;
 console.log(`Server is running on port ${port}`);
 
 serve({

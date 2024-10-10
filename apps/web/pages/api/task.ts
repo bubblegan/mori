@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
   switch (method) {
     case "GET":
-      const response = await fetch(`http://localhost:8080/tasks/${userId}`, {
+      const response = await fetch(`http://localhost:3001/tasks/${userId}`, {
         method: "GET",
       });
 
@@ -73,7 +73,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           formData.append("file", blob);
           formData.append("category", JSON.stringify(categoryResult));
 
-          await fetch("http://localhost:8080/upload", {
+          await fetch("http://localhost:3001/upload", {
             method: "POST",
             body: formData,
           });

@@ -1,21 +1,25 @@
-version: "3.8"
+version: "3"
 
 services:
   web:
     container_name: web
     build:
-      context: .
-      dockerfile: ./apps/web/Dockerfile
+      context: ./apps/web
+      dockerfile: Dockerfile
     restart: always
     ports:
       - 3000:3000
     networks:
       - app_network
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
   background-job:
     container_name: background-job
     build:
-      context: .
-      dockerfile: ./apps/background-job/Dockerfile
+      context: ./apps/background-job
+      dockerfile: Dockerfile
     restart: always
     depends_on:
       - redis
@@ -23,7 +27,8 @@ services:
       - 3001:3001
     networks:
       - app_network
-
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
   redis:
     image: "redis:alpine"
     ports:
