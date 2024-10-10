@@ -4,7 +4,7 @@ import cn from "@/utils/cn";
 import { useQuery } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { atom, useAtom } from "jotai";
-import { LoaderCircle } from "lucide-react";
+import { CheckIcon, LoaderCircle } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 
 type TableData = {
@@ -42,7 +42,7 @@ const CheckTask = (props: { id: string }) => {
 const columns = [
   columnHelper.accessor("key", {
     cell: (info) => <CheckTask id={info.getValue()} />,
-    header: () => <span className="cursor-pointer">Check</span>,
+    header: () => <CheckIcon className="cursor-pointer" />,
   }),
   columnHelper.accessor("title", {
     cell: (info) => info.getValue(),

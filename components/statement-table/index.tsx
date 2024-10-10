@@ -21,7 +21,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/react-table";
 import { atom, useAtom } from "jotai";
-import { Ellipsis } from "lucide-react";
+import { CheckIcon, Ellipsis } from "lucide-react";
 import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { StatementFormAtom } from "../statement-form";
 import { useToast } from "../ui/use-toast";
@@ -29,11 +29,11 @@ import { useToast } from "../ui/use-toast";
 type StatementTableData = {
   id: number;
   name: string;
-  date: string;
+  date: Date;
   range: string;
   bank: string;
   totalAmount: number;
-  createdAt: string;
+  createdAt: Date;
   option: number;
   optionClick?: {
     viewExpenses: MouseEventHandler<HTMLDivElement>;
@@ -69,14 +69,14 @@ const CheckStatement = (props: { id: number }) => {
 const columns = [
   columnHelper.accessor("id", {
     cell: (info) => <CheckStatement id={info.getValue()} />,
-    header: () => <span />,
+    header: () => <CheckIcon className="cursor-pointer" />,
   }),
   columnHelper.accessor("name", {
     cell: (info) => info.getValue(),
     header: () => <span>Name</span>,
   }),
   columnHelper.accessor("date", {
-    cell: (info) => info.getValue(),
+    cell: (info) => formatToDisplayDate(info.getValue()),
     header: () => <span>Issue Date</span>,
     sortingFn: (a, b) => {
       return new Date(b.original?.date || "").valueOf() - new Date(a.original?.date || "").valueOf();
@@ -87,8 +87,13 @@ const columns = [
     header: () => <span>Date Range</span>,
   }),
   columnHelper.accessor("createdAt", {
-    cell: (info) => info.getValue(),
+    cell: (info) => formatToDisplayDate(info.getValue()),
     header: () => <span>Uploaded At</span>,
+    sortingFn: (a, b) => {
+      return (
+        new Date(b.original?.createdAt || "").valueOf() - new Date(a.original?.createdAt || "").valueOf()
+      );
+    },
   }),
   columnHelper.accessor("bank", {
     cell: (info) => info.getValue(),
@@ -131,6 +136,8 @@ const StatementTable = () => {
 
   const statements = trpc.statement.list.useQuery({ years });
 
+  const [checkAll, setCheckedAll] = useState(false);
+  const [, setCheckedList] = useAtom(checkedStatementAtom);
   const [, setValue] = useAtom(StatementFormAtom);
   const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
   const [data, setData] = useState<StatementTableData[]>(() => []);
@@ -152,11 +159,11 @@ const StatementTable = () => {
           return {
             id: statement.id,
             name: statement.name,
-            date: formatToDisplayDate(statement.date),
+            date: statement.date,
             range: `${formatToDisplayDate(statement.startdate)} - ${formatToDisplayDate(statement.enddate)}`,
             bank: statement.bank,
             totalAmount: statement.total,
-            createdAt: formatToDisplayDate(statement.createdAt),
+            createdAt: statement.createdAt,
             option: statement.id,
             optionClick: {
               viewExpenses: () => {
@@ -209,7 +216,22 @@ const StatementTable = () => {
                     )}
                     key={header.id}
                     colSpan={header.colSpan}
-                    onClick={header.column.getToggleSortingHandler()}>
+                    onClick={() => {
+                      if (header.column.id === "id") {
+                        if (statements.data) {
+                          const keys = statements.data.map((data) => data.id);
+                          if (!checkAll) {
+                            setCheckedList(keys);
+                            setCheckedAll(true);
+                          } else {
+                            setCheckedList([]);
+                            setCheckedAll(false);
+                          }
+                        }
+                        return;
+                      }
+                      header.column.getToggleSortingHandler();
+                    }}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}

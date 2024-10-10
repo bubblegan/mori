@@ -3,6 +3,12 @@ import Head from "next/head";
 import BasePage from "@/components/base-page";
 import TaskTable, { checkedTaskAtom } from "@/components/parsing-task-table";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 
@@ -24,6 +30,20 @@ export default function Task() {
     }
   }, [checkedList]);
 
+  const deleteFromTask = useCallback(async () => {
+    const response = await fetch("/api/task", {
+      method: "DELETE",
+      body: JSON.stringify({ id: checkedList }),
+      headers: new Headers({
+        "content-type": "application/json",
+      }),
+    });
+
+    if (response.ok) {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    }
+  }, [checkedList]);
+
   return (
     <>
       <Head>
@@ -34,9 +54,17 @@ export default function Task() {
       <BasePage>
         <div className="flex flex-row gap-2">
           <div className="flex flex-col gap-2">
-            <Button disabled={checkedList.length === 0} onClick={insertParseDataToDb} className="w-fit">
-              Store
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={checkedList.length === 0} variant="outline" className="w-fit">
+                  Options
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={insertParseDataToDb}>Store</DropdownMenuItem>
+                <DropdownMenuItem onClick={deleteFromTask}>Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <div className="flex w-full flex-col gap-4">
               <TaskTable />
             </div>

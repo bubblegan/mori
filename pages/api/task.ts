@@ -35,6 +35,9 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       userId: userId,
     },
   });
+  const buf = await buffer(req);
+  const rawBody = buf.toString("utf8");
+  const keys = rawBody ? JSON.parse(rawBody) : {};
 
   switch (method) {
     case "GET":
@@ -79,10 +82,6 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       });
       break;
     case "PATCH":
-      const buf = await buffer(req);
-      const rawBody = buf.toString("utf8");
-      const keys = JSON.parse(rawBody);
-
       const jobKeys = keys?.id?.map((id: string) => "done:" + id);
       const jobs = await redis.mget(jobKeys);
 
@@ -125,6 +124,11 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
       // remove from queues
       await redis.del(jobKeys);
+      res.status(200).end("success");
+      break;
+    case "DELETE":
+      const deleteKeys = keys?.id?.map((id: string) => "done:" + id);
+      await redis.del(deleteKeys);
       res.status(200).end("success");
       break;
     default:
