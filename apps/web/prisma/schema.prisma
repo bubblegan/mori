@@ -19,7 +19,6 @@ model User {
   category  Category[]
   tag       Tag[]
   eventLog  EventLog[]
-  tempFile  TempFile[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -91,16 +90,6 @@ model EventLog {
   type        String   
   message     String
   detail      String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now())
-  userId      Int
-  User        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model TempFile {
-  id          Int       @id @default(autoincrement())
-  name        String
-  file        Bytes     @db.ByteA
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now())
   userId      Int
