@@ -28,7 +28,7 @@ export default function Task() {
     if (response.ok) {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     }
-  }, [checkedList]);
+  }, [checkedList, queryClient]);
 
   const deleteFromTask = useCallback(async () => {
     const response = await fetch("/api/task", {
@@ -42,7 +42,7 @@ export default function Task() {
     if (response.ok) {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     }
-  }, [checkedList]);
+  }, [checkedList, queryClient]);
 
   return (
     <>

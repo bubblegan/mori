@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Switch } from "@/ui/switch";
-import { completionToCategorise } from "@/utils/completion-to-categorise";
 import { completionToParsedDate, ParsedExpense, ParsedStatement } from "@/utils/completion-to-parsed-data";
 import { fetchCompletion } from "@/utils/fetch-completion";
 import { sentenceCase } from "@/utils/sentence-case";
@@ -11,8 +10,7 @@ import { trpc } from "@/utils/trpc";
 import { Statement } from "@prisma/client";
 import dayjs from "dayjs";
 import { useDropzone } from "react-dropzone";
-import { generateCategorisePrompt } from "../../server/ai/generate-categorise-prompt";
-import { generateParsingPrompt } from "../../server/ai/generate-parsing-prompt";
+import { generateParsingPrompt } from "../../utils/ai/generate-parsing-prompt";
 import { Progress } from "../ui/progress";
 import { Textarea } from "../ui/textarea";
 import { ToastAction } from "../ui/toast";
@@ -59,121 +57,109 @@ const UploadStatementForm = ({
 
   const utils = trpc.useUtils();
 
-  const handleCategorise = async (expenseParam: ParsedExpense[]) => {
-    const uncategorisedExpense = expenseParam.filter((expense) => !expense.categoryId);
-    const categorisePrompt = generateCategorisePrompt(uncategorisedExpense, categories.data || []);
-    const completion = await fetchCompletion(categorisePrompt);
-    const categoryMap = completionToCategorise(completion);
-    const parsedExpenseCategorised = expenseParam.map((expense) => {
-      if (!isNaN(expense.tempId) && categoryMap[expense.tempId]) {
-        expense.categoryId = Number(categoryMap[expense.tempId]);
-        expense.categoryTitle = categoriesMap[Number(categoryMap[expense.tempId])];
-      }
-      return expense;
-    });
-    return parsedExpenseCategorised;
-  };
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      // Do something with the files
+      const statement = acceptedFiles[0];
+      setFile(statement);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // Do something with the files
-    const statement = acceptedFiles[0];
-    setFile(statement);
+      if (statement.type === "text/csv") {
+        const reader = new FileReader();
+        const expenseCsvList: ParsedExpense[] = [];
+        reader.onload = (e) => {
+          const text = e?.target?.result;
+          if (typeof text === "string" || text instanceof String) {
+            const rows = text.split("\n");
+            const parsedData = rows.map((row) => {
+              row = row.replace("\r", "").trim();
+              return row.split(",");
+            });
 
-    if (statement.type === "text/csv") {
-      const reader = new FileReader();
-      const expenseCsvList: ParsedExpense[] = [];
-      reader.onload = (e) => {
-        const text = e?.target?.result;
-        if (typeof text === "string" || text instanceof String) {
-          const rows = text.split("\n");
-          const parsedData = rows.map((row) => {
-            row = row.replace("\r", "").trim();
-            return row.split(",");
-          });
+            // check header
+            const headers = parsedData[0];
+            const validHeader = ["description", "amount", "category", "date"];
+            const csvHeader: string[] = [];
+            headers.forEach((header) => {
+              if (validHeader.includes(header)) {
+                csvHeader.push(header);
+              } else {
+                csvHeader.push("");
+              }
+            });
 
-          // check header
-          const headers = parsedData[0];
-          const validHeader = ["description", "amount", "category", "date"];
-          const csvHeader: string[] = [];
-          headers.forEach((header) => {
-            if (validHeader.includes(header)) {
-              csvHeader.push(header);
-            } else {
-              csvHeader.push("");
-            }
-          });
-
-          if (parsedData.length > 1) {
-            for (let i = 1; i < parsedData.length; i++) {
-              const expenseCsv: ParsedExpense = {
-                tempId: i,
-                amount: 0,
-                date: new Date(),
-                description: "",
-              };
-              parsedData[i].forEach((data, index) => {
-                const headerType = csvHeader[index];
-                if (headerType === "description") {
-                  expenseCsv.description = data;
-                }
-                if (headerType === "amount") {
-                  const amount = Number(data);
-                  if (!isNaN(amount)) {
-                    expenseCsv.amount = amount;
+            if (parsedData.length > 1) {
+              for (let i = 1; i < parsedData.length; i++) {
+                const expenseCsv: ParsedExpense = {
+                  tempId: i,
+                  amount: 0,
+                  date: new Date(),
+                  description: "",
+                };
+                parsedData[i].forEach((data, index) => {
+                  const headerType = csvHeader[index];
+                  if (headerType === "description") {
+                    expenseCsv.description = data;
                   }
-                }
-                if (headerType === "date") {
-                  const date = dayjs(data);
-                  if (date.isValid()) {
-                    expenseCsv.date = date.toDate();
+                  if (headerType === "amount") {
+                    const amount = Number(data);
+                    if (!isNaN(amount)) {
+                      expenseCsv.amount = amount;
+                    }
                   }
-                }
-              });
-              expenseCsvList.push(expenseCsv);
+                  if (headerType === "date") {
+                    const date = dayjs(data);
+                    if (date.isValid()) {
+                      expenseCsv.date = date.toDate();
+                    }
+                  }
+                });
+                expenseCsvList.push(expenseCsv);
+              }
             }
+
+            setParsedExpense(expenseCsvList);
+            setUploadingState("done");
           }
-
-          setParsedExpense(expenseCsvList);
-          setUploadingState("done");
-        }
-      };
-      reader.readAsText(statement);
-    }
-
-    if (statement.type === "application/pdf") {
-      setUploadingState("filepreview");
-    }
-
-    if (statement.type === "application/zip") {
-      const formData = new FormData();
-      formData.append("statement", statement);
-
-      const response = await fetch("/api/task", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        toast({
-          description: "Uploaded to background process",
-          action: (
-            <ToastAction
-              onClick={() => {
-                router.push("/task");
-              }}
-              altText="View">
-              View
-            </ToastAction>
-          ),
-        });
-        setFile(undefined);
-        setIsOpen(false);
-        setParsedStatement(undefined);
-        setUploadingState("default");
+        };
+        reader.readAsText(statement);
       }
-    }
-    return;
-  }, []);
+
+      if (statement.type === "application/pdf") {
+        setUploadingState("filepreview");
+      }
+
+      if (statement.type === "application/zip") {
+        const formData = new FormData();
+        formData.append("statement", statement);
+
+        const response = await fetch("/api/task", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          toast({
+            description: "Uploaded to background process",
+            action: (
+              <ToastAction
+                onClick={() => {
+                  router.push("/task");
+                }}
+                altText="View">
+                View
+              </ToastAction>
+            ),
+          });
+          setFile(undefined);
+          setIsOpen(false);
+          setParsedStatement(undefined);
+          setUploadingState("default");
+        }
+      }
+      return;
+    },
+    [router, setIsOpen]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -182,8 +168,6 @@ const UploadStatementForm = ({
       setErrorText(error.message);
     },
     accept: {
-      "text/csv": [".csv"],
-      "application/csv": [".csv"],
       "application/pdf": [".pdf"],
       "application/zip": [".zip"],
     },
@@ -253,7 +237,7 @@ const UploadStatementForm = ({
                       setUploadingState("promptpreview");
                       return;
                     }
-                    const completion = await fetchCompletion(parsingPrompt);
+                    const { completion } = await fetchCompletion(parsingPrompt);
                     const [parsedStatement, parsedExpenses] = completionToParsedDate(
                       completion,
                       categories.data || []
@@ -261,11 +245,6 @@ const UploadStatementForm = ({
                     setParsedExpense(parsedExpenses);
                     setParsedStatement(parsedStatement);
                     setUploadingState("done");
-                  }
-
-                  if (file && file.type === "text/csv") {
-                    handleCategorise(parsedExpense);
-                    setUploadingState("prompting");
                   }
                 }}>
                 AI Parsing

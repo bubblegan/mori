@@ -1,21 +1,18 @@
-import { CoreTool, GenerateTextResult } from "ai";
-
 export async function fetchCompletion(prompt: string) {
   const response = await fetch("/api/completion", {
     method: "POST",
     body: JSON.stringify({
       prompt,
     }),
+    headers: new Headers({
+      "content-type": "application/json",
+    }),
   });
 
-  if (response.ok) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = (await response.json()) as GenerateTextResult<Record<string, CoreTool<any, any>>>;
-    const completion = result.text;
-
-    return completion;
+  if (!response.ok) {
+    throw new Error("failed to fetch");
   }
 
-  // TODO: handle error here
-  return "";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return response.json();
 }

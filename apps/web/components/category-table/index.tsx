@@ -109,7 +109,7 @@ const CategoryTable = () => {
       });
       setData(tableData);
     }
-  }, [categories.data, categories.isSuccess, deleteCategory, setValue]);
+  }, [categories.data, categories.isSuccess, deleteCategory, setValue, setConfirmationDialog]);
 
   const table = useReactTable({
     data,

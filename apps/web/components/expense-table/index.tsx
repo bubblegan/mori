@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -160,14 +160,16 @@ const ExpenseTable = () => {
   });
 
   const tags = trpc.tag.list.useQuery();
-  let tagById: Record<number, string> = {};
-
-  if (tags.data) {
-    tagById = tags.data.reduce((byId: Record<number, string>, curr) => {
-      byId[curr.id] = curr.title;
-      return byId;
-    }, {});
-  }
+  const tagById: Record<number, string> = useMemo(() => {
+    if (tags.data) {
+      return tags.data.reduce((byId: Record<number, string>, curr) => {
+        byId[curr.id] = curr.title;
+        return byId;
+      }, {});
+    } else {
+      return {};
+    }
+  }, [tags.data]);
 
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
@@ -220,7 +222,7 @@ const ExpenseTable = () => {
 
       setData(tableData);
     }
-  }, [expenses.data, setvalue, deleteExpenses, setConfirmationDialog]);
+  }, [expenses.data, setvalue, deleteExpenses, setConfirmationDialog, tagById]);
 
   return <ExpenseTableUi data={data} columns={columns} />;
 };

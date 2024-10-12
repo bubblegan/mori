@@ -1,6 +1,6 @@
 type CategorizableExpense = {
   description: string;
-  tempId: number | undefined;
+  id: number | undefined;
 };
 
 type CategoryMap = {
@@ -31,7 +31,7 @@ export function generateCategorisePrompt(expenses: CategorizableExpense[], categ
   prompt += "Here are the expenses need to be categorise: \n";
 
   expenses.forEach((expense) => {
-    prompt += expense.tempId + "," + expense.description + "\n";
+    prompt += expense.id + "," + expense.description + "\n";
   });
 
   return prompt;

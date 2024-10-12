@@ -13,7 +13,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const redis = new Redis({
-  host: "redis", // The Redis service name defined in Docker Compose
+  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
   port: 6379,
 });
 
@@ -32,7 +32,7 @@ const client = new OpenAI({
 // Create a new connection in every instance
 const myQueue = new Queue("process_file", {
   connection: {
-    host: "redis",
+    host: process.env.REDIS_HOST,
     port: 6379,
   },
 });
@@ -101,7 +101,7 @@ const myWorker = new Worker(
   },
   {
     connection: {
-      host: "redis",
+      host: process.env.REDIS_HOST,
       port: 6379,
     },
   }
