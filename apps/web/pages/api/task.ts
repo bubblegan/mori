@@ -17,6 +17,13 @@ type Task = {
   key: string;
 };
 
+async function getBody(req: NextApiRequest & Request) {
+  const buf = await buffer(req);
+  const rawBody = buf.toString("utf8");
+  const keys = rawBody ? JSON.parse(rawBody) : {};
+  return keys;
+}
+
 async function buffer(readable: Readable) {
   const chunks = [];
   for await (const chunk of readable) {
@@ -35,9 +42,6 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       userId: userId,
     },
   });
-  const buf = await buffer(req);
-  const rawBody = buf.toString("utf8");
-  const keys = rawBody ? JSON.parse(rawBody) : {};
 
   switch (method) {
     case "GET":
@@ -82,7 +86,8 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       });
       break;
     case "PATCH":
-      const jobKeys = keys?.id?.map((id: string) => "done:" + id);
+      const storeKeys = await getBody(req);
+      const jobKeys = storeKeys?.id?.map((id: string) => "done:" + id);
       const jobs = await redis.mget(jobKeys);
 
       for (let i = 0; i < jobs.length; i++) {
@@ -94,7 +99,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
             await prisma.statement.create({
               data: {
-                name: keys?.id[i],
+                name: storeKeys?.id[i],
                 date: parsedStatment.statementDate || new Date(),
                 bank: parsedStatment.bank || "No",
                 file: Buffer.from(file),
@@ -121,13 +126,12 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           }
         }
       }
-
-      // remove from queues
       await redis.del(jobKeys);
       res.status(200).end("success");
       break;
     case "DELETE":
-      const deleteKeys = keys?.id?.map((id: string) => "done:" + id);
+      const deleteKeysObj = await getBody(req);
+      const deleteKeys = deleteKeysObj?.id?.map((id: string) => "done:" + id);
       await redis.del(deleteKeys);
       res.status(200).end("success");
       break;
