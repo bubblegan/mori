@@ -8,7 +8,10 @@ type CategoryMap = {
   keyword: string[];
 };
 
-export function generateCategorisePrompt(expenses: CategorizableExpense[], categories: CategoryMap[]) {
+export function generateCategorisePrompt(
+  expenses: CategorizableExpense[],
+  categories: CategoryMap[]
+) {
   let keywordPrompt = "";
   const categoriesLine = categories.map((cat) => {
     const keywords = cat.keyword.join(", ");

@@ -1,4 +1,5 @@
 // this import is needed in to configure a default worker for pdfjs
+import { trimPdfText } from "@self-hosted-expense-tracker/generate-prompt";
 import "pdfjs-dist/build/pdf.worker.mjs";
 import Tesseract from "tesseract.js";
 
@@ -25,23 +26,7 @@ export async function extractTextFromPDF(
         pdfText += text + "\n\n";
       }
     }
-
-    // trimming
-    // for DBS cut off
-    if (pdfText.includes("UPDATE YOUR MAILING ADDRESS")) {
-      pdfText = pdfText.substring(0, pdfText.indexOf("UPDATE YOUR MAILING ADDRESS"));
-    }
-
-    // for AMEX cut off
-    if (pdfText.includes("INFORMATION ABOUT THE AMERICAN EXPRESS CARD")) {
-      pdfText = pdfText.substring(0, pdfText.indexOf("INFORMATION ABOUT THE AMERICAN EXPRESS CARD"));
-    }
-
-    // for CITI cut off
-    if (pdfText.includes("Protect Yourself from Fraud ")) {
-      pdfText = pdfText.substring(0, pdfText.indexOf("Protect Yourself from Fraud"));
-    }
-
+    pdfText = trimPdfText(pdfText);
     return pdfText;
   } catch (error) {
     throw error;

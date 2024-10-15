@@ -79,7 +79,7 @@ export function AggregateSummaryChart(props: { aggregateBy: AggregateType }) {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>
-                    {item.title} : $ {item.amount}
+                    {sentenceCase(item.title)} : $ {item.amount}
                   </p>
                 </TooltipContent>
               </Tooltip>

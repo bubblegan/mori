@@ -12,6 +12,7 @@ const nextConfig = {
       },
     ];
   },
+  transpilePackages: ["@self-hosted-expense-tracker/generate-prompt"],
   output: "standalone",
 };
 

@@ -3,14 +3,27 @@ import { createWorker } from "tesseract.js";
 import { serve } from "@hono/node-server";
 import Redis from "ioredis";
 import { cors } from "hono/cors";
-import { Queue, Worker } from "bullmq";
+import { Job, Queue, Worker } from "bullmq";
 import yauzl from "yauzl";
 import { Hono } from "hono";
 import OpenAI from "openai";
-import { generateParsingPrompt } from "./generate-parsing-prompt.js";
+import {
+  generateParsingPrompt,
+  trimPdfText,
+} from "@self-hosted-expense-tracker/generate-prompt";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+type StatementJob = {
+  name: string;
+  buffer: Buffer;
+  userId: string;
+};
+
+function generateJobCompleteKey(job: Job<any, any, string>) {
+  return `done:${job.id}:${job.data.name}`;
+}
 
 const redis = new Redis({
   host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
@@ -19,29 +32,23 @@ const redis = new Redis({
 
 const app = new Hono();
 
-const TRIM_TEXT = [
-  "UPDATE YOUR MAILING ADDRESS",
-  "INFORMATION ABOUT THE AMERICAN EXPRESS CARD",
-  "Protect Yourself from Fraud ",
-];
-
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Create a new connection in every instance
-const myQueue = new Queue("process_file", {
+const statementQueue = new Queue<StatementJob>("process_file", {
   connection: {
     host: process.env.REDIS_HOST,
     port: 6379,
   },
 });
 
-const myWorker = new Worker(
+const myWorker = new Worker<StatementJob>(
   "process_file",
   async (job) => {
     let pdfText = "";
-    const fileBuffer = Buffer.from(job.data.buffer.data);
+    const fileBuffer = Buffer.from(job.data.buffer);
     const bufferResponses = await fromBuffer(fileBuffer, {
       density: 200,
       format: "png",
@@ -64,14 +71,10 @@ const myWorker = new Worker(
       }
     }
 
-    // trimming
-    TRIM_TEXT.forEach((text) => {
-      if (pdfText.includes(text)) {
-        pdfText = pdfText.substring(0, pdfText.indexOf(text));
-      }
-    });
+    // trim and make the prompt shorter
+    pdfText = trimPdfText(pdfText);
 
-    // generate
+    // generate prompt
     const prompt = generateParsingPrompt(pdfText, category);
 
     console.log(job.data.name, ": start prompting");
@@ -81,12 +84,9 @@ const myWorker = new Worker(
       messages: [{ role: "user", content: prompt }],
       model: "gpt-4o",
     });
-
-    console.log(job.data.name, ": prompted");
-
     let promptValue = chatCompletion.choices[0].message.content || "";
-    let fileValue = job.data.buffer.data;
-    let key = `done:${job.id}:${job.data.name}`;
+    let fileValue = job.data.buffer;
+    let key = generateJobCompleteKey(job);
 
     const value = {
       completion: promptValue,
@@ -114,9 +114,9 @@ app.use("/*", cors());
 app.get("/tasks/:userid", async (c) => {
   // get all on going jobs
   const userId = c.req.param("userid");
-  const activeJobs = await myQueue.getActive();
-  const waitingJobs = await myQueue.getWaiting();
-  const completedJobs = await myQueue.getCompleted();
+  const activeJobs = await statementQueue.getActive();
+  const waitingJobs = await statementQueue.getWaiting();
+  const completedJobs = await statementQueue.getCompleted();
 
   let jobs: { status: string; key: string; title: string }[] = [];
 
@@ -125,7 +125,7 @@ app.get("/tasks/:userid", async (c) => {
       jobs.push({
         status: "active",
         title: job.data.name,
-        key: `done:${job.id}:${job.data.name}`,
+        key: generateJobCompleteKey(job),
       });
     }
   });
@@ -135,7 +135,7 @@ app.get("/tasks/:userid", async (c) => {
       jobs.push({
         status: "waiting",
         title: job.data.name,
-        key: `done:${job.id}:${job.data.name}`,
+        key: generateJobCompleteKey(job),
       });
     }
   });
@@ -145,7 +145,7 @@ app.get("/tasks/:userid", async (c) => {
       jobs.push({
         status: "completed",
         title: job.data.name,
-        key: `done:${job.id}:${job.data.name}`,
+        key: generateJobCompleteKey(job),
       });
     }
   });
@@ -155,6 +155,7 @@ app.get("/tasks/:userid", async (c) => {
 
 app.post("/upload", async (c) => {
   const body = await c.req.parseBody();
+
   const zipFile = body.file as File;
   const userId = body.userId as string;
   const categoryStr = body.category as string;
@@ -196,7 +197,7 @@ app.post("/upload", async (c) => {
               try {
                 // Store the buffer in Redis (using the file name as the key)
                 if (fileName[0] !== ".") {
-                  await myQueue.add(
+                  await statementQueue.add(
                     "process_file",
                     {
                       name: fileName,

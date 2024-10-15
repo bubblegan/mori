@@ -19,6 +19,7 @@ const StatementOptionDropdown = () => {
 
   const { mutate: deleteStatement } = trpc.statement.delete.useMutation({
     onSuccess() {
+      setConfirmationDialog({ isOpen: false });
       utils.statement.invalidate();
       utils.expense.invalidate();
     },

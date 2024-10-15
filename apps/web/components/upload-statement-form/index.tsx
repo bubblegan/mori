@@ -8,9 +8,9 @@ import { completionToParsedDate, ParsedExpense, ParsedStatement } from "@/utils/
 import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { Statement } from "@prisma/client";
+import { generateParsingPrompt } from "@self-hosted-expense-tracker/generate-prompt";
 import dayjs from "dayjs";
 import { useDropzone } from "react-dropzone";
-import { generateParsingPrompt } from "../../utils/ai/generate-parsing-prompt";
 import { Progress } from "../ui/progress";
 import { Textarea } from "../ui/textarea";
 import { ToastAction } from "../ui/toast";
