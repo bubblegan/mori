@@ -8,10 +8,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { trpc } from "@/utils/trpc";
 import { useAtom } from "jotai";
+import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { checkedStatementAtom } from "../statement-table";
 
 const StatementOptionDropdown = () => {
   const [checkedList] = useAtom(checkedStatementAtom);
+  const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
+
   const utils = trpc.useUtils();
 
   const { mutate: deleteStatement } = trpc.statement.delete.useMutation({
@@ -52,7 +55,19 @@ const StatementOptionDropdown = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => deleteStatement(checkedList)}>Delete</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            setConfirmationDialog({
+              isOpen: true,
+              title: "Delete Statements",
+              message: "Delete checked statements will delete its transactions too.",
+              onConfirm: () => {
+                deleteStatement(checkedList);
+              },
+            });
+          }}>
+          Delete
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={downloadStatements}>Download</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

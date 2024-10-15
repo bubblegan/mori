@@ -65,7 +65,7 @@ const TaskTable = () => {
   const [checkAll, setCheckedAll] = useState(false);
   const [, setCheckedList] = useAtom(checkedTaskAtom);
 
-  const taskQuery = useQuery<{ key: string; status: string }[]>({
+  const taskQuery = useQuery<{ key: string; status: string; title: string }[]>({
     queryKey: ["tasks"],
     queryFn: async () => {
       const response = await fetch("/api/task", {
@@ -91,7 +91,7 @@ const TaskTable = () => {
       const tableData = taskQuery.data.map((task) => {
         return {
           key: task.key,
-          title: task.key,
+          title: task.title,
           status: task.status,
         };
       });

@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { fetchCompletion } from "../ai/fetch-completion";
 import { generateCategorisePrompt } from "../ai/generate-categorise-prompt";
-import { fetchCompletion } from "../fetch-completion";
 import { trpc } from "../trpc";
 
 type CategorisableExpense = {

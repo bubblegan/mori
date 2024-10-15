@@ -1,15 +1,27 @@
-import { useEffect, useState } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
 import { trpc } from "@/utils/trpc";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useAtom } from "jotai";
+import { Ellipsis } from "lucide-react";
+import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { TagFormAtom } from "../tag-form";
+import { useToast } from "../ui/use-toast";
 
 type TableData = {
   id: number;
   title: string;
-  onEdit: () => void;
+  optionClick?: {
+    onEdit: MouseEventHandler<HTMLDivElement>;
+    onDelete: MouseEventHandler<HTMLDivElement>;
+  };
 };
 
 const columnHelper = createColumnHelper<TableData>();
@@ -17,24 +29,40 @@ const columnHelper = createColumnHelper<TableData>();
 const columns = [
   columnHelper.accessor("title", {
     cell: (info) => info.getValue(),
-    header: () => <span className="uppercase">Name</span>,
+    header: () => <span>Name</span>,
   }),
-  columnHelper.accessor("onEdit", {
+  columnHelper.accessor("optionClick", {
     cell: (info) => (
-      <span className="cursor-pointer" onClick={info.getValue()}>
-        Edit
-      </span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Ellipsis size={16} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onClick={info.getValue()?.onEdit}>Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={info.getValue()?.onDelete}>Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     ),
     header: () => <span>Options</span>,
   }),
 ];
 
 const TagTable = () => {
-  // get data here
+  const { toast } = useToast();
   const tags = trpc.tag.list.useQuery();
+  const utils = trpc.useUtils();
 
   const [data, setData] = useState<TableData[]>(() => []);
   const [, setValue] = useAtom(TagFormAtom);
+  const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
+
+  const { mutate: deleteTag } = trpc.tag.delete.useMutation({
+    onSuccess() {
+      toast({ description: "Tag Deleted." });
+      setConfirmationDialog({ isOpen: false });
+      utils.tag.invalidate();
+    },
+  });
 
   useEffect(() => {
     if (tags.isSuccess && tags.data) {
@@ -48,12 +76,26 @@ const TagTable = () => {
         return {
           id: tag.id,
           title: tag.title,
-          onEdit: () => setValue({ isOpen: true, tag: mappedData }),
+          optionClick: {
+            onEdit: () => {
+              setValue({ isOpen: true, tag: mappedData });
+            },
+            onDelete: () => {
+              setConfirmationDialog({
+                isOpen: true,
+                title: "Delete Tag",
+                message: "Delete this tag will affect its expenses.",
+                onConfirm: () => {
+                  deleteTag(tag.id);
+                },
+              });
+            },
+          },
         };
       });
       setData(tableData);
     }
-  }, [tags.data, tags.isSuccess, setValue]);
+  }, [tags.data, tags.isSuccess, setValue, deleteTag, setConfirmationDialog]);
 
   const table = useReactTable({
     data,

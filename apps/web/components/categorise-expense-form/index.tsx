@@ -17,7 +17,7 @@ const columns = [
     cell: (info) => info.getValue(),
     header: () => <span>Description</span>,
     meta: {
-      className: "w-[400px]",
+      className: "w-fit max-w-[400px] min-w-[200px]",
     },
   }),
   columnHelper.accessor("category", {

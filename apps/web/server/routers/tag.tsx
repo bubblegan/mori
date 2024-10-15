@@ -44,4 +44,13 @@ export const tagRouter = router({
 
       return result;
     }),
+  delete: protectedProcedure.input(z.number()).mutation(async ({ input, ctx }) => {
+    const result = await prisma.tag.delete({
+      where: {
+        id: input,
+        userId: ctx.auth.userId,
+      },
+    });
+    return result;
+  }),
 });

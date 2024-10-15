@@ -32,7 +32,7 @@ const BasePage = (props: { children: React.ReactNode }) => {
           <nav className="flex h-full flex-col gap-1 py-3 lg:pt-16">
             <NavigationLink icon={<DollarSign size={16} />} title="Expenses" route="/expenses" />
             <NavigationLink icon={<SquareGanttChart size={16} />} title="Statement" route="/statements" />
-            <NavigationLink icon={<Layers3 size={16} />} title="Category" route="/categories" />
+            <NavigationLink icon={<Layers3 size={16} />} title="Category & Tag" route="/categories" />
             <NavigationLink icon={<LayoutList size={16} />} title="Task" route="/task" />
             <div
               className={cn(

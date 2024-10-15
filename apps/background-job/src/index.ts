@@ -64,8 +64,6 @@ const myWorker = new Worker(
       }
     }
 
-    console.log(job.data.name, ": finish OCR");
-
     // trimming
     TRIM_TEXT.forEach((text) => {
       if (pdfText.includes(text)) {
@@ -88,16 +86,16 @@ const myWorker = new Worker(
 
     let promptValue = chatCompletion.choices[0].message.content || "";
     let fileValue = job.data.buffer.data;
-    let key = "done:" + job.data.name;
+    let key = `done:${job.id}:${job.data.name}`;
 
     const value = {
       completion: promptValue,
       file: fileValue,
+      name: job.data.name,
     };
 
     await redis.set(key, JSON.stringify(value));
-
-    return "some value";
+    return promptValue;
   },
   {
     connection: {
@@ -120,13 +118,14 @@ app.get("/tasks/:userid", async (c) => {
   const waitingJobs = await myQueue.getWaiting();
   const completedJobs = await myQueue.getCompleted();
 
-  let jobs: { status: string; key: string }[] = [];
+  let jobs: { status: string; key: string; title: string }[] = [];
 
   activeJobs.forEach((job) => {
     if (job.data.userId === userId) {
       jobs.push({
         status: "active",
-        key: job.data.name,
+        title: job.data.name,
+        key: `done:${job.id}:${job.data.name}`,
       });
     }
   });
@@ -135,7 +134,8 @@ app.get("/tasks/:userid", async (c) => {
     if (job.data.userId === userId) {
       jobs.push({
         status: "waiting",
-        key: job.data.name,
+        title: job.data.name,
+        key: `done:${job.id}:${job.data.name}`,
       });
     }
   });
@@ -144,7 +144,8 @@ app.get("/tasks/:userid", async (c) => {
     if (job.data.userId === userId) {
       jobs.push({
         status: "completed",
-        key: job.data.name,
+        title: job.data.name,
+        key: `done:${job.id}:${job.data.name}`,
       });
     }
   });
@@ -202,7 +203,7 @@ app.post("/upload", async (c) => {
                       buffer: fileBuffer,
                       userId: userId,
                     },
-                    { removeOnComplete: 20 }
+                    { removeOnComplete: 30 }
                   );
                 }
               } catch (redisErr) {

@@ -49,22 +49,27 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
         method: "GET",
       });
 
-      const data = (await response.json()) as Task[];
-      const filterKeys = data?.map((task) => "done:" + task.key);
-      const result = [];
+      if (response.ok) {
+        const tasks = (await response.json()) as Task[];
+        const filterKeys = tasks.map((task) => task.key);
+        const result = [];
 
-      for (let i = 0; i < filterKeys.length; i++) {
-        if (data[i].status === "completed") {
-          const filterJob = await redis.get(filterKeys[i]);
-          if (!!filterJob) {
-            result.push(data[i]);
+        for (let i = 0; i < filterKeys.length; i++) {
+          if (tasks[i].status === "completed") {
+            const filterJob = await redis.get(filterKeys[i]);
+            if (!!filterJob) {
+              result.push(tasks[i]);
+            }
+          } else {
+            result.push(tasks[i]);
           }
-        } else {
-          result.push(data[i]);
         }
+
+        res.status(200).json(result);
+      } else {
+        res.status(500).json({ error: "something went wrong" });
       }
 
-      res.status(200).json(result);
       break;
     case "POST":
       const middleware = upload.single("statement");
@@ -77,29 +82,32 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           formData.append("file", blob);
           formData.append("category", JSON.stringify(categoryResult));
 
-          await fetch("http://localhost:3001/upload", {
+          const response = await fetch("http://localhost:3001/upload", {
             method: "POST",
             body: formData,
           });
+
+          if (response.ok) {
+            res.status(200).end("success");
+          }
         }
-        res.status(200).end("success");
       });
       break;
     case "PATCH":
       const storeKeys = await getBody(req);
-      const jobKeys = storeKeys?.id?.map((id: string) => "done:" + id);
+      const jobKeys = storeKeys?.id || [];
       const jobs = await redis.mget(jobKeys);
 
       for (let i = 0; i < jobs.length; i++) {
         const job = jobs[i];
         if (job) {
-          const { completion, file } = JSON.parse(job);
+          const { completion, file, name } = JSON.parse(job);
           if (file && completion) {
             const [parsedStatment, parsedExpenses] = completionToParsedDate(completion, categoryResult);
 
             await prisma.statement.create({
               data: {
-                name: storeKeys?.id[i],
+                name: name,
                 date: parsedStatment.statementDate || new Date(),
                 bank: parsedStatment.bank || "No",
                 file: Buffer.from(file),
@@ -131,7 +139,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       break;
     case "DELETE":
       const deleteKeysObj = await getBody(req);
-      const deleteKeys = deleteKeysObj?.id?.map((id: string) => "done:" + id);
+      const deleteKeys = deleteKeysObj?.id;
       await redis.del(deleteKeys);
       res.status(200).end("success");
       break;

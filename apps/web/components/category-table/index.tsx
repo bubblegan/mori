@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import cn from "@/utils/cn";
+import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useAtom } from "jotai";
@@ -30,7 +31,7 @@ const columnHelper = createColumnHelper<TableData>();
 
 const columns = [
   columnHelper.accessor("title", {
-    cell: (info) => info.getValue(),
+    cell: (info) => sentenceCase(info.getValue()),
     header: () => <span>Name</span>,
   }),
   columnHelper.accessor("keyword", {
