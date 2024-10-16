@@ -5,8 +5,8 @@ import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
 import { CellContext } from "@tanstack/react-table";
 import currency from "currency.js";
+import { ParsedExpenseTable } from ".";
 import { Input } from "../ui/input";
-import { ParsedExpenseTable } from "./upload-summary";
 
 const CustomCell = ({
   getValue,

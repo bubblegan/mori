@@ -6,9 +6,12 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Request, Response } from "express";
 import fs from "fs";
+import { Redis } from "ioredis";
 import multer from "multer";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+
+const redis = new Redis();
 
 const upload = multer({ dest: "/tmp" });
 dayjs.extend(customParseFormat);
@@ -67,7 +70,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           try {
             const fileBuffer = fs.readFileSync(req.file?.path);
             const fileName = req.file?.originalname;
-            const { payload } = req.body;
+            const { payload, deletekey } = req.body;
 
             const statementPayload: z.infer<typeof statmentPayloadSchema> = JSON.parse(payload);
             statmentPayloadSchema.parse(statementPayload);
@@ -88,6 +91,9 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
                 },
               },
             });
+            if (deletekey) {
+              await redis.del(`done:${userId}:${deletekey}`);
+            }
 
             res.status(200).json({ id: result.id, bank: result.bank });
           } catch (error) {

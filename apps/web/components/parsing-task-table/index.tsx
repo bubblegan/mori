@@ -5,12 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { atom, useAtom } from "jotai";
 import { CheckIcon, LoaderCircle } from "lucide-react";
+import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 
 type TableData = {
   key: string;
   title: string;
   status: string;
+  onPreviewClick?: () => Promise<void>;
 };
 
 export const checkedTaskAtom = atom<string[]>([]);
@@ -58,9 +60,25 @@ const columns = [
     },
     header: () => <span>Status</span>,
   }),
+  columnHelper.accessor("onPreviewClick", {
+    cell: (info) => {
+      if (info.getValue()) {
+        return (
+          <Button size={"sm"} onClick={info.getValue()}>
+            Preview
+          </Button>
+        );
+      }
+
+      return <span />;
+    },
+    header: () => <span>Preview</span>,
+  }),
 ];
 
-const TaskTable = () => {
+const TaskTable = (props: { onPreviewClick: (id: string) => Promise<void> }) => {
+  const { onPreviewClick } = props;
+
   const [data, setData] = useState<TableData[]>(() => []);
   const [checkAll, setCheckedAll] = useState(false);
   const [, setCheckedList] = useAtom(checkedTaskAtom);
@@ -93,6 +111,7 @@ const TaskTable = () => {
           key: task.key,
           title: task.title,
           status: task.status,
+          onPreviewClick: task.status === "completed" ? () => onPreviewClick(task.key) : undefined,
         };
       });
       setData(tableData);
@@ -107,7 +126,7 @@ const TaskTable = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="w-[400px] rounded-md border border-border">
+      <div className="w-fit rounded-md border border-border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

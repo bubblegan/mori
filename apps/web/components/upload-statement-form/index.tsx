@@ -15,7 +15,7 @@ import { Progress } from "../ui/progress";
 import { Textarea } from "../ui/textarea";
 import { ToastAction } from "../ui/toast";
 import { toast } from "../ui/use-toast";
-import UploadSummary from "./upload-summary";
+import UploadSummary from "../upload-summary";
 import { extractTextFromPDF } from "./use-extract-from-pdf";
 
 export type UploadingState =
@@ -348,6 +348,7 @@ const UploadStatementForm = ({
                     </ToastAction>
                   ),
                 });
+
                 setIsOpen(false);
                 setFile(undefined);
                 setUploadingState("default");

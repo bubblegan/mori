@@ -3,10 +3,10 @@ import cn from "@/utils/cn";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { CellContext } from "@tanstack/react-table";
 import { CalendarIcon } from "lucide-react";
+import { ParsedExpenseTable } from ".";
 import { Button } from "../ui/button";
 import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { ParsedExpenseTable } from "./upload-summary";
 
 const DateCell = ({
   getValue,

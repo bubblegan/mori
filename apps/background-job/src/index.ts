@@ -21,10 +21,6 @@ type StatementJob = {
   userId: string;
 };
 
-function generateJobCompleteKey(job: Job<any, any, string>) {
-  return `done:${job.id}:${job.data.name}`;
-}
-
 const redis = new Redis({
   host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
   port: 6379,
@@ -86,15 +82,15 @@ const myWorker = new Worker<StatementJob>(
     });
     let promptValue = chatCompletion.choices[0].message.content || "";
     let fileValue = job.data.buffer;
-    let key = generateJobCompleteKey(job);
 
     const value = {
       completion: promptValue,
       file: fileValue,
       name: job.data.name,
+      userId: job.data.userId,
     };
 
-    await redis.set(key, JSON.stringify(value));
+    await redis.set(`done:${job.data.userId}:${job.id}`, JSON.stringify(value));
     return promptValue;
   },
   {
@@ -125,7 +121,7 @@ app.get("/tasks/:userid", async (c) => {
       jobs.push({
         status: "active",
         title: job.data.name,
-        key: generateJobCompleteKey(job),
+        key: job.id || "",
       });
     }
   });
@@ -135,7 +131,7 @@ app.get("/tasks/:userid", async (c) => {
       jobs.push({
         status: "waiting",
         title: job.data.name,
-        key: generateJobCompleteKey(job),
+        key: job.id || "",
       });
     }
   });
@@ -145,7 +141,7 @@ app.get("/tasks/:userid", async (c) => {
       jobs.push({
         status: "completed",
         title: job.data.name,
-        key: generateJobCompleteKey(job),
+        key: job.id || "",
       });
     }
   });

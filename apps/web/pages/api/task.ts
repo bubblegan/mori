@@ -37,6 +37,11 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
   const session = await getServerSession(req, res, nextAuthOptions);
   if (!session?.user?.id) return;
   const userId = session?.user?.id;
+
+  if (!userId) {
+    res.status(401).end(`Not Authenticated`);
+  }
+
   const categoryResult = await prisma.category.findMany({
     where: {
       userId: userId,
@@ -56,7 +61,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
         for (let i = 0; i < filterKeys.length; i++) {
           if (tasks[i].status === "completed") {
-            const filterJob = await redis.get(filterKeys[i]);
+            const filterJob = await redis.get(`done:${userId}:${filterKeys[i]}`);
             if (!!filterJob) {
               result.push(tasks[i]);
             }
@@ -95,7 +100,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       break;
     case "PATCH":
       const storeKeys = await getBody(req);
-      const jobKeys = storeKeys?.id || [];
+      const jobKeys = storeKeys?.id?.map((id: string) => `done:${userId}:${id}`) || [];
       const jobs = await redis.mget(jobKeys);
 
       for (let i = 0; i < jobs.length; i++) {
@@ -139,7 +144,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       break;
     case "DELETE":
       const deleteKeysObj = await getBody(req);
-      const deleteKeys = deleteKeysObj?.id;
+      const deleteKeys = deleteKeysObj?.id?.map((id: string) => `done:${userId}:${id}`) || [];
       await redis.del(deleteKeys);
       res.status(200).end("success");
       break;

@@ -1,11 +1,17 @@
+import { useState } from "react";
 import Head from "next/head";
 import BasePage from "@/components/base-page";
 import StatementForm from "@/components/statement-form";
 import StatementOptionDropdown from "@/components/statement-option-dropdown";
 import StatementTable from "@/components/statement-table";
 import StatementYearSelect from "@/components/statement-year-select";
+import { Button } from "@/components/ui/button";
+import UploadStatementForm from "@/components/upload-statement-form";
+import { Upload } from "lucide-react";
 
 export default function Statements() {
+  const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
+
   return (
     <>
       <Head>
@@ -15,13 +21,19 @@ export default function Statements() {
       </Head>
       <BasePage>
         <div className="flex w-full flex-col gap-4">
-          <div className="flex flex-row gap-4">
-            <StatementOptionDropdown />
-            <StatementYearSelect />
+          <div className="flex w-full justify-between">
+            <div className="flex flex-row gap-4">
+              <StatementOptionDropdown />
+              <StatementYearSelect />
+            </div>
+            <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+              <Upload size={16} />
+            </Button>
           </div>
           <StatementTable />
         </div>
         <StatementForm />
+        <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />
       </BasePage>
     </>
   );
