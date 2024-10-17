@@ -1,5 +1,5 @@
 {
-  "name": "next-13",
+  "name": "web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -25,7 +25,6 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-toast": "^1.2.1",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@self-hosted-expense-tracker/generate-prompt": "*",
     "@tanstack/react-query": "^5.32.1",
     "@tanstack/react-query-devtools": "^5.32.1",
     "@tanstack/react-table": "^8.16.0",

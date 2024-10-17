@@ -1,5 +1,5 @@
 {
-  "name": "temp",
+  "name": "self-hosted-expense-tracker-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo build",
@@ -13,7 +13,7 @@
     "typescript": "^5.4.5"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "packageManager": "npm@10.8.1",
   "workspaces": [
