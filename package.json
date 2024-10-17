@@ -1,5 +1,5 @@
 {
-  "name": "temp",
+  "name": "self-hosted-expense-tracker-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo build",
