@@ -79,12 +79,14 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
     case "POST":
       const middleware = upload.single("statement");
       middleware(req, res, async () => {
-        if (req.file?.mimetype === "application/zip") {
+        if (req.file?.mimetype === "application/zip" || req.file?.mimetype === "application/pdf") {
           const formData = new FormData();
           const buffer = fs.readFileSync(req.file?.path);
           const blob = new Blob([buffer]);
+
           formData.append("userId", userId.toString());
           formData.append("file", blob);
+          formData.append("fileName", req.file.filename);
           formData.append("category", JSON.stringify(categoryResult));
 
           const response = await fetch("http://localhost:3001/upload", {

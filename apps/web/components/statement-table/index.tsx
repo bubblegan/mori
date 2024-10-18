@@ -187,6 +187,7 @@ const StatementTable = () => {
         }) || [];
       setData(tableData);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statements.data, setValue, deleteStatement]);
 
   const table = useReactTable({

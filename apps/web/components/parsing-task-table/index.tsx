@@ -116,7 +116,7 @@ const TaskTable = (props: { onPreviewClick: (id: string) => Promise<void> }) => 
       });
       setData(tableData);
     }
-  }, [taskQuery.data, taskQuery.isSuccess]);
+  }, [taskQuery.data, taskQuery.isSuccess, onPreviewClick]);
 
   const table = useReactTable({
     data,

@@ -25,7 +25,6 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-toast": "^1.2.1",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@self-hosted-expense-tracker/generate-prompt": "*",
     "@tanstack/react-query": "^5.32.1",
     "@tanstack/react-query-devtools": "^5.32.1",
     "@tanstack/react-table": "^8.16.0",
@@ -53,7 +52,6 @@
     "next-themes": "^0.3.0",
     "openai": "^4.40.0",
     "optics-ts": "^2.4.1",
-    "pdfjs-dist": "^4.5.136",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -62,7 +60,6 @@
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "tesseract.js": "^5.1.0",
     "zod": "^3.23.5"
   },
   "devDependencies": {

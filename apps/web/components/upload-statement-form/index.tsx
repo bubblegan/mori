@@ -2,30 +2,12 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
-import { Switch } from "@/ui/switch";
-import { fetchCompletion } from "@/utils/ai/fetch-completion";
-import { completionToParsedDate, ParsedExpense, ParsedStatement } from "@/utils/completion-to-parsed-data";
-import { sentenceCase } from "@/utils/sentence-case";
 import { trpc } from "@/utils/trpc";
-import { Statement } from "@prisma/client";
-import { generateParsingPrompt } from "@self-hosted-expense-tracker/generate-prompt";
-import dayjs from "dayjs";
 import { useDropzone } from "react-dropzone";
-import { Progress } from "../ui/progress";
-import { Textarea } from "../ui/textarea";
 import { ToastAction } from "../ui/toast";
 import { toast } from "../ui/use-toast";
-import UploadSummary from "../upload-summary";
-import { extractTextFromPDF } from "./use-extract-from-pdf";
 
-export type UploadingState =
-  | "default"
-  | "filepreview"
-  | "reading"
-  | "promptpreview"
-  | "prompting"
-  | "done"
-  | "error";
+export type UploadingState = "default" | "filepreview" | "done" | "error";
 
 const UploadStatementForm = ({
   isOpen = false,
@@ -45,121 +27,15 @@ const UploadStatementForm = ({
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
 
-  const [promptPreview, setPromptPreview] = useState(false);
-  const [promptText, setPromptText] = useState("");
-
-  const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
-  const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
-
-  const [progress, setProgress] = useState({ percent: 0, text: "" });
   const [errorText, setErrorText] = useState("");
   const [file, setFile] = useState<File | undefined>(undefined);
 
-  const utils = trpc.useUtils();
-
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      // Do something with the files
-      const statement = acceptedFiles[0];
-      setFile(statement);
-
-      if (statement.type === "text/csv") {
-        const reader = new FileReader();
-        const expenseCsvList: ParsedExpense[] = [];
-        reader.onload = (e) => {
-          const text = e?.target?.result;
-          if (typeof text === "string" || text instanceof String) {
-            const rows = text.split("\n");
-            const parsedData = rows.map((row) => {
-              row = row.replace("\r", "").trim();
-              return row.split(",");
-            });
-
-            // check header
-            const headers = parsedData[0];
-            const validHeader = ["description", "amount", "category", "date"];
-            const csvHeader: string[] = [];
-            headers.forEach((header) => {
-              if (validHeader.includes(header)) {
-                csvHeader.push(header);
-              } else {
-                csvHeader.push("");
-              }
-            });
-
-            if (parsedData.length > 1) {
-              for (let i = 1; i < parsedData.length; i++) {
-                const expenseCsv: ParsedExpense = {
-                  tempId: i,
-                  amount: 0,
-                  date: new Date(),
-                  description: "",
-                };
-                parsedData[i].forEach((data, index) => {
-                  const headerType = csvHeader[index];
-                  if (headerType === "description") {
-                    expenseCsv.description = data;
-                  }
-                  if (headerType === "amount") {
-                    const amount = Number(data);
-                    if (!isNaN(amount)) {
-                      expenseCsv.amount = amount;
-                    }
-                  }
-                  if (headerType === "date") {
-                    const date = dayjs(data);
-                    if (date.isValid()) {
-                      expenseCsv.date = date.toDate();
-                    }
-                  }
-                });
-                expenseCsvList.push(expenseCsv);
-              }
-            }
-
-            setParsedExpense(expenseCsvList);
-            setUploadingState("done");
-          }
-        };
-        reader.readAsText(statement);
-      }
-
-      if (statement.type === "application/pdf") {
-        setUploadingState("filepreview");
-      }
-
-      if (statement.type === "application/zip") {
-        const formData = new FormData();
-        formData.append("statement", statement);
-
-        const response = await fetch("/api/task", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (response.ok) {
-          toast({
-            description: "Uploaded to background process",
-            action: (
-              <ToastAction
-                onClick={() => {
-                  router.push("/task");
-                }}
-                altText="View">
-                View
-              </ToastAction>
-            ),
-          });
-          setFile(undefined);
-          setIsOpen(false);
-          setParsedStatement(undefined);
-          setUploadingState("default");
-        }
-      }
-      return;
-    },
-    [router, setIsOpen]
-  );
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const statement = acceptedFiles[0];
+    setFile(statement);
+    setUploadingState("filepreview");
+    return;
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -180,7 +56,6 @@ const UploadStatementForm = ({
         onCloseClick={() => {
           setIsOpen(false);
           setFile(undefined);
-          setParsedStatement(undefined);
           setUploadingState("default");
         }}
         className="min-w-fit">
@@ -209,62 +84,56 @@ const UploadStatementForm = ({
                 <p>{file.size / 1000} KB</p>
               </div>
             )}
-            <div className="flex w-full justify-between rounded border border-border p-3">
-              <p>Show Prompt Preview</p>
-              <Switch checked={promptPreview} onCheckedChange={setPromptPreview} />
-            </div>
             <div className="flex flex-row-reverse">
               <Button
                 className="w-fit"
                 onClick={async () => {
-                  if (file && file.type === "application/pdf") {
-                    setUploadingState("reading");
-                    let statementText = "";
-                    try {
-                      statementText = await extractTextFromPDF(file, (param) => {
-                        const [currPage, totalPage] = param;
-                        const percent = (currPage / totalPage) * 100;
-                        setProgress({ percent, text: `Currently reading ${currPage} of ${totalPage} page` });
+                  if (file) {
+                    const formData = new FormData();
+                    formData.append("statement", file);
+
+                    const response = await fetch("/api/task", {
+                      method: "POST",
+                      body: formData,
+                    });
+
+                    // set error if response not ok
+
+                    if (response.ok) {
+                      toast({
+                        description: "Uploaded to background process",
+                        action: (
+                          <ToastAction
+                            onClick={() => {
+                              router.push("/task");
+                            }}
+                            altText="View">
+                            View
+                          </ToastAction>
+                        ),
                       });
-                    } catch (error) {
-                      setUploadingState("error");
-                      setErrorText("OCR error");
+                      setFile(undefined);
+                      setIsOpen(false);
+                      setUploadingState("default");
                     }
-                    setUploadingState("prompting");
-                    const parsingPrompt = generateParsingPrompt(statementText, categories.data || []);
-                    if (promptPreview) {
-                      setPromptText(parsingPrompt);
-                      setUploadingState("promptpreview");
-                      return;
-                    }
-                    const { completion } = await fetchCompletion(parsingPrompt);
-                    const [parsedStatement, parsedExpenses] = completionToParsedDate(
-                      completion,
-                      categories.data || []
-                    );
-                    setParsedExpense(parsedExpenses);
-                    setParsedStatement(parsedStatement);
-                    setUploadingState("done");
                   }
                 }}>
-                AI Parsing
+                Upload
               </Button>
             </div>
           </>
         )}
-        {uploadingState === "promptpreview" && (
+        {uploadingState === "done" && (
           <>
-            <Textarea className="mt-1 h-52 text-white" value={promptText} />
+            <p>{errorText}</p>
             <div className="flex flex-row-reverse">
               <Button
                 className="w-fit"
                 onClick={() => {
                   setUploadingState("default");
                   setFile(undefined);
-                  setParsedExpense([]);
-                  setParsedStatement(undefined);
                 }}>
-                Start Parsing
+                Back
               </Button>
             </div>
           </>
@@ -278,83 +147,11 @@ const UploadStatementForm = ({
                 onClick={() => {
                   setUploadingState("default");
                   setFile(undefined);
-                  setParsedExpense([]);
-                  setParsedStatement(undefined);
                 }}>
                 Back
               </Button>
             </div>
           </>
-        )}
-        {uploadingState === "reading" && (
-          <div className="flex flex-col gap-2">
-            <p>{progress.text}...</p>
-            <Progress value={progress.percent} />
-          </div>
-        )}
-        {uploadingState === "prompting" && (
-          <>
-            <p>{sentenceCase(uploadingState)}...</p>
-          </>
-        )}
-        {uploadingState === "done" && (
-          <UploadSummary
-            parsedStatement={parsedStatement}
-            parsedExpenses={parsedExpense}
-            setParsedExpense={setParsedExpense}
-            onCreateClick={async () => {
-              if (!file) return;
-
-              const formData = new FormData();
-
-              const statementPayload = {
-                bank: parsedStatement?.bank,
-                date: parsedStatement?.statementDate?.toISOString(),
-                expenses: parsedExpense.map((expense) => {
-                  return {
-                    description: expense.description,
-                    amount: expense.amount,
-                    date: expense.date,
-                    ...(expense.categoryId ? { categoryId: expense.categoryId } : {}),
-                  };
-                }),
-              };
-
-              formData.append("statement", file);
-              formData.append("payload", JSON.stringify(statementPayload));
-
-              const response = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-              });
-
-              utils.statement.invalidate();
-              utils.expense.invalidate();
-
-              if (response.ok) {
-                const statement = (await response.json()) as Statement;
-
-                toast({
-                  description: "Statement Uploaded Successfully",
-                  action: (
-                    <ToastAction
-                      onClick={() => {
-                        router.push(`/expenses?statement-ids=${statement.id}`, undefined, {
-                          shallow: true,
-                        });
-                      }}
-                      altText="View">
-                      View
-                    </ToastAction>
-                  ),
-                });
-
-                setIsOpen(false);
-                setFile(undefined);
-                setUploadingState("default");
-              }
-            }}
-          />
         )}
       </DialogContent>
     </Dialog>

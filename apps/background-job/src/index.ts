@@ -7,10 +7,10 @@ import { Job, Queue, Worker } from "bullmq";
 import yauzl from "yauzl";
 import { Hono } from "hono";
 import OpenAI from "openai";
-import {
-  generateParsingPrompt,
-  trimPdfText,
-} from "@self-hosted-expense-tracker/generate-prompt";
+import { fileTypeFromBuffer } from "file-type";
+import { generateParsingPrompt } from "./generate-parsing-prompt.js";
+import { trimPdfText } from "./trim-pdf-text.js";
+
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -152,68 +152,85 @@ app.get("/tasks/:userid", async (c) => {
 app.post("/upload", async (c) => {
   const body = await c.req.parseBody();
 
-  const zipFile = body.file as File;
+  const file = body.file as File;
   const userId = body.userId as string;
   const categoryStr = body.category as string;
-  const zipBuffer = await zipFile.arrayBuffer();
+  const fileName = body.fileName as string;
+
+  const fileBuffer = await file.arrayBuffer();
+  const fileType = await fileTypeFromBuffer(fileBuffer);
 
   await redis.set(`category:${userId}`, categoryStr);
 
-  yauzl.fromBuffer(
-    Buffer.from(zipBuffer),
-    { lazyEntries: true },
-    (err, zipfile) => {
-      zipfile.readEntry();
-      zipfile.on("entry", function (entry) {
-        if (/\/$/.test(entry.fileName)) {
-          // Directory file names end with '/'.
-          // Note that entries for directories themselves are optional.
-          // An entry's fileName implicitly requires its parent directories to exist.
-          zipfile.readEntry();
-        } else {
-          // file entry
-          const chunks: Buffer[] = [];
+  if (fileType?.mime === "application/pdf") {
+    await statementQueue.add(
+      "process_file",
+      {
+        name: fileName,
+        buffer: Buffer.from(fileBuffer),
+        userId: userId,
+      },
+      { removeOnComplete: 30 }
+    );
+  }
 
-          zipfile.openReadStream(entry, function (err, readStream) {
-            if (err) {
-              console.error(`Failed to read entry: ${err}`);
-              zipfile.readEntry();
-              return;
-            }
-            readStream.on("data", (chunk) => {
-              chunks.push(chunk);
-            });
+  if (fileType?.mime === "application/zip") {
+    yauzl.fromBuffer(
+      Buffer.from(fileBuffer),
+      { lazyEntries: true },
+      (err, zipfile) => {
+        zipfile.readEntry();
+        zipfile.on("entry", function (entry) {
+          if (/\/$/.test(entry.fileName)) {
+            // Directory file names end with '/'.
+            // Note that entries for directories themselves are optional.
+            // An entry's fileName implicitly requires its parent directories to exist.
+            zipfile.readEntry();
+          } else {
+            // file entry
+            const chunks: Buffer[] = [];
 
-            readStream.on("end", async () => {
-              // Combine all chunks into a single buffer
-              const fileBuffer = Buffer.concat(chunks);
-              const fileName =
-                entry.fileName.split("/").pop() || entry.fileName;
-
-              try {
-                // Store the buffer in Redis (using the file name as the key)
-                if (fileName[0] !== ".") {
-                  await statementQueue.add(
-                    "process_file",
-                    {
-                      name: fileName,
-                      buffer: fileBuffer,
-                      userId: userId,
-                    },
-                    { removeOnComplete: 30 }
-                  );
-                }
-              } catch (redisErr) {
-                console.error(`Failed to store file in Redis: ${redisErr}`);
+            zipfile.openReadStream(entry, function (err, readStream) {
+              if (err) {
+                console.error(`Failed to read entry: ${err}`);
+                zipfile.readEntry();
+                return;
               }
+              readStream.on("data", (chunk) => {
+                chunks.push(chunk);
+              });
 
-              zipfile.readEntry(); // Proceed to the next entry
+              readStream.on("end", async () => {
+                // Combine all chunks into a single buffer
+                const fileBuffer = Buffer.concat(chunks);
+                const fileName =
+                  entry.fileName.split("/").pop() || entry.fileName;
+
+                try {
+                  // Store the buffer in Redis (using the file name as the key)
+                  if (fileName[0] !== ".") {
+                    await statementQueue.add(
+                      "process_file",
+                      {
+                        name: fileName,
+                        buffer: fileBuffer,
+                        userId: userId,
+                      },
+                      { removeOnComplete: 30 }
+                    );
+                  }
+                } catch (redisErr) {
+                  console.error(`Failed to store file in Redis: ${redisErr}`);
+                }
+
+                zipfile.readEntry(); // Proceed to the next entry
+              });
             });
-          });
-        }
-      });
-    }
-  );
+          }
+        });
+      }
+    );
+  }
 
   return c.text("Success");
 });

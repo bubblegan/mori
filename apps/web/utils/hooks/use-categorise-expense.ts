@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { generateCategorisePrompt } from "@self-hosted-expense-tracker/generate-prompt";
 import { fetchCompletion } from "../ai/fetch-completion";
+import { generateCategorisePrompt } from "../ai/generate-categorise-prompt";
 import { trpc } from "../trpc";
 
 type CategorisableExpense = {
