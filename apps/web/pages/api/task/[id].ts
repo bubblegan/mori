@@ -3,7 +3,10 @@ import { nextAuthOptions } from "@/utils/auth/nextAuthOption";
 import Redis from "ioredis";
 import { getServerSession } from "next-auth";
 
-const redis = new Redis();
+const redis = new Redis({
+  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
+  port: 6379,
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query; // Get the ID from the URL

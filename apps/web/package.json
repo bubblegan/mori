@@ -35,7 +35,6 @@
     "adm-zip": "^0.5.12",
     "ai": "^3.3.11",
     "bcryptjs": "^2.4.3",
-    "canvas": "^2.11.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "currency.js": "^2.0.4",

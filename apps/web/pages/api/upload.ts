@@ -11,7 +11,10 @@ import multer from "multer";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
-const redis = new Redis();
+const redis = new Redis({
+  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
+  port: 6379,
+});
 
 const upload = multer({ dest: "/tmp" });
 dayjs.extend(customParseFormat);

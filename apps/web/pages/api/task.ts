@@ -9,7 +9,13 @@ import multer from "multer";
 import { getServerSession } from "next-auth";
 import { Readable } from "stream";
 
-const redis = new Redis();
+const redis = new Redis({
+  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
+  port: 6379,
+});
+
+const backgroundJobHost = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:3001";
+
 const upload = multer({ dest: "/tmp" });
 
 type Task = {
@@ -50,7 +56,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
   switch (method) {
     case "GET":
-      const response = await fetch(`http://localhost:3001/tasks/${userId}`, {
+      const response = await fetch(`${backgroundJobHost}/tasks/${userId}`, {
         method: "GET",
       });
 
@@ -89,7 +95,8 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           formData.append("fileName", req.file.filename);
           formData.append("category", JSON.stringify(categoryResult));
 
-          const response = await fetch("http://localhost:3001/upload", {
+          console.log(backgroundJobHost);
+          const response = await fetch(`${backgroundJobHost}/upload`, {
             method: "POST",
             body: formData,
           });

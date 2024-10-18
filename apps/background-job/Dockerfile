@@ -2,26 +2,41 @@ FROM node:20-alpine AS base
 
 FROM base AS builder
 
-RUN apk add --no-cache gcompat graphicsmagick ghostscript
+RUN apk update
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
-COPY package*json tsconfig.json src ./
 
-RUN npm ci && \
-    npm run build && \
-    npm prune --production
+RUN npm install turbo --global
+COPY . .
+RUN turbo prune background-job --docker
+
+FROM base AS installer
+
+RUN apk update
+RUN apk add --no-cache gcompat libc6-compat
+
+WORKDIR /app
+
+# First install dependencies (as they change less often)
+COPY --from=builder /app/out/json/ .
+RUN npm install
+
+# Build the project and its dependencies
+COPY --from=builder /app/out/full/ .
+
+RUN npx turbo build --filter=background-job...
 
 FROM base AS runner
+RUN apk add --no-cache graphicsmagick ghostscript 
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 nodejs
+RUN addgroup --system --gid 1001 hono
 RUN adduser --system --uid 1001 hono
-
-COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
-COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
-COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
-
 USER hono
-EXPOSE 4000
 
-CMD ["node", "/app/dist/index.js"]
+COPY --from=installer /app .
+
+EXPOSE 3001
+
+CMD node apps/background-job/dist/index.js
