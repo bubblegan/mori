@@ -7,7 +7,7 @@ const nextConfig = {
       // Basic redirect
       {
         source: "/",
-        destination: "/expenses?date-range=year-to-date",
+        destination: "/expenses",
         permanent: true,
       },
     ];

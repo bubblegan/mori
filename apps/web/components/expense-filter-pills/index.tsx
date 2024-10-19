@@ -40,7 +40,7 @@ export function ExpenseFilterPills() {
     }
 
     if (params.toString().length === 0) {
-      router.push(`/expenses?date-range=year-to-date`, undefined, {
+      router.push(`/expenses`, undefined, {
         shallow: true,
       });
       return;

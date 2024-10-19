@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
-import { GetServerSidePropsContext } from "next";
+import { useCallback, useState } from "react";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
@@ -48,16 +47,6 @@ export default function Expenses() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.size === 0) {
-      router.push({
-        pathname: "/expenses",
-        query: { ["date-range"]: "year-to-date" },
-      });
-    }
-  }, [router]);
 
   const view = searchParams?.get("view");
 
@@ -172,24 +161,4 @@ export default function Expenses() {
       </BasePage>
     </>
   );
-}
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { query, resolvedUrl } = context;
-
-  // Check if 'pass' query param is missing
-  if (Object.keys(query).length === 0) {
-    // Redirect to the same page with the 'pass=true' query parameter
-    return {
-      redirect: {
-        destination: `${resolvedUrl}?date-range=year-to-date`,
-        permanent: false,
-      },
-    };
-  }
-
-  // Continue with the normal page rendering if 'pass' is present
-  return {
-    props: {}, // Pass any necessary props here
-  };
 }

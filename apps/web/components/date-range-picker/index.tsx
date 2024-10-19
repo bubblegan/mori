@@ -113,6 +113,20 @@ const DateRangePicker = () => {
           <Button variant="ghost" onClick={() => setShowCustomDate(true)}>
             Custom Date
           </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              const params = new URLSearchParams(window.location.search);
+              params.delete("date-range");
+              params.delete("start-date");
+              params.delete("end-date");
+              router.push(`/expenses?${params.toString()}`, undefined, {
+                shallow: true,
+              });
+              setCalendarOpen(false);
+            }}>
+            Reset
+          </Button>
         </div>
         {showCustomDate && (
           <>
