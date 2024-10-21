@@ -14,7 +14,7 @@ const redis = new Redis({
   port: 6379,
 });
 
-const backgroundJobHost = process.env.NEXT_PUBLIC_API_HOST || "http://localhost:3001";
+const backgroundJobHost = process.env.NEXT_BG_JOB_URL || "http://localhost:3001";
 
 const upload = multer({ dest: "/tmp" });
 
