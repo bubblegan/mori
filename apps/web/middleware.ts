@@ -1,5 +1,5 @@
 export { default } from "next-auth/middleware";
 
 export const config = {
-  matcher: ["/", "/categories", "/expenses", "/statements", "/task", "/api/:path*"],
+  matcher: ["/((?!api/trpc/auth.create|sign-in|sign-up).*)"],
 };

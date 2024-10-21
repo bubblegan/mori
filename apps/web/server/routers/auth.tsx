@@ -43,6 +43,9 @@ export const authRouter = router({
         data: categoriesWithUserId,
       });
 
-      return result;
+      return {
+        username: input.username,
+        password: input.password,
+      };
     }),
 });

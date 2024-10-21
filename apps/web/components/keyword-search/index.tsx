@@ -13,13 +13,15 @@ const KeywordSearch = () => {
     const params = new URLSearchParams(window.location.search);
     if (debounceValue) {
       params.set("keyword", debounceValue);
-    } else {
+      router.push(`/expenses?${params.toString()}`, undefined, {
+        shallow: true,
+      });
+    } else if (params.get("keyword")) {
       params.delete("keyword");
+      router.push(`/expenses?${params.toString()}`, undefined, {
+        shallow: true,
+      });
     }
-
-    router.push(`/expenses?${params.toString()}`, undefined, {
-      shallow: true,
-    });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounceValue]);

@@ -1,13 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/ui/form";
 import { Input } from "@/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import { Popover, PopoverTrigger, PopoverContent } from "@/ui/popover";
 import { Textarea } from "@/ui/textarea";
 import { trpc } from "@/utils/trpc";
 import { Category } from "@prisma/client";
 import { atom, useAtom } from "jotai";
+import { HexColorPicker } from "react-colorful";
 import { useForm, SubmitHandler } from "react-hook-form";
 
 type CategoryFormInput = {
@@ -26,36 +27,20 @@ export const CategoryFormAtom = atom<{
 
 const CategoryForm = () => {
   const [value, setValue] = useAtom(CategoryFormAtom);
+  const [initialColor, setInitialColor] = useState<string | undefined>("");
   const { isOpen, category } = value;
 
   const form = useForm<CategoryFormInput>();
 
   useEffect(() => {
     const keyword = Array.isArray(category?.keyword) ? category?.keyword?.join(",") : "";
-
+    setInitialColor(category?.color);
     form.reset({
       title: category?.title,
       color: category?.color,
       keyword,
     });
   }, [category, form]);
-
-  const colorOptions: string[] = [
-    "#44403c",
-    "#b91c1c",
-    "#c2410c",
-    "#4d7c0f",
-    "#15803d",
-    "#047857",
-    "#0e7490",
-    "#0f766e",
-    "#1d4ed8",
-    "#4338ca",
-    "#6d28d9",
-    "#a21caf",
-    "#be185d",
-    "#be123c",
-  ];
 
   const utils = trpc.useUtils();
 
@@ -110,30 +95,30 @@ const CategoryForm = () => {
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Colors</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <Popover>
                     <FormControl>
-                      <SelectTrigger className="h-8 w-32 border-neutral-500">
-                        <SelectValue className="mr-2 h-8 w-32 text-white">
-                          <div className="mr-2 h-6 w-16 text-white" style={{ background: field.value }} />
-                        </SelectValue>
-                      </SelectTrigger>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="text-white">
+                          <div className="flex items-center gap-2">
+                            Color{" "}
+                            <div
+                              className="w-fit rounded-md px-3 py-0.5 capitalize"
+                              style={{ background: field.value }}>
+                              {form.getValues("title")}
+                            </div>{" "}
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
                     </FormControl>
-                    <SelectContent side="bottom" className="w-fit">
-                      <SelectGroup className="max-h-48 overflow-y-auto">
-                        {colorOptions.map((color) => {
-                          return (
-                            <SelectItem
-                              className="h-9 w-32"
-                              style={{ backgroundColor: color }}
-                              key={color}
-                              value={color}
-                            />
-                          );
-                        })}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                    <PopoverContent
+                      className="border-boder flex h-fit w-fit flex-col gap-2 p-2"
+                      align="start">
+                      <HexColorPicker color={field.value} onChange={field.onChange} />
+                      <Button className="w-fit" onClick={() => field.onChange(initialColor)}>
+                        Reset
+                      </Button>
+                    </PopoverContent>
+                  </Popover>
                 </FormItem>
               )}
             />
@@ -143,9 +128,11 @@ const CategoryForm = () => {
               </label>
               <Textarea className="mt-1 text-white" {...form.register("keyword")} />
             </div>
-            <Button className="w-fit" type="submit">
-              Submit
-            </Button>
+            <div className="flex w-full flex-row-reverse">
+              <Button className="w-fit" type="submit">
+                Submit
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

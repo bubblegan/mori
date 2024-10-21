@@ -17,7 +17,7 @@ const SignInForm = () => {
   const onSubmit = useCallback(
     async (data: LoginInputForm) => {
       try {
-        const value = await signIn("credentials", { ...data, callbackUrl: "/" });
+        const value = await signIn("credentials", { ...data, callbackUrl: "/expenses" });
         if (value?.ok) {
           toast({ description: "Signed In." });
         }

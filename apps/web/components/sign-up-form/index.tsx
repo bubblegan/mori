@@ -1,7 +1,9 @@
+import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { useToast } from "@/ui/use-toast";
 import { trpc } from "@/utils/trpc";
+import { signIn } from "next-auth/react";
 import { useForm, SubmitHandler } from "react-hook-form";
 
 type SignUpnputForm = {
@@ -12,9 +14,19 @@ type SignUpnputForm = {
 const SignUpForm = () => {
   const form = useForm<SignUpnputForm>();
   const { toast } = useToast();
+  const router = useRouter();
 
   const { mutate: createUser } = trpc.auth.create.useMutation({
-    onSuccess() {
+    onSuccess: async (result) => {
+      const response = await signIn("credentials", {
+        redirect: false,
+        username: result.username,
+        password: result.password,
+      });
+
+      if (response?.ok) {
+        router.push("/expenses");
+      }
       toast({ description: "User Created" });
     },
   });
@@ -40,9 +52,11 @@ const SignUpForm = () => {
         </label>
         <Input className="mt-1 text-white" type="password" {...form.register("password")} />
       </div>
-      <Button className="w-fit" type="submit">
-        Submit
-      </Button>
+      <div className="flex w-full flex-row-reverse">
+        <Button className="w-fit" type="submit">
+          Submit
+        </Button>
+      </div>
     </form>
   );
 };
