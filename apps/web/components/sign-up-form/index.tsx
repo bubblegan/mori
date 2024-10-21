@@ -7,7 +7,6 @@ import { useForm, SubmitHandler } from "react-hook-form";
 type SignUpnputForm = {
   username: string;
   password: string;
-  email: string;
 };
 
 const SignUpForm = () => {
@@ -24,7 +23,6 @@ const SignUpForm = () => {
     createUser({
       username: data.username,
       password: data.password,
-      email: data.email,
     });
   };
 
@@ -40,13 +38,7 @@ const SignUpForm = () => {
         <label htmlFor="title" className="text-white">
           Password
         </label>
-        <Input className="mt-1 text-white" {...form.register("password")} />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="title" className="text-white">
-          Email
-        </label>
-        <Input className="mt-1 text-white" {...form.register("email")} />
+        <Input className="mt-1 text-white" type="password" {...form.register("password")} />
       </div>
       <Button className="w-fit" type="submit">
         Submit

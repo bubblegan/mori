@@ -8,6 +8,7 @@ type CategorySeed = {
   categories: {
     title: string;
     keyword: string[];
+    color: string;
   }[];
 };
 
@@ -17,18 +18,15 @@ export const authRouter = router({
       z.object({
         username: z.string(),
         password: z.string(),
-        email: z.string(),
       })
     )
     .mutation(async ({ input }) => {
       const passwordHash = await hashPassword(input.password);
 
-      // TODO avoid duplicate user name
       const result = await prisma.user.create({
         data: {
           username: input.username,
           password: passwordHash,
-          email: input.email,
         },
       });
 

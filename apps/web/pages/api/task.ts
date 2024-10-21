@@ -68,6 +68,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
         for (let i = 0; i < filterKeys.length; i++) {
           if (tasks[i].status === "completed") {
             const filterJob = await redis.get(`done:${userId}:${filterKeys[i]}`);
+
             if (!!filterJob) {
               result.push(tasks[i]);
             }
@@ -92,10 +93,9 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
           formData.append("userId", userId.toString());
           formData.append("file", blob);
-          formData.append("fileName", req.file.filename);
+          formData.append("fileName", req.file.originalname);
           formData.append("category", JSON.stringify(categoryResult));
 
-          console.log(backgroundJobHost);
           const response = await fetch(`${backgroundJobHost}/upload`, {
             method: "POST",
             body: formData,

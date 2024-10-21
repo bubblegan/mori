@@ -3,7 +3,7 @@ import { createWorker } from "tesseract.js";
 import { serve } from "@hono/node-server";
 import Redis from "ioredis";
 import { cors } from "hono/cors";
-import { Job, Queue, Worker } from "bullmq";
+import { Queue, Worker } from "bullmq";
 import yauzl from "yauzl";
 import { Hono } from "hono";
 import OpenAI from "openai";
@@ -84,10 +84,12 @@ const myWorker = new Worker<StatementJob>(
     let fileValue = job.data.buffer;
 
     const value = {
+      state: "completed",
       completion: promptValue,
       file: fileValue,
       name: job.data.name,
       userId: job.data.userId,
+      completedAt: new Date(),
     };
 
     await redis.set(`done:${job.data.userId}:${job.id}`, JSON.stringify(value));

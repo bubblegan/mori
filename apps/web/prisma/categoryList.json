@@ -2,43 +2,58 @@
   "categories": [
     {
       "title": "transport",
-      "keyword": ["bus", "mrt", "grab"]
+      "keyword": ["bus", "mrt", "grab"],
+      "color": "#1E3A5F"
     },
     {
       "title": "food",
-      "keyword": []
+      "keyword": [],
+      "color": "#B0BEC5"
     },
     {
       "title": "grocery",
-      "keyword": ["ntuc", "sheng shiong"]
+      "keyword": ["ntuc", "sheng shiong"],
+      "color": "#00695C"
     },
     {
       "title": "utilities",
-      "keyword": []
-    },
-    {
-      "title": "accommodation",
-      "keyword": []
+      "keyword": [],
+      "color": "#8C9E36"
     },
     {
       "title": "entertainment",
-      "keyword": []
+      "keyword": [],
+      "color": "#7E57C2"
     },
     {
       "title": "insurance",
-      "keyword": []
+      "keyword": [],
+      "color": "#4DB6AC"
     },
     {
       "title": "subscription",
-      "keyword": []
+      "keyword": [],
+      "color": "#D32F2F"
     },
     {
       "title": "shopping",
-      "keyword": []
+      "keyword": [],
+      "color": "#303F9F"
+    },
+    {
+      "title": "travel",
+      "keyword": [],
+      "color": "#F48FB1"
+    },
+    {
+      "title": "health",
+      "keyword": [],
+      "color": "#FFB74D"
     },
     {
       "title": "other",
-      "keyword": []
+      "keyword": [],
+      "color": "#0288D1"
     }
   ]
 }
