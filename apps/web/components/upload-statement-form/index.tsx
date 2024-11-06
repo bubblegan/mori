@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { trpc } from "@/utils/trpc";
+import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { ToastAction } from "../ui/toast";
 import { toast } from "../ui/use-toast";
@@ -66,13 +67,23 @@ const UploadStatementForm = ({
           <>
             <div
               {...getRootProps()}
-              className="flex w-full cursor-pointer justify-center rounded border border-solid border-border p-4">
+              className="flex w-full cursor-pointer justify-center rounded border border-dashed border-border p-10">
               <input {...getInputProps()} />
-              {isDragActive ? (
-                <p>Drop the files here ...</p>
-              ) : (
-                <p>Drag and drop some files here, or click to select files</p>
-              )}
+              <div className="flex flex-col items-center gap-5">
+                <div className="rounded-full border border-dashed p-3">
+                  <Upload size={24} />
+                </div>
+                {isDragActive ? (
+                  <p>Drop the files here ...</p>
+                ) : (
+                  <div className="flex flex-col items-center gap-1">
+                    <p>Drag and drop some files here, or click to select files</p>
+                    <p className="text-center text-sm text-muted-foreground/50">
+                      You can upload single PDF or multiple in ZIP
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}
