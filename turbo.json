@@ -6,7 +6,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "env": [
-        "DATABASUE_URL",
+        "DATABASE_URL",
         "OPENAI_API_KEY",
         "NEXTAUTH_SECRET",
         "NEXT_BG_JOB_URL",
