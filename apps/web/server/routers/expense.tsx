@@ -1,6 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import { z } from "zod";
-import { expenseSchema } from "../../schema";
+import { expenseSchema, expensesSchema } from "../../schema";
 import { protectedProcedure, router } from "../trpc";
 
 type CategoryAmount = {
@@ -242,6 +242,25 @@ export const expenseRouter = router({
           }),
         },
       },
+    });
+
+    return result;
+  }),
+  createMany: protectedProcedure.input(expensesSchema).mutation(async ({ input, ctx }) => {
+    const expenses = input.map((expense) => {
+      const { description, categoryId, amount, note, date } = expense;
+      return {
+        description,
+        categoryId,
+        amount,
+        note,
+        date,
+        userId: ctx.auth.userId,
+      };
+    });
+
+    const result = await prisma.expense.createMany({
+      data: expenses,
     });
 
     return result;

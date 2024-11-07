@@ -1,7 +1,7 @@
 import { ParsedExpense } from "@/utils/completion-to-parsed-data";
 import dayjs from "dayjs";
 
-export function handleCsvUpload() {
+export function handleCsvUpload(csvFile: File, onFinishParse: (parsedExpense: ParsedExpense[]) => undefined) {
   const reader = new FileReader();
   const expenseCsvList: ParsedExpense[] = [];
   reader.onload = (e) => {
@@ -13,7 +13,6 @@ export function handleCsvUpload() {
         return row.split(",");
       });
 
-      // check header
       const headers = parsedData[0];
       const validHeader = ["description", "amount", "category", "date"];
       const csvHeader: string[] = [];
@@ -50,13 +49,17 @@ export function handleCsvUpload() {
                 expenseCsv.date = date.toDate();
               }
             }
+            if (headerType === "category") {
+              expenseCsv.categoryTitle = data.toLowerCase();
+            }
           });
           expenseCsvList.push(expenseCsv);
         }
       }
     }
-    // setParsedExpense(expenseCsvList);
-    // setUploadingState("done");
+
+    onFinishParse(expenseCsvList);
   };
-  // reader.readAsText(statement);
+
+  reader.readAsText(csvFile);
 }

@@ -2,13 +2,16 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { ParsedExpense } from "@/utils/completion-to-parsed-data";
 import { trpc } from "@/utils/trpc";
 import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { ToastAction } from "../ui/toast";
 import { toast } from "../ui/use-toast";
+import UploadSummary from "../upload-summary";
+import { handleCsvUpload } from "./handle-csv-upload";
 
-export type UploadingState = "default" | "filepreview" | "done" | "error";
+export type UploadingState = "default" | "filepreview" | "error" | "csv";
 
 const UploadStatementForm = ({
   isOpen = false,
@@ -19,24 +22,52 @@ const UploadStatementForm = ({
 }) => {
   const categories = trpc.category.list.useQuery();
   const router = useRouter();
-  const categoriesMap: Record<number, string> = {};
+  const utils = trpc.useUtils();
+  const categoriesMap: Record<string, number> = {};
+
   if (categories.data) {
     categories.data?.forEach((category) => {
-      categoriesMap[category.id] = category.title;
+      categoriesMap[category.title] = category.id;
     });
   }
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
-
   const [errorText, setErrorText] = useState("");
   const [file, setFile] = useState<File | undefined>(undefined);
+  const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const statement = acceptedFiles[0];
-    setFile(statement);
-    setUploadingState("filepreview");
-    return;
-  }, []);
+  const { mutate: createExpenses } = trpc.expense.createMany.useMutation({
+    onSuccess() {
+      toast({ description: "Expenses Created." });
+      utils.expense.invalidate();
+      setIsOpen(false);
+    },
+  });
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const statement = acceptedFiles[0];
+      if (statement.type === "application/pdf") {
+        setFile(statement);
+        setUploadingState("filepreview");
+        return;
+      }
+      if (statement.type === "text/csv") {
+        handleCsvUpload(statement, (parsedExpense) => {
+          parsedExpense.forEach((expense) => {
+            if (expense?.categoryTitle) {
+              expense.categoryId = categoriesMap[expense?.categoryTitle];
+            }
+          });
+          setParsedExpense(parsedExpense);
+          setUploadingState("csv");
+        });
+        return;
+      }
+      return;
+    },
+    [categoriesMap]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -47,6 +78,7 @@ const UploadStatementForm = ({
     accept: {
       "application/pdf": [".pdf"],
       "application/zip": [".zip"],
+      "application/csv": [".csv"],
     },
     multiple: false,
   });
@@ -108,8 +140,6 @@ const UploadStatementForm = ({
                       body: formData,
                     });
 
-                    // set error if response not ok
-
                     if (response.ok) {
                       toast({
                         description: "Uploaded to background process",
@@ -134,20 +164,22 @@ const UploadStatementForm = ({
             </div>
           </>
         )}
-        {uploadingState === "done" && (
-          <>
-            <p>{errorText}</p>
-            <div className="flex flex-row-reverse">
-              <Button
-                className="w-fit"
-                onClick={() => {
-                  setUploadingState("default");
-                  setFile(undefined);
-                }}>
-                Back
-              </Button>
-            </div>
-          </>
+        {uploadingState === "csv" && (
+          <UploadSummary
+            setParsedExpense={setParsedExpense}
+            parsedExpenses={parsedExpense}
+            onCreateClick={() => {
+              const expenses = parsedExpense.map((expense) => {
+                return {
+                  description: expense.description,
+                  amount: expense.amount,
+                  date: expense.date,
+                  ...(expense.categoryId ? { categoryId: expense.categoryId } : {}),
+                };
+              });
+              createExpenses(expenses);
+            }}
+          />
         )}
         {uploadingState === "error" && (
           <>

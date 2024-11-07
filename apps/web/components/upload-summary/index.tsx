@@ -32,7 +32,6 @@ type UploadSummaryProps = {
   parsedExpenses?: ParsedExpense[];
   setParsedExpense: Dispatch<SetStateAction<ParsedExpense[]>>;
   onCreateClick: () => void;
-  onCategoriseClick?: () => Promise<void> | undefined;
 };
 
 const columnHelper = createColumnHelper<ParsedExpenseTable>();
