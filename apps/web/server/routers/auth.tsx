@@ -1,16 +1,8 @@
 import { hashPassword } from "@/utils/auth/hashPassword";
 import { prisma } from "@/utils/prisma";
-import fs from "fs";
 import { z } from "zod";
+import { seedCategories } from "../../prisma/seed-category";
 import { procedure, router } from "../trpc";
-
-type CategorySeed = {
-  categories: {
-    title: string;
-    keyword: string[];
-    color: string;
-  }[];
-};
 
 export const authRouter = router({
   create: procedure
@@ -30,18 +22,9 @@ export const authRouter = router({
         },
       });
 
-      // Create category for user after create account
-      const jsonString = fs.readFileSync("./prisma/categoryList.json", "utf8");
-      const data: CategorySeed = JSON.parse(jsonString);
-      const categoriesWithUserId = data.categories.map((category) => {
-        return {
-          ...category,
-          userId: result.id,
-        };
-      });
-      await prisma.category.createMany({
-        data: categoriesWithUserId,
-      });
+      const userId = result.id;
+
+      await seedCategories(userId);
 
       return {
         username: input.username,
