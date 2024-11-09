@@ -13,7 +13,7 @@ import { trimPdfText } from "./trim-pdf-text.js";
 
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ path: "../../.env" });
 
 type StatementJob = {
   name: string;
