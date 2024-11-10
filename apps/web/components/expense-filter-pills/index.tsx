@@ -75,7 +75,7 @@ export function ExpenseFilterPills() {
           <div
             key={category.id}
             onClick={() => removeFromParam("category-ids", category.id)}
-            className="flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xs text-primary-foreground"
+            className="flex cursor-pointer flex-row items-center gap-2 rounded-md px-3 py-2 text-xs text-white"
             style={{ background: category.color }}>
             {sentenceCase(category.title)}
             <X size={14} />
