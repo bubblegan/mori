@@ -70,10 +70,8 @@ const TagForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <label htmlFor="title" className="text-white">
-                Title
-              </label>
-              <Input className="mt-1 text-white" {...form.register("title")} />
+              <label htmlFor="title">Title</label>
+              <Input className="mt-1" {...form.register("title")} />
             </div>
             <Button className="w-fit" type="submit">
               Submit

@@ -32,7 +32,7 @@ const StatementYearSelect = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="text-white">
+        <Button variant="outline">
           <div className="flex items-center gap-2">
             <PlusCircleIcon size={14} />
             Year
@@ -56,7 +56,7 @@ const StatementYearSelect = () => {
           {results?.map((year) => {
             return (
               <div
-                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-secondary/50"
+                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 hover:bg-secondary/50"
                 key={year}>
                 <Checkbox
                   checked={yearsParam.includes(year)}

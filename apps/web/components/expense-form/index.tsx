@@ -200,7 +200,7 @@ const ExpenseForm = () => {
                           {tags.data?.map((tag) => {
                             return (
                               <div
-                                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-secondary/50"
+                                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-primary hover:bg-secondary/50"
                                 key={tag.id}>
                                 <Checkbox
                                   checked={field.value?.includes(tag.id)}
@@ -243,15 +243,12 @@ const ExpenseForm = () => {
                       value={field.value?.toString() || ""}>
                       <FormControl>
                         <SelectTrigger className="gap- h-10 w-full px-3 py-2">
-                          <SelectValue className="mr-2 text-white" />
+                          <SelectValue className="mr-2 text-primary" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent side="bottom">
                         {categories.data?.map((category) => (
-                          <SelectItem
-                            className="text-neutral-200"
-                            key={category.id}
-                            value={category.id.toString()}>
+                          <SelectItem key={category.id} value={category.id.toString()}>
                             {sentenceCase(category.title)}
                           </SelectItem>
                         ))}

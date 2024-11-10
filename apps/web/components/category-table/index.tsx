@@ -127,7 +127,7 @@ const CategoryTable = () => {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
-                    className={cn("text-neutral-100", header.column.columnDef.meta?.className)}
+                    className={header.column.columnDef.meta?.className}
                     key={header.id}
                     colSpan={header.colSpan}>
                     {header.isPlaceholder
@@ -142,7 +142,7 @@ const CategoryTable = () => {
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="w-fit py-5 text-neutral-100" key={cell.id}>
+                  <TableCell className="w-fit py-5" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

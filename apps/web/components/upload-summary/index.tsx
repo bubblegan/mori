@@ -184,7 +184,6 @@ const UploadSummary = (props: UploadSummaryProps) => {
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     className={cn(
-                      "text-neutral-100",
                       header.column.getCanSort() && "cursor-pointer",
                       header.column.columnDef.meta?.className
                     )}
@@ -211,7 +210,7 @@ const UploadSummary = (props: UploadSummaryProps) => {
                     onClick={() => {
                       setEditCellId(cell.id);
                     }}
-                    className="w-fit py-4 text-neutral-100"
+                    className="w-fit py-4"
                     key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

@@ -211,7 +211,6 @@ const StatementTable = () => {
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     className={cn(
-                      "text-neutral-100",
                       header.column.getCanSort() && "cursor-pointer",
                       header.column.columnDef.meta?.className
                     )}
@@ -249,7 +248,7 @@ const StatementTable = () => {
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="w-fit py-5 text-neutral-100" key={cell.id}>
+                  <TableCell className="w-fit py-5" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

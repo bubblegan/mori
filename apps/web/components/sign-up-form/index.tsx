@@ -41,16 +41,12 @@ const SignUpForm = () => {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label htmlFor="title" className="text-white">
-          Username
-        </label>
-        <Input className="mt-1 text-white" {...form.register("username")} />
+        <label htmlFor="title">Username</label>
+        <Input className="mt-1" {...form.register("username")} />
       </div>
       <div className="flex flex-col gap-1">
-        <label htmlFor="title" className="text-white">
-          Password
-        </label>
-        <Input className="mt-1 text-white" type="password" {...form.register("password")} />
+        <label htmlFor="title">Password</label>
+        <Input className="mt-1" type="password" {...form.register("password")} />
       </div>
       <div className="flex w-full flex-row-reverse">
         <Button className="w-fit" type="submit">

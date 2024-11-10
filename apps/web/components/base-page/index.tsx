@@ -15,7 +15,7 @@ const NavigationLink = (props: { title: string; route: string; icon: React.React
     <Link
       href={route}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md py-2 pl-4 text-white hover:bg-muted-foreground/40",
+        "flex w-full items-center gap-2 rounded-md py-2 pl-4 text-primary hover:bg-muted-foreground/40",
         router.asPath.split("?")[0] === route && "bg-muted-foreground/40"
       )}>
       {icon}
@@ -36,7 +36,7 @@ const BasePage = (props: { children: React.ReactNode }) => {
             <NavigationLink icon={<LayoutList size={16} />} title="Task" route="/task" />
             <div
               className={cn(
-                "flex w-full cursor-pointer items-center gap-2 rounded-md py-2 pl-4 text-white hover:bg-muted-foreground/40"
+                "flex w-full cursor-pointer items-center gap-2 rounded-md py-2 pl-4 text-primary hover:bg-muted-foreground/40"
               )}
               onClick={() => signOut()}>
               <LogOut size={16} />

@@ -14,6 +14,7 @@ import KeywordSearch from "@/components/keyword-search";
 import StatementSelect from "@/components/statement-select";
 import { TagExpenseForm } from "@/components/tag-expense-form";
 import { TagSelect } from "@/components/tag-select";
+import { ThemeSelect } from "@/components/theme-select";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -141,6 +142,7 @@ export default function Expenses() {
                   <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <ThemeSelect />
             </div>
           </div>
           <div className="flex flex-row gap-2">

@@ -72,7 +72,6 @@ const ExpenseTableUi = ({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     className={cn(
-                      "text-neutral-100",
                       header.column.getCanSort() && "cursor-pointer",
                       header.column.columnDef.meta?.className
                     )}
@@ -95,7 +94,7 @@ const ExpenseTableUi = ({
             {table.getRowModel().rows.map((row) => (
               <TableRow className="hover:bg-muted/50" key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="w-fit py-4 text-neutral-100" key={cell.id}>
+                  <TableCell className="w-fit py-4" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -107,7 +106,7 @@ const ExpenseTableUi = ({
 
       <div className="flex items-center justify-end gap-2">
         <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium text-white">Rows per page</p>
+          <p className="text-sm font-medium text-primary">Rows per page</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
@@ -118,14 +117,14 @@ const ExpenseTableUi = ({
             </SelectTrigger>
             <SelectContent side="top">
               {[15, 30, 45, 60].map((pageSize) => (
-                <SelectItem className="text-neutral-200" key={pageSize} value={`${pageSize}`}>
+                <SelectItem key={pageSize} value={`${pageSize}`}>
                   {pageSize}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium text-white">
+        <div className="flex w-[100px] items-center justify-center text-sm font-medium text-primary">
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
         </div>
         <div className="flex items-center space-x-2">
@@ -135,7 +134,7 @@ const ExpenseTableUi = ({
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}>
             <span className="sr-only">Go to first page</span>
-            <ChevronsLeft className="h-4 w-4 text-white" />
+            <ChevronsLeft className="h-4 w-4 text-primary" />
           </Button>
           <Button
             variant="outline"
@@ -143,7 +142,7 @@ const ExpenseTableUi = ({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}>
             <span className="sr-only">Go to previous page</span>
-            <ChevronLeft className="h-4 w-4 text-white" />
+            <ChevronLeft className="h-4 w-4 text-primary" />
           </Button>
           <Button
             variant="outline"
@@ -151,7 +150,7 @@ const ExpenseTableUi = ({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}>
             <span className="sr-only">Go to next page</span>
-            <ChevronRight className="h-4 w-4 text-white" />
+            <ChevronRight className="h-4 w-4 text-primary" />
           </Button>
           <Button
             variant="outline"
@@ -159,7 +158,7 @@ const ExpenseTableUi = ({
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}>
             <span className="sr-only">Go to last page</span>
-            <ChevronsRight className="h-4 w-4 text-white" />
+            <ChevronsRight className="h-4 w-4 text-primary" />
           </Button>
         </div>
       </div>

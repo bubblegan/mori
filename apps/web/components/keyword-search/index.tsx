@@ -28,7 +28,7 @@ const KeywordSearch = () => {
 
   return (
     <Input
-      className="h-10 text-white"
+      className="h-10"
       onChange={(e) => {
         setValue(e.target.value);
       }}

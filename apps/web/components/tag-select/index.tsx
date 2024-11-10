@@ -21,7 +21,7 @@ export function TagSelect() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="text-white">
+        <Button variant="outline">
           <div className="flex items-center gap-2">
             <PlusCircleIcon size={14} />
             Tag
@@ -33,7 +33,7 @@ export function TagSelect() {
           {tags.data?.map((tag) => {
             return (
               <div
-                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 text-white hover:bg-secondary/50"
+                className="flex cursor-pointer items-center gap-4 rounded p-1 px-2 hover:bg-secondary/50"
                 key={tag.id}>
                 <Checkbox
                   checked={tagIds.includes(tag.id)}

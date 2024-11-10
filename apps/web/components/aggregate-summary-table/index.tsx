@@ -102,7 +102,7 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
-                    className={cn("cursor-pointer text-neutral-100", header.column.columnDef.meta?.className)}
+                    className={cn("cursor-pointer", header.column.columnDef.meta?.className)}
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
                     colSpan={header.colSpan}>
@@ -124,7 +124,7 @@ export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell className="w-fit py-4 text-neutral-100" key={cell.id}>
+                  <TableCell className="w-fit py-4" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

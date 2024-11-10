@@ -24,7 +24,7 @@ const columns = [
 
       return (
         <div
-          className="w-fit rounded-md px-3 py-0.5 capitalize"
+          className="w-fit rounded-md px-3 py-0.5 capitalize text-white"
           style={{ background: info.getValue()?.color }}>
           {info.getValue()?.title}
         </div>
@@ -118,7 +118,7 @@ export function TagExpenseForm({
           <p>Tag the following {data.length} expense</p>
           <Select onValueChange={(value) => setTag(value)} defaultValue={"default"} value={tag}>
             <SelectTrigger className="h-8 w-32 border-neutral-500">
-              <SelectValue className="mr-2 h-8 w-32 text-white" />
+              <SelectValue className="mr-2 h-8 w-32" />
             </SelectTrigger>
             <SelectContent side="bottom" className="w-fit">
               <SelectGroup className="max-h-48 overflow-y-auto">

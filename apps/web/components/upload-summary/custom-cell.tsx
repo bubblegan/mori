@@ -56,11 +56,11 @@ const CustomCell = ({
       return (
         <Select onValueChange={onSelect} value={value?.toString()}>
           <SelectTrigger className="gap- h-10 w-full px-3 py-2">
-            <SelectValue className="mr-2 text-white" />
+            <SelectValue className="mr-2" />
           </SelectTrigger>
           <SelectContent side="bottom">
             {categories.data?.map((category) => (
-              <SelectItem className="text-neutral-200" key={category.id} value={category.id.toString()}>
+              <SelectItem key={category.id} value={category.id.toString()}>
                 {sentenceCase(category.title)}
               </SelectItem>
             ))}

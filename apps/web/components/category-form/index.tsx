@@ -85,10 +85,10 @@ const CategoryForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <label htmlFor="title" className="text-white">
+              <label htmlFor="title" className="text-primary">
                 Title
               </label>
-              <Input className="mt-1 text-white" {...form.register("title")} />
+              <Input className="mt-1 text-primary" {...form.register("title")} />
             </div>
             <FormField
               control={form.control}
@@ -98,11 +98,11 @@ const CategoryForm = () => {
                   <Popover>
                     <FormControl>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="text-white">
+                        <Button variant="outline">
                           <div className="flex items-center gap-2">
                             Color{" "}
                             <div
-                              className="w-fit rounded-md px-3 py-0.5 capitalize"
+                              className="w-fit rounded-md px-3 py-0.5 capitalize text-white"
                               style={{ background: field.value }}>
                               {form.getValues("title")}
                             </div>{" "}
@@ -123,10 +123,8 @@ const CategoryForm = () => {
               )}
             />
             <div className="flex flex-col gap-1">
-              <label htmlFor="title" className="text-white">
-                Keyword
-              </label>
-              <Textarea className="mt-1 text-white" {...form.register("keyword")} />
+              <label htmlFor="title">Keyword</label>
+              <Textarea className="mt-1" {...form.register("keyword")} />
             </div>
             <div className="flex w-full flex-row-reverse">
               <Button className="w-fit" type="submit">
