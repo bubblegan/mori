@@ -142,10 +142,9 @@ You will need this connection string to connect your application to the Supabase
 
 1. Set up your `.env` file
 
-   - Duplicate `.env.example` in `/apps/web` and `/apps/background-job` to `.env`
-   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `/apps/web/.env` file.
-   - Add Open AI key to `OPENAI_API_KEY` in `/apps/web/.env` and `/apps/background-job/.env`
-   - Add Postgresql database connection string to `DATABASE_URL` in `/apps/web/.env`
+   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET`.
+   - Add Open AI key to `OPENAI_API_KEY`.
+   - Add Postgresql database connection string to `DATABASE_URL`.
 
 1. Run prisma migrate for the first time to migrate database.
 
@@ -193,10 +192,9 @@ You will need this connection string to connect your application to the Supabase
 
 1. Set up your `.env` file
 
-   - Duplicate `.env.example` in `/apps/web` and `/apps/background-job` to `.env`
-   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `/apps/web/.env` file.
-   - Add Open AI key to `OPENAI_API_KEY` in `/apps/web/.env` and `/apps/background-job/.env`
-   - Add Postgresql database connection string to `DATABASE_URL` in `/apps/web/.env`
+   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET`.
+   - Add Open AI key to `OPENAI_API_KEY`.
+   - Add Postgresql database connection string to `DATABASE_URL`.
 
 1. Run prisma migrate for the first time to migrate database.
 
