@@ -1,4 +1,5 @@
 import { ParsedExpense } from "@/utils/completion-to-parsed-data";
+import currency from "currency.js";
 import dayjs from "dayjs";
 
 export function handleCsvUpload(csvFile: File, onFinishParse: (parsedExpense: ParsedExpense[]) => undefined) {
@@ -32,27 +33,33 @@ export function handleCsvUpload(csvFile: File, onFinishParse: (parsedExpense: Pa
             date: new Date(),
             description: "",
           };
+
           parsedData[i].forEach((data, index) => {
             const headerType = csvHeader[index];
             if (headerType === "description") {
               expenseCsv.description = data;
             }
             if (headerType === "amount") {
-              const amount = Number(data);
-              if (!isNaN(amount)) {
-                expenseCsv.amount = amount;
+              const amount = currency(data);
+              if (amount.value) {
+                expenseCsv.amount = amount.value;
+              } else {
+                expenseCsv.amount = 0;
               }
             }
             if (headerType === "date") {
               const date = dayjs(data);
               if (date.isValid()) {
                 expenseCsv.date = date.toDate();
+              } else {
+                expenseCsv.date = new Date();
               }
             }
             if (headerType === "category") {
               expenseCsv.categoryTitle = data.toLowerCase();
             }
           });
+
           expenseCsvList.push(expenseCsv);
         }
       }

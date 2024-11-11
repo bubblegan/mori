@@ -59,7 +59,12 @@ const UploadStatementForm = ({
               expense.categoryId = categoriesMap[expense?.categoryTitle];
             }
           });
-          setParsedExpense(parsedExpense);
+
+          const filteredExpense = parsedExpense.filter((expense) => {
+            return !!expense.description;
+          });
+
+          setParsedExpense(filteredExpense);
           setUploadingState("csv");
         });
         return;

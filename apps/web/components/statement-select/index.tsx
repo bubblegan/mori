@@ -47,10 +47,7 @@ const StatementSelect = () => {
                     <div className="flex items-center">{key}</div>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="mt-6 w-[180px] w-fit border-border p-1"
-                  sideOffset={10}
-                  side="right">
+                <PopoverContent className="mt-6 w-fit border-border p-1" sideOffset={10} side="right">
                   {statements?.map((statement) => {
                     return (
                       <div
