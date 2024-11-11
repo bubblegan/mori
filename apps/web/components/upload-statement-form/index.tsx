@@ -46,14 +46,14 @@ const UploadStatementForm = ({
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
-      const statement = acceptedFiles[0];
-      if (statement.type === "application/pdf") {
-        setFile(statement);
+      const uploadedFile = acceptedFiles[0];
+      if (uploadedFile.type === "application/pdf" || uploadedFile.type === "application/zip") {
+        setFile(uploadedFile);
         setUploadingState("filepreview");
         return;
       }
-      if (statement.type === "text/csv") {
-        handleCsvUpload(statement, (parsedExpense) => {
+      if (uploadedFile.type === "text/csv") {
+        handleCsvUpload(uploadedFile, (parsedExpense) => {
           parsedExpense.forEach((expense) => {
             if (expense?.categoryTitle) {
               expense.categoryId = categoriesMap[expense?.categoryTitle];
