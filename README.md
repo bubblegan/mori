@@ -1,4 +1,6 @@
 
+<img width="1596" alt="Screenshot 2024-11-12 at 1 42 58 PM" src="https://github.com/user-attachments/assets/964b5154-ae4e-4216-a060-37e0a5eda965">
+
 ## Important
 
 - This project is still in alpha, and there are constant changes happening.
