@@ -10,6 +10,7 @@ import { PopoverTrigger } from "@radix-ui/react-popover";
 import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { Input } from "../ui/input";
 
 const DateRangePicker = () => {
   const searchParams = useSearchParams();
@@ -18,6 +19,9 @@ const DateRangePicker = () => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [showCustomDate, setShowCustomDate] = useState<boolean>(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+  const [startDateInput, setStartDateInput] = useState<string>("");
+  const [endDateInput, setEndDateInput] = useState<string>("");
 
   const assignStateToParam = () => {
     const params = new URLSearchParams(window.location.search);
@@ -44,6 +48,8 @@ const DateRangePicker = () => {
         from: startDateParsed.toDate(),
         to: endDateParsed.toDate(),
       });
+      setStartDateInput(startDateParsed.format("DD MMM, YYYY"));
+      setEndDateInput(endDateParsed.format("DD MMM, YYYY"));
     }
   }, [searchParams]);
 
@@ -127,16 +133,47 @@ const DateRangePicker = () => {
           </Button>
         </div>
         {showCustomDate && (
-          <>
+          <div className="flex w-[280px] flex-col items-center gap-2">
             <Calendar
               initialFocus
               mode="range"
-              defaultMonth={dateRange?.from}
+              defaultMonth={dateRange?.to}
               selected={dateRange}
-              onSelect={setDateRange}
-              numberOfMonths={2}
+              onSelect={(dateRange) => {
+                setDateRange(dateRange);
+                setStartDateInput(dayjs(dateRange?.from).format("DD MMM, YYYY"));
+                setEndDateInput(dayjs(dateRange?.to).format("DD MMM, YYYY"));
+              }}
+              disabled={{ after: new Date() }}
+              numberOfMonths={1}
             />
-          </>
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col gap-1">
+                <label>Start</label>
+                <Input
+                  onChange={(e) => {
+                    setStartDateInput(e.target.value);
+                    if (dayjs(e.target.value).isValid() && e.target.value.length > 7) {
+                      setDateRange({ to: dateRange?.to, from: dayjs(e.target.value).toDate() });
+                    }
+                  }}
+                  value={startDateInput}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label>End</label>
+                <Input
+                  onChange={(e) => {
+                    setEndDateInput(e.target.value);
+                    if (dayjs(e.target.value).isValid() && e.target.value.length > 7) {
+                      setDateRange({ to: dayjs(e.target.value).toDate(), from: dateRange?.from });
+                    }
+                  }}
+                  value={endDateInput}
+                />
+              </div>
+            </div>
+          </div>
         )}
       </PopoverContent>
     </Popover>

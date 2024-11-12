@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
@@ -69,6 +69,13 @@ export default function Expenses() {
       downloadCsv(csvData);
     }
   }, [expenses.data]);
+
+  useEffect(() => {
+    if (searchParams.size === 0) {
+      window.history.replaceState(null, "", router.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   return (
     <>
