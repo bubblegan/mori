@@ -108,9 +108,6 @@ const DateRangePicker = () => {
           <Button variant="ghost" onClick={() => handleDateRangeClick("last-year")}>
             Last Year
           </Button>
-          <Button variant="ghost" onClick={() => handleDateRangeClick("last-month")}>
-            Last Month
-          </Button>
           <Button variant="ghost" onClick={() => setShowCustomDate(true)}>
             Custom Date
           </Button>
@@ -118,6 +115,7 @@ const DateRangePicker = () => {
             variant="ghost"
             onClick={() => {
               const params = new URLSearchParams(window.location.search);
+              setDateRange(undefined);
               params.delete("start-date");
               params.delete("end-date");
               router.push(`/expenses?${params.toString()}`, undefined, {
