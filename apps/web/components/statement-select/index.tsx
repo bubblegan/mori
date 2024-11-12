@@ -70,7 +70,6 @@ const StatementSelect = () => {
                             } else {
                               params.delete("statement-ids");
                             }
-                            params.delete("date-range");
                             params.delete("start-date");
                             params.delete("end-date");
                             router.push(`/expenses?${params.toString()}`, undefined, {

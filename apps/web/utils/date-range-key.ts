@@ -11,7 +11,7 @@ export function dateRangeKeyConvert(dateRange: DateRange) {
   }
 
   if (dateRange === "past-one-year") {
-    startDate = new Date(today.getFullYear() - 1, 0, 1);
+    startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
     endDate = new Date();
   }
 
@@ -31,11 +31,3 @@ export function dateRangeKeyConvert(dateRange: DateRange) {
 
   return [startDate, endDate];
 }
-
-export const dateRangeTitleMap: Record<DateRange, string> = {
-  ["last-month"]: "Last Month",
-  ["year-to-date"]: "Year To Date",
-  ["past-one-year"]: "Past One Year",
-  ["last-year"]: "Last Year",
-  [""]: "None",
-};

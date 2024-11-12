@@ -5,7 +5,7 @@ import { Button } from "@/ui/button";
 import { Calendar } from "@/ui/calendar";
 import { Popover, PopoverContent } from "@/ui/popover";
 import cn from "@/utils/cn";
-import { DateRange as DateRangeType, dateRangeTitleMap } from "@/utils/date-range-key";
+import { DateRange as DateRangeType, dateRangeKeyConvert } from "@/utils/date-range-key";
 import { PopoverTrigger } from "@radix-ui/react-popover";
 import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
@@ -24,7 +24,6 @@ const DateRangePicker = () => {
     if (showCustomDate && dateRange?.from && dateRange.to) {
       params.set("start-date", dayjs(dateRange?.from).format("YYYY-MM-DD"));
       params.set("end-date", dayjs(dateRange.to).format("YYYY-MM-DD"));
-      params.delete("date-range");
       params.delete("statement-ids");
     }
 
@@ -50,10 +49,17 @@ const DateRangePicker = () => {
 
   const handleDateRangeClick = (dateRange: DateRangeType) => {
     const params = new URLSearchParams(window.location.search);
-    params.delete("start-date");
-    params.delete("end-date");
     params.delete("statement-ids");
-    params.set("date-range", dateRange);
+
+    const [startDate, endDate] = dateRangeKeyConvert(dateRange);
+
+    params.set("start-date", dayjs(startDate).format("YYYY-MM-DD"));
+    params.set("end-date", dayjs(endDate).format("YYYY-MM-DD"));
+
+    setDateRange({
+      from: startDate,
+      to: endDate,
+    });
 
     setCalendarOpen(false);
     setShowCustomDate(false);
@@ -64,17 +70,12 @@ const DateRangePicker = () => {
   };
 
   const dateTitle = useMemo(() => {
-    const dateRangeParam = searchParams?.get("date-range") as DateRangeType;
-    if (dateRangeParam) {
-      return dateRangeTitleMap[dateRangeParam];
-    }
-
     if (dateRange?.from && dateRange.to) {
       return `${dayjs(dateRange?.from).format("MMM DD, YYYY")} - ${dayjs(dateRange.to).format("MMM DD, YYYY")}`;
     }
 
     return "Pick a date";
-  }, [searchParams, dateRange]);
+  }, [dateRange]);
 
   return (
     <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
@@ -117,7 +118,6 @@ const DateRangePicker = () => {
             variant="ghost"
             onClick={() => {
               const params = new URLSearchParams(window.location.search);
-              params.delete("date-range");
               params.delete("start-date");
               params.delete("end-date");
               router.push(`/expenses?${params.toString()}`, undefined, {
