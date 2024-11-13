@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { nextAuthOptions } from "@/utils/auth/nextAuthOption";
 import { getServerSession } from "next-auth";
-
-const backgroundTaskHost = process.env.NEXT_BG_TASK_URL || "http://localhost:3001";
+import { fetchCompletedTasks } from "../../../server/bg-task-route";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -16,10 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "GET") {
-    const response = await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${id}`, {
-      method: "GET",
-    });
-
+    const response = await fetchCompletedTasks(userId, id as string);
     const completedTaskJson = await response.json();
 
     if (completedTaskJson) {

@@ -16,7 +16,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXT_BG_TASK_URL=${NEXT_BG_TASK_URL}
-      - REDIS_HOST=${REDIS_HOST}
+      - NEXT_BG_TASK_KEY=${NEXT_BG_TASK_KEY}
   background-job:
     container_name: background-job
     build:
@@ -32,6 +32,7 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - REDIS_HOST=${REDIS_HOST}
+      - NEXT_BG_TASK_KEY=${NEXT_BG_TASK_KEY}
   redis:
     image: "redis:alpine"
     ports:

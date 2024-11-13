@@ -7,15 +7,9 @@ import fs from "fs";
 import multer from "multer";
 import { getServerSession } from "next-auth";
 import { Readable } from "stream";
-
-const backgroundTaskHost = process.env.NEXT_BG_TASK_URL || "http://localhost:3001";
+import { deleteTasks, fetchCompletedTasks, fetchTasks, uploadPdf } from "../../server/bg-task-route";
 
 const upload = multer({ dest: "/tmp" });
-
-type Task = {
-  status: string;
-  key: string;
-};
 
 async function getBody(req: NextApiRequest & Request) {
   const buf = await buffer(req);
@@ -50,13 +44,10 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
   switch (method) {
     case "GET":
-      const response = await fetch(`${backgroundTaskHost}/tasks/${userId}`, {
-        method: "GET",
-      });
-
-      if (response.ok) {
-        const tasks = (await response.json()) as Task[];
-        res.status(200).json(tasks);
+      const fetchTasksResponse = await fetchTasks(userId);
+      const tasksResult = await fetchTasksResponse.json();
+      if (tasksResult) {
+        res.status(200).json(tasksResult);
       } else {
         res.status(500).json({ error: "something went wrong" });
       }
@@ -75,10 +66,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           formData.append("fileName", req.file.originalname);
           formData.append("category", JSON.stringify(categoryResult));
 
-          const response = await fetch(`${backgroundTaskHost}/upload`, {
-            method: "POST",
-            body: formData,
-          });
+          const response = await uploadPdf(formData);
 
           if (response.ok) {
             res.status(200).end("success");
@@ -89,12 +77,8 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
     case "PATCH":
       const storeKeys = await getBody(req);
       const ids = storeKeys?.id?.map((id: string) => id) || [];
-
-      const taskResponse = await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${ids.join(",")}`, {
-        method: "GET",
-      });
-
-      const tasks = await taskResponse.json();
+      const response = await fetchCompletedTasks(userId, ids);
+      const tasks = await response.json();
 
       for (let i = 0; i < tasks.length; i++) {
         const task = tasks[i];
@@ -132,21 +116,13 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           }
         }
       }
-
-      await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${ids.join(",")}`, {
-        method: "DELETE",
-      });
-
+      await deleteTasks(userId, ids);
       res.status(200).end("success");
       break;
     case "DELETE":
       const deleteKeysObj = await getBody(req);
       const deleteKeys = deleteKeysObj?.id?.map((id: string) => id) || [];
-
-      await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${deleteKeys.join(",")}`, {
-        method: "DELETE",
-      });
-
+      await deleteTasks(userId, deleteKeys);
       res.status(200).end("success");
       break;
     default:

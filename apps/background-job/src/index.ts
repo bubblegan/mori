@@ -32,6 +32,15 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Middleware to validate x-api-key
+app.use("*", async (c, next) => {
+  const apiKey = c.req.header("x-api-key");
+  if (apiKey !== process.env.NEXT_BG_TASK_API_KEY) {
+    return c.text("Unauthorized", 401);
+  }
+  await next();
+});
+
 // Create a new connection in every instance
 const statementQueue = new Queue<StatementTask>("process_file", {
   connection: {

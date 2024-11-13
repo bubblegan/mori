@@ -9,8 +9,7 @@ import fs from "fs";
 import multer from "multer";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-
-const backgroundTaskHost = process.env.NEXT_BG_TASK_URL || "http://localhost:3001";
+import { deleteTasks } from "../../server/bg-task-route";
 
 const upload = multer({ dest: "/tmp" });
 dayjs.extend(customParseFormat);
@@ -92,13 +91,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
             });
 
             if (deletekey) {
-              const response = await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${deletekey}`, {
-                method: "DELETE",
-              });
-
-              if (!response.ok) {
-                res.status(500).json({ message: "Delete Fail" });
-              }
+              await deleteTasks(userId, deletekey);
             }
 
             res.status(200).json({ id: result.id, bank: result.bank });
