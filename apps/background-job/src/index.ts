@@ -15,7 +15,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: "../../.env" });
 
-type StatementJob = {
+type StatementTask = {
   name: string;
   buffer: Buffer;
   userId: string;
@@ -33,18 +33,18 @@ const client = new OpenAI({
 });
 
 // Create a new connection in every instance
-const statementQueue = new Queue<StatementJob>("process_file", {
+const statementQueue = new Queue<StatementTask>("process_file", {
   connection: {
     host: process.env.REDIS_HOST,
     port: 6379,
   },
 });
 
-const myWorker = new Worker<StatementJob>(
+const myWorker = new Worker<StatementTask>(
   "process_file",
-  async (job) => {
+  async (task) => {
     let pdfText = "";
-    const fileBuffer = Buffer.from(job.data.buffer);
+    const fileBuffer = Buffer.from(task.data.buffer);
     const bufferResponses = await fromBuffer(fileBuffer, {
       density: 200,
       format: "png",
@@ -52,10 +52,10 @@ const myWorker = new Worker<StatementJob>(
       height: 2000,
     }).bulk(-1, { responseType: "buffer" });
 
-    const categoryStr = await redis.get(`category:${job.data.userId}`);
+    const categoryStr = await redis.get(`category:${task.data.userId}`);
     const category = JSON.parse(categoryStr || "");
 
-    console.log(job.data.name, ": start OCR");
+    console.log(task.data.name, ": start OCR");
 
     for (let i = 0; i < bufferResponses.length; i++) {
       let image = bufferResponses[i].buffer;
@@ -73,7 +73,7 @@ const myWorker = new Worker<StatementJob>(
     // generate prompt
     const prompt = generateParsingPrompt(pdfText, category);
 
-    console.log(job.data.name, ": start prompting");
+    console.log(task.data.name, ": start prompting");
 
     // prompt open AI
     const chatCompletion = await client.chat.completions.create({
@@ -81,18 +81,21 @@ const myWorker = new Worker<StatementJob>(
       model: "gpt-4o",
     });
     let promptValue = chatCompletion.choices[0].message.content || "";
-    let fileValue = job.data.buffer;
+    let fileValue = task.data.buffer;
 
     const value = {
       state: "completed",
       completion: promptValue,
       file: fileValue,
-      name: job.data.name,
-      userId: job.data.userId,
+      name: task.data.name,
+      userId: task.data.userId,
       completedAt: new Date(),
     };
 
-    await redis.set(`done:${job.data.userId}:${job.id}`, JSON.stringify(value));
+    await redis.set(
+      `done:${task.data.userId}:${task.id}`,
+      JSON.stringify(value)
+    );
     return promptValue;
   },
   {
@@ -110,45 +113,67 @@ myWorker.on("failed", (reason) => {
 app.use("/*", cors());
 
 app.get("/tasks/:userid", async (c) => {
-  // get all on going jobs
   const userId = c.req.param("userid");
-  const activeJobs = await statementQueue.getActive();
-  const waitingJobs = await statementQueue.getWaiting();
-  const completedJobs = await statementQueue.getCompleted();
+  const activeTasks = await statementQueue.getActive();
+  const waitingTasks = await statementQueue.getWaiting();
+  const completedTasks = await statementQueue.getCompleted();
 
-  let jobs: { status: string; key: string; title: string }[] = [];
+  let tasks: { status: string; key: string; title: string }[] = [];
 
-  activeJobs.forEach((job) => {
-    if (job.data.userId === userId) {
-      jobs.push({
+  activeTasks.forEach((task) => {
+    if (task.data.userId === userId) {
+      tasks.push({
         status: "active",
-        title: job.data.name,
-        key: job.id || "",
+        title: task.data.name,
+        key: task.id || "",
       });
     }
   });
 
-  waitingJobs.forEach((job) => {
-    if (job.data.userId === userId) {
-      jobs.push({
+  waitingTasks.forEach((task) => {
+    if (task.data.userId === userId) {
+      tasks.push({
         status: "waiting",
-        title: job.data.name,
-        key: job.id || "",
+        title: task.data.name,
+        key: task.id || "",
       });
     }
   });
 
-  completedJobs.forEach((job) => {
-    if (job.data.userId === userId) {
-      jobs.push({
-        status: "completed",
-        title: job.data.name,
-        key: job.id || "",
-      });
+  for (let i = 0; i < completedTasks.length; i++) {
+    if (completedTasks[i].data.userId === userId) {
+      const filterTask = await redis.get(
+        `done:${userId}:${completedTasks[i].id}`
+      );
+      if (filterTask) {
+        tasks.push({
+          status: "completed",
+          title: completedTasks[i].data.name,
+          key: completedTasks[i].id || "",
+        });
+      }
     }
-  });
+  }
 
-  return c.json(jobs);
+  return c.json(tasks);
+});
+
+app.get("/tasks/:userid/done", async (c) => {
+  const userId = c.req.param("userid");
+  const taskIds = c.req.query("ids")?.split(",") || [];
+
+  const taskKey = taskIds.map((id: string) => `done:${userId}:${id}`) || [];
+  const completedTasks = await redis.mget(taskKey);
+  return c.json(completedTasks);
+});
+
+app.delete("/tasks/:userid/done", async (c) => {
+  const userId = c.req.param("userid");
+  const taskIds = c.req.query("ids")?.split(",") || [];
+
+  const taskKey = taskIds.map((id: string) => `done:${userId}:${id}`) || [];
+  const deleteKey = await redis.del(taskKey);
+  return c.json(deleteKey);
 });
 
 app.post("/upload", async (c) => {

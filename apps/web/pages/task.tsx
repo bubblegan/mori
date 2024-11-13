@@ -67,15 +67,17 @@ export default function Task() {
       method: "GET",
     });
     const resJson = await response.json();
+    const parsed = resJson[0];
+
     const [parsedStatement, parsedExpenses] = completionToParsedDate(
-      resJson.completion,
+      parsed.completion,
       categories.data || []
     );
     setParsedExpense(parsedExpenses);
     setParsedStatement(parsedStatement);
-    const uint8Array = new Uint8Array(resJson.file.data);
+    const uint8Array = new Uint8Array(parsed.file.data);
     const blob = new Blob([uint8Array], { type: "application/pdf" }); // You can adjust the MIME type accordingly
-    const file = new File([blob], resJson.name, { type: "application/pdf" }); // Adjust the filename and MIME type
+    const file = new File([blob], parsed.name, { type: "application/pdf" }); // Adjust the filename and MIME type
     setFile(file);
     setIsOpen(true);
     setDeleteKey(key);

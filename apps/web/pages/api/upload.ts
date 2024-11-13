@@ -6,15 +6,11 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Request, Response } from "express";
 import fs from "fs";
-import { Redis } from "ioredis";
 import multer from "multer";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
-  port: 6379,
-});
+const backgroundTaskHost = process.env.NEXT_BG_TASK_URL || "http://localhost:3001";
 
 const upload = multer({ dest: "/tmp" });
 dayjs.extend(customParseFormat);
@@ -94,8 +90,15 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
                 },
               },
             });
+
             if (deletekey) {
-              await redis.del(`done:${userId}:${deletekey}`);
+              const response = await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${deletekey}`, {
+                method: "DELETE",
+              });
+
+              if (!response.ok) {
+                res.status(500).json({ message: "Delete Fail" });
+              }
             }
 
             res.status(200).json({ id: result.id, bank: result.bank });

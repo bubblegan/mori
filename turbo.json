@@ -10,7 +10,7 @@
         "DIRECT_URL",
         "OPENAI_API_KEY",
         "NEXTAUTH_SECRET",
-        "NEXT_BG_JOB_URL",
+        "NEXT_BG_TASK_URL",
         "REDIS_HOST"
       ],
       "outputs": [".next/**", "!.next/cache/**"]

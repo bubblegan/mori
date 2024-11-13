@@ -92,11 +92,11 @@ const TaskTable = (props: { onPreviewClick: (id: string) => Promise<void> }) => 
       return response.json();
     },
     refetchInterval: (query) => {
-      const jobInQueue = query.state.data?.find((job) => {
-        return job.status === "active";
+      const taskInQueue = query.state.data?.find((task) => {
+        return task.status === "active";
       });
 
-      if (jobInQueue) {
+      if (taskInQueue) {
         return 2000;
       }
       return undefined;

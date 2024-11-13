@@ -1,15 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { nextAuthOptions } from "@/utils/auth/nextAuthOption";
-import Redis from "ioredis";
 import { getServerSession } from "next-auth";
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
-  port: 6379,
-});
+const backgroundTaskHost = process.env.NEXT_BG_TASK_URL || "http://localhost:3001";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { id } = req.query; // Get the ID from the URL
+  const { id } = req.query;
 
   const session = await getServerSession(req, res, nextAuthOptions);
   if (!session?.user?.id) return;
@@ -20,11 +16,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "GET") {
-    // Find the task with the specified ID
-    const completedTaskRaw = await redis.get(`done:${userId}:${id}`);
-    const completedTaskJson = JSON.parse(completedTaskRaw || "");
+    const response = await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${id}`, {
+      method: "GET",
+    });
+
+    const completedTaskJson = await response.json();
+
     if (completedTaskJson) {
-      res.status(200).json(completedTaskJson);
+      const resJson = completedTaskJson.map((task: any) => {
+        return JSON.parse(task);
+      });
+
+      res.status(200).json(resJson);
     } else {
       res.status(404).json({ message: "Task not found" });
     }

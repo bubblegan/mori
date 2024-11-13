@@ -4,17 +4,11 @@ import { completionToParsedDate } from "@/utils/completion-to-parsed-data";
 import { prisma } from "@/utils/prisma";
 import { Request, Response } from "express";
 import fs from "fs";
-import Redis from "ioredis";
 import multer from "multer";
 import { getServerSession } from "next-auth";
 import { Readable } from "stream";
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
-  port: 6379,
-});
-
-const backgroundJobHost = process.env.NEXT_BG_JOB_URL || "http://localhost:3001";
+const backgroundTaskHost = process.env.NEXT_BG_TASK_URL || "http://localhost:3001";
 
 const upload = multer({ dest: "/tmp" });
 
@@ -56,28 +50,13 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
 
   switch (method) {
     case "GET":
-      const response = await fetch(`${backgroundJobHost}/tasks/${userId}`, {
+      const response = await fetch(`${backgroundTaskHost}/tasks/${userId}`, {
         method: "GET",
       });
 
       if (response.ok) {
         const tasks = (await response.json()) as Task[];
-        const filterKeys = tasks.map((task) => task.key);
-        const result = [];
-
-        for (let i = 0; i < filterKeys.length; i++) {
-          if (tasks[i].status === "completed") {
-            const filterJob = await redis.get(`done:${userId}:${filterKeys[i]}`);
-
-            if (!!filterJob) {
-              result.push(tasks[i]);
-            }
-          } else {
-            result.push(tasks[i]);
-          }
-        }
-
-        res.status(200).json(result);
+        res.status(200).json(tasks);
       } else {
         res.status(500).json({ error: "something went wrong" });
       }
@@ -96,7 +75,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           formData.append("fileName", req.file.originalname);
           formData.append("category", JSON.stringify(categoryResult));
 
-          const response = await fetch(`${backgroundJobHost}/upload`, {
+          const response = await fetch(`${backgroundTaskHost}/upload`, {
             method: "POST",
             body: formData,
           });
@@ -109,13 +88,18 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       break;
     case "PATCH":
       const storeKeys = await getBody(req);
-      const jobKeys = storeKeys?.id?.map((id: string) => `done:${userId}:${id}`) || [];
-      const jobs = await redis.mget(jobKeys);
+      const ids = storeKeys?.id?.map((id: string) => id) || [];
 
-      for (let i = 0; i < jobs.length; i++) {
-        const job = jobs[i];
-        if (job) {
-          const { completion, file, name } = JSON.parse(job);
+      const taskResponse = await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${ids.join(",")}`, {
+        method: "GET",
+      });
+
+      const tasks = await taskResponse.json();
+
+      for (let i = 0; i < tasks.length; i++) {
+        const task = tasks[i];
+        if (task) {
+          const { completion, file, name } = JSON.parse(task);
           if (file && completion) {
             const [parsedStatment, parsedExpenses] = completionToParsedDate(completion, categoryResult);
 
@@ -148,13 +132,21 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
           }
         }
       }
-      await redis.del(jobKeys);
+
+      await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${ids.join(",")}`, {
+        method: "DELETE",
+      });
+
       res.status(200).end("success");
       break;
     case "DELETE":
       const deleteKeysObj = await getBody(req);
-      const deleteKeys = deleteKeysObj?.id?.map((id: string) => `done:${userId}:${id}`) || [];
-      await redis.del(deleteKeys);
+      const deleteKeys = deleteKeysObj?.id?.map((id: string) => id) || [];
+
+      await fetch(`${backgroundTaskHost}/tasks/${userId}/done?ids=${deleteKeys.join(",")}`, {
+        method: "DELETE",
+      });
+
       res.status(200).end("success");
       break;
     default:
