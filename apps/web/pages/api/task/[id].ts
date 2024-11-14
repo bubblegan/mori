@@ -17,13 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === "GET") {
     const response = await fetchCompletedTasks(userId, id as string);
     const completedTaskJson = await response.json();
-
     if (completedTaskJson) {
-      const resJson = completedTaskJson.map((task: any) => {
-        return JSON.parse(task);
-      });
-
-      res.status(200).json(resJson);
+      res.status(200).json(completedTaskJson);
     } else {
       res.status(404).json({ message: "Task not found" });
     }

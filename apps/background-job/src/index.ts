@@ -1,22 +1,25 @@
-import { fromBuffer } from "pdf2pic";
-import { createWorker } from "tesseract.js";
+import crypto from "crypto";
+import dotenv from "dotenv";
 import { serve } from "@hono/node-server";
-import Redis from "ioredis";
 import { cors } from "hono/cors";
-import { Queue, Worker } from "bullmq";
-import yauzl from "yauzl";
 import { Hono } from "hono";
+import NodeCache from "node-cache";
 import OpenAI from "openai";
 import { fileTypeFromBuffer } from "file-type";
+import * as fastq from "fastq";
+import type { queueAsPromised } from "fastq";
+import { fromBuffer } from "pdf2pic";
+import { createWorker } from "tesseract.js";
+import yauzl from "yauzl";
+
+import { calculateTokenPricing } from "./calculate-token-pricing.js";
 import { generateParsingPrompt } from "./generate-parsing-prompt.js";
 import { trimPdfText } from "./trim-pdf-text.js";
-
-import dotenv from "dotenv";
-import { calculateTokenPricing } from "./calculate-token-pricing.js";
 
 dotenv.config({ path: "../../.env" });
 
 type StatementTask = {
+  id: string;
   name: string;
   buffer: Buffer;
   userId: string;
@@ -34,13 +37,8 @@ type CompletedTask = {
   pricing: number;
 };
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST, // The Redis service name defined in Docker Compose
-  port: 6379,
-});
-
+const taskCache = new NodeCache();
 const app = new Hono();
-
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -54,19 +52,11 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-// Create a new connection in every instance
-const statementQueue = new Queue<StatementTask>("process_file", {
-  connection: {
-    host: process.env.REDIS_HOST,
-    port: 6379,
-  },
-});
-
-const myWorker = new Worker<StatementTask>(
-  "process_file",
-  async (task) => {
+async function pdfProcessWorker(task: StatementTask): Promise<void> {
+  try {
     let pdfText = "";
-    const fileBuffer = Buffer.from(task.data.buffer);
+    taskCache.set<StatementTask>("active-task", task);
+    const fileBuffer = Buffer.from(task.buffer);
     const bufferResponses = await fromBuffer(fileBuffer, {
       density: 200,
       format: "png",
@@ -74,10 +64,10 @@ const myWorker = new Worker<StatementTask>(
       height: 2000,
     }).bulk(-1, { responseType: "buffer" });
 
-    const categoryStr = await redis.get(`category:${task.data.userId}`);
-    const category = JSON.parse(categoryStr || "");
+    const categoryStr = taskCache.get<any>(`category:${task.userId}`);
+    const category = JSON.parse(categoryStr);
 
-    console.log(task.data.name, ": start OCR");
+    console.log(task.name, ": start OCR");
 
     for (let i = 0; i < bufferResponses.length; i++) {
       let image = bufferResponses[i].buffer;
@@ -95,7 +85,7 @@ const myWorker = new Worker<StatementTask>(
     // generate prompt
     const prompt = generateParsingPrompt(pdfText, category);
 
-    console.log(task.data.name, ": start prompting");
+    console.log(task.name, ": start prompting");
 
     // prompt open AI
     const chatCompletion = await client.chat.completions.create({
@@ -104,7 +94,7 @@ const myWorker = new Worker<StatementTask>(
     });
 
     let promptValue = chatCompletion.choices[0].message.content || "";
-    let fileValue = task.data.buffer;
+    let fileValue = task.buffer;
 
     const completionTokens = chatCompletion.usage?.completion_tokens || 0;
     const promptTokens = chatCompletion.usage?.prompt_tokens || 0;
@@ -113,8 +103,8 @@ const myWorker = new Worker<StatementTask>(
       state: "completed",
       completion: promptValue,
       file: fileValue,
-      name: task.data.name,
-      userId: task.data.userId,
+      name: task.name,
+      userId: task.userId,
       completedAt: new Date(),
       completionTokens,
       promptTokens,
@@ -122,31 +112,34 @@ const myWorker = new Worker<StatementTask>(
         calculateTokenPricing(completionTokens, promptTokens, "gpt-4o") || 0,
     };
 
-    await redis.set(
-      `done:${task.data.userId}:${task.id}`,
-      JSON.stringify(value)
-    );
-    return promptValue;
-  },
-  {
-    connection: {
-      host: process.env.REDIS_HOST,
-      port: 6379,
-    },
-  }
-);
+    taskCache.set<CompletedTask>(`done:${task.userId}:${task.id}`, value);
 
-myWorker.on("failed", (reason) => {
-  console.log(reason?.failedReason);
-});
+    const completedTask =
+      taskCache.get<string[]>(`completed-task:${task.userId}`) || [];
+    completedTask?.push(task.id);
+
+    taskCache.set<string[]>(`completed-task:${task.userId}`, completedTask);
+
+    taskCache.del("active-task");
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+const taskQueue: queueAsPromised<StatementTask> = fastq.promise(
+  pdfProcessWorker,
+  1
+);
 
 app.use("/*", cors());
 
 app.get("/tasks/:userid", async (c) => {
   const userId = c.req.param("userid");
-  const activeTasks = await statementQueue.getActive();
-  const waitingTasks = await statementQueue.getWaiting();
-  const completedTasks = await statementQueue.getCompleted();
+
+  const waitingTasks = taskQueue.getQueue();
+  const completedTasks =
+    taskCache.get<string[]>(`completed-task:${userId}`) || [];
+  const activeTask = taskCache.get<StatementTask>(`active-task`);
 
   let tasks: {
     status: string;
@@ -158,65 +151,73 @@ app.get("/tasks/:userid", async (c) => {
     pricing?: number;
   }[] = [];
 
-  activeTasks.forEach((task) => {
-    if (task.data.userId === userId) {
-      tasks.push({
-        status: "active",
-        title: task.data.name,
-        key: task.id || "",
-      });
-    }
-  });
+  if (activeTask && activeTask.userId === userId) {
+    tasks.push({
+      status: "active",
+      title: activeTask.name,
+      key: activeTask.id || "",
+    });
+  }
 
   waitingTasks.forEach((task) => {
-    if (task.data.userId === userId) {
+    if (task.userId === userId) {
       tasks.push({
         status: "waiting",
-        title: task.data.name,
+        title: task.name,
         key: task.id || "",
       });
     }
   });
 
   for (let i = 0; i < completedTasks.length; i++) {
-    if (completedTasks[i].data.userId === userId) {
-      const filterTask = await redis.get(
-        `done:${userId}:${completedTasks[i].id}`
-      );
-      if (filterTask) {
-        const completedTask: CompletedTask = JSON.parse(filterTask);
-
-        tasks.push({
-          status: "completed",
-          title: completedTasks[i].data.name,
-          key: completedTasks[i].id || "",
-          completedAt: completedTask.completedAt,
-          promptTokens: completedTask.promptTokens,
-          completionTokens: completedTask.completionTokens,
-          pricing: completedTask.pricing,
-        });
-      }
+    const completed = taskCache.get<CompletedTask>(
+      `done:${userId}:${completedTasks[i]}`
+    );
+    if (completed) {
+      tasks.push({
+        status: "completed",
+        title: completed.name,
+        key: completedTasks[i] || "",
+        completedAt: completed.completedAt,
+        promptTokens: completed.promptTokens,
+        completionTokens: completed.completionTokens,
+        pricing: completed.pricing,
+      });
     }
   }
 
   return c.json(tasks);
 });
 
-app.get("/tasks/:userid/done", async (c) => {
+app.get("/tasks/:userid/done", (c) => {
   const userId = c.req.param("userid");
   const taskIds = c.req.query("ids")?.split(",") || [];
 
   const taskKey = taskIds.map((id: string) => `done:${userId}:${id}`) || [];
-  const completedTasks = await redis.mget(taskKey);
-  return c.json(completedTasks);
+  const completedTasks = taskCache.mget(taskKey);
+  const completedTasksArray = Object.values(completedTasks);
+
+  return c.json(completedTasksArray);
 });
 
-app.delete("/tasks/:userid/done", async (c) => {
+app.delete("/tasks/:userid/done", (c) => {
   const userId = c.req.param("userid");
   const taskIds = c.req.query("ids")?.split(",") || [];
 
   const taskKey = taskIds.map((id: string) => `done:${userId}:${id}`) || [];
-  const deleteKey = await redis.del(taskKey);
+
+  const deleteKey = taskCache.del(taskKey);
+
+  // delete fromm taskCache as well.
+  const completedTask =
+    taskCache.get<string[]>(`completed-task:${userId}`) || [];
+
+  const newCompletedTask = completedTask.filter(
+    (task) => !taskIds.includes(task)
+  );
+
+  taskCache.set<string[]>(`completed-task:${userId}`, newCompletedTask);
+
   return c.json(deleteKey);
 });
 
@@ -231,18 +232,15 @@ app.post("/upload", async (c) => {
   const fileBuffer = await file.arrayBuffer();
   const fileType = await fileTypeFromBuffer(fileBuffer);
 
-  await redis.set(`category:${userId}`, categoryStr);
+  taskCache.set(`category:${userId}`, categoryStr);
 
   if (fileType?.mime === "application/pdf") {
-    await statementQueue.add(
-      "process_file",
-      {
-        name: fileName,
-        buffer: Buffer.from(fileBuffer),
-        userId: userId,
-      },
-      { removeOnComplete: 30 }
-    );
+    taskQueue.push({
+      id: crypto.randomUUID(),
+      name: fileName,
+      buffer: Buffer.from(fileBuffer),
+      userId: userId,
+    });
   }
 
   if (fileType?.mime === "application/zip") {
@@ -278,20 +276,16 @@ app.post("/upload", async (c) => {
                   entry.fileName.split("/").pop() || entry.fileName;
 
                 try {
-                  // Store the buffer in Redis (using the file name as the key)
                   if (fileName[0] !== ".") {
-                    await statementQueue.add(
-                      "process_file",
-                      {
-                        name: fileName,
-                        buffer: fileBuffer,
-                        userId: userId,
-                      },
-                      { removeOnComplete: 30 }
-                    );
+                    taskQueue.push({
+                      id: crypto.randomUUID(),
+                      name: fileName,
+                      buffer: Buffer.from(fileBuffer),
+                      userId: userId,
+                    });
                   }
-                } catch (redisErr) {
-                  console.error(`Failed to store file in Redis: ${redisErr}`);
+                } catch (queueError) {
+                  console.error(`Failed to push file to queue: ${queueError}`);
                 }
 
                 zipfile.readEntry(); // Proceed to the next entry

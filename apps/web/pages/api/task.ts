@@ -83,7 +83,7 @@ async function handler(req: NextApiRequest & Request, res: NextApiResponse & Res
       for (let i = 0; i < tasks.length; i++) {
         const task = tasks[i];
         if (task) {
-          const { completion, file, name } = JSON.parse(task);
+          const { completion, file, name } = task;
           if (file && completion) {
             const [parsedStatment, parsedExpenses] = completionToParsedDate(completion, categoryResult);
 

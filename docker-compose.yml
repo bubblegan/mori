@@ -23,22 +23,13 @@ services:
       context: .
       dockerfile: ./apps/background-job/Dockerfile
     restart: always
-    depends_on:
-      - redis
     ports:
       - 3001:3001
     networks:
       - app_network
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - REDIS_HOST=${REDIS_HOST}
       - NEXT_BG_TASK_KEY=${NEXT_BG_TASK_KEY}
-  redis:
-    image: "redis:alpine"
-    ports:
-      - "6379"
-    networks:
-      - app_network
 
 # Define a network, which allows containers to communicate
 # with each other, by using their container name as a hostname
