@@ -1,4 +1,4 @@
-<img width="1596" alt="Screenshot 2024-11-12 at 1 42 58 PM" src="https://github.com/user-attachments/assets/964b5154-ae4e-4216-a060-37e0a5eda965">
+![architecture-map](https://github.com/user-attachments/assets/1bafd21d-bd51-42d1-b4b1-119f57ad6455)![architecture-map](https://github.com/user-attachments/assets/9e811a77-4435-4db6-b06b-4910db36eef9)<img width="1596" alt="Screenshot 2024-11-12 at 1 42 58 PM" src="https://github.com/user-attachments/assets/964b5154-ae4e-4216-a060-37e0a5eda965">
 
 ## Important
 
@@ -36,7 +36,7 @@ The main feature to upload credit card PDFs or zip files containing credit card 
 
 ### Architecture Diagram
 
-![architecture-map](https://github.com/user-attachments/assets/289fe6e6-17c8-4941-9cee-0cafcd84c225)
+![architecture-map](https://github.com/user-attachments/assets/2dde3054-d2dc-4a38-a636-381100e57cab)
 
 ### Parsing workflow
 
