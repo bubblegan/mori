@@ -12,6 +12,7 @@ import { generateParsingPrompt } from "./generate-parsing-prompt.js";
 import { trimPdfText } from "./trim-pdf-text.js";
 
 import dotenv from "dotenv";
+import { calculateTokenPricing } from "./calculate-token-pricing.js";
 
 dotenv.config({ path: "../../.env" });
 
@@ -19,6 +20,18 @@ type StatementTask = {
   name: string;
   buffer: Buffer;
   userId: string;
+};
+
+type CompletedTask = {
+  state: string;
+  completion: string;
+  file: Buffer;
+  name: string;
+  userId: string;
+  completedAt: Date;
+  completionTokens: number;
+  promptTokens: number;
+  pricing: number;
 };
 
 const redis = new Redis({
@@ -89,16 +102,24 @@ const myWorker = new Worker<StatementTask>(
       messages: [{ role: "user", content: prompt }],
       model: "gpt-4o",
     });
+
     let promptValue = chatCompletion.choices[0].message.content || "";
     let fileValue = task.data.buffer;
 
-    const value = {
+    const completionTokens = chatCompletion.usage?.completion_tokens || 0;
+    const promptTokens = chatCompletion.usage?.prompt_tokens || 0;
+
+    const value: CompletedTask = {
       state: "completed",
       completion: promptValue,
       file: fileValue,
       name: task.data.name,
       userId: task.data.userId,
       completedAt: new Date(),
+      completionTokens,
+      promptTokens,
+      pricing:
+        calculateTokenPricing(completionTokens, promptTokens, "gpt-4o") || 0,
     };
 
     await redis.set(
@@ -127,7 +148,15 @@ app.get("/tasks/:userid", async (c) => {
   const waitingTasks = await statementQueue.getWaiting();
   const completedTasks = await statementQueue.getCompleted();
 
-  let tasks: { status: string; key: string; title: string }[] = [];
+  let tasks: {
+    status: string;
+    key: string;
+    title: string;
+    completedAt?: Date;
+    promptTokens?: number;
+    completionTokens?: number;
+    pricing?: number;
+  }[] = [];
 
   activeTasks.forEach((task) => {
     if (task.data.userId === userId) {
@@ -155,10 +184,16 @@ app.get("/tasks/:userid", async (c) => {
         `done:${userId}:${completedTasks[i].id}`
       );
       if (filterTask) {
+        const completedTask: CompletedTask = JSON.parse(filterTask);
+
         tasks.push({
           status: "completed",
           title: completedTasks[i].data.name,
           key: completedTasks[i].id || "",
+          completedAt: completedTask.completedAt,
+          promptTokens: completedTask.promptTokens,
+          completionTokens: completedTask.completionTokens,
+          pricing: completedTask.pricing,
         });
       }
     }

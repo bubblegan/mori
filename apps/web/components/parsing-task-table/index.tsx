@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import currency from "currency.js";
+import dayjs from "dayjs";
 import { atom, useAtom } from "jotai";
 import { CheckIcon, LoaderCircle } from "lucide-react";
 import { Button } from "../ui/button";
@@ -11,7 +13,21 @@ type TableData = {
   key: string;
   title: string;
   status: string;
+  completedAt: string;
+  promptTokens: number;
+  completionTokens: number;
+  pricing: string;
   onPreviewClick?: () => Promise<void>;
+};
+
+type Task = {
+  status: string;
+  key: string;
+  title: string;
+  completedAt?: Date;
+  promptTokens?: number;
+  completionTokens?: number;
+  pricing?: number;
 };
 
 export const checkedTaskAtom = atom<string[]>([]);
@@ -59,6 +75,22 @@ const columns = [
     },
     header: () => <span>Status</span>,
   }),
+  columnHelper.accessor("completedAt", {
+    cell: (info) => info.getValue(),
+    header: () => <span>Completed On</span>,
+  }),
+  columnHelper.accessor("promptTokens", {
+    cell: (info) => info.getValue(),
+    header: () => <span>Prompt Tokens</span>,
+  }),
+  columnHelper.accessor("completionTokens", {
+    cell: (info) => info.getValue(),
+    header: () => <span>Completion Tokens</span>,
+  }),
+  columnHelper.accessor("pricing", {
+    cell: (info) => info.getValue(),
+    header: () => <span>Cost</span>,
+  }),
   columnHelper.accessor("onPreviewClick", {
     cell: (info) => {
       if (info.getValue()) {
@@ -82,7 +114,7 @@ const TaskTable = (props: { onPreviewClick: (id: string) => Promise<void> }) => 
   const [checkAll, setCheckedAll] = useState(false);
   const [, setCheckedList] = useAtom(checkedTaskAtom);
 
-  const taskQuery = useQuery<{ key: string; status: string; title: string }[]>({
+  const taskQuery = useQuery<Task[]>({
     queryKey: ["tasks"],
     queryFn: async () => {
       const response = await fetch("/api/task", {
@@ -110,6 +142,10 @@ const TaskTable = (props: { onPreviewClick: (id: string) => Promise<void> }) => 
           key: task.key,
           title: task.title,
           status: task.status,
+          completedAt: task.completedAt ? dayjs(task.completedAt).format("DD-MMM HH:mm") : "",
+          promptTokens: task.promptTokens || 0,
+          completionTokens: task.completionTokens || 0,
+          pricing: task.pricing ? `~ ${currency(task.pricing).format()}` : "-",
           onPreviewClick: task.status === "completed" ? () => onPreviewClick(task.key) : undefined,
         };
       });
