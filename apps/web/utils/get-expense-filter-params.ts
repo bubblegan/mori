@@ -9,6 +9,8 @@ export function getExpenseFilterParam() {
   const keyword = searchParams?.get("keyword") || "";
   const startDate = searchParams?.get("start-date");
   const endDate = searchParams?.get("end-date");
+  const orderBy = searchParams?.get("order-by");
+  const dir = searchParams?.get("dir");
   const uncategorised = searchParams?.get("uncategorised") === "true";
   const page = Number(searchParams?.get("page")) || 1;
   const per = Number(searchParams?.get("per")) || 15;
@@ -26,5 +28,5 @@ export function getExpenseFilterParam() {
     }
   }
 
-  return { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds, page, per };
+  return { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds, page, per, orderBy, dir };
 }

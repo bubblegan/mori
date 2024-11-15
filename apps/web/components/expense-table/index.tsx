@@ -224,7 +224,9 @@ const ExpenseTable = () => {
     }
   }, [expenses, setvalue, deleteExpenses, setConfirmationDialog, tagById]);
 
-  return <ExpenseTableUi data={data} columns={columns} isManualPagination={true} rowCount={totalCount} />;
+  return (
+    <ExpenseTableUi data={data} columns={columns} isManualPagination isManualSorting rowCount={totalCount} />
+  );
 };
 
 export default ExpenseTable;

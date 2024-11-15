@@ -38,6 +38,7 @@ const ExpenseTableUi = ({
   columns,
   tableWrapperClass,
   isManualPagination = false,
+  isManualSorting = false,
   rowCount = undefined,
 }: {
   data: ExpenseTableData[];
@@ -45,6 +46,7 @@ const ExpenseTableUi = ({
   columns: ColumnDef<ExpenseTableData, any>[];
   tableWrapperClass?: string;
   isManualPagination?: boolean;
+  isManualSorting?: boolean;
   rowCount?: number | undefined;
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -56,7 +58,6 @@ const ExpenseTableUi = ({
 
   useEffect(() => {
     if (isManualPagination) {
-      console.log(pagination);
       const params = new URLSearchParams(window.location.search);
       params.set("page", (pagination.pageIndex + 1).toString());
       params.set("per", pagination.pageSize.toString());
@@ -64,15 +65,34 @@ const ExpenseTableUi = ({
         shallow: true,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination, isManualPagination]);
+
+  useEffect(() => {
+    if (isManualSorting) {
+      const params = new URLSearchParams(window.location.search);
+      if (sorting[0]) {
+        params.set("order-by", sorting[0]?.id);
+        params.set("dir", sorting[0]?.desc ? "desc" : "asc");
+      } else {
+        params.delete("order-by");
+        params.delete("dir");
+      }
+
+      router.push(`/expenses?${params.toString()}`, undefined, {
+        shallow: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sorting, isManualSorting]);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: isManualSorting ? undefined : getSortedRowModel(),
     getPaginationRowModel: isManualPagination ? undefined : getPaginationRowModel(),
     manualPagination: isManualPagination,
-    getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
       pagination,

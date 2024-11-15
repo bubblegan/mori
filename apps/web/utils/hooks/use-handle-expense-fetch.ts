@@ -2,7 +2,7 @@ import { getExpenseFilterParam } from "../get-expense-filter-params";
 import { trpc } from "../trpc";
 
 export function useHandleExpenseFetch() {
-  const { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds, page, per } =
+  const { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds, page, per, orderBy, dir } =
     getExpenseFilterParam();
 
   const result = trpc.expense.list.useQuery({
@@ -17,6 +17,7 @@ export function useHandleExpenseFetch() {
     uncategorised,
     page,
     per,
+    ...(orderBy && (dir === "asc" || dir === "desc") ? { order: { by: orderBy, direction: dir } } : {}),
   });
 
   const expensesResult = result.data?.result || [];

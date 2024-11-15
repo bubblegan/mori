@@ -22,6 +22,9 @@ export const expenseRouter = router({
         tagIds: z.number().array().optional(),
         keyword: z.string().optional(),
         uncategorised: z.boolean().optional(),
+        order: z
+          .object({ by: z.string(), direction: z.union([z.literal("asc"), z.literal("desc")]) })
+          .optional(),
         dateRange: z
           .object({
             start: z.date().nullable(),
@@ -77,6 +80,9 @@ export const expenseRouter = router({
         },
       };
 
+      const orderBy = input.order?.by || "date";
+      const orderDirection = input.order?.direction || "desc";
+
       const result = await prisma.expense.findMany({
         skip: input.page ? (input.page - 1) * input.per : 0,
         take: input.per,
@@ -90,7 +96,7 @@ export const expenseRouter = router({
           },
           tags: true,
         },
-        orderBy: { date: "desc" },
+        orderBy: { [orderBy]: orderDirection },
       });
 
       const aggregateResult = await prisma.expense.aggregate({
@@ -102,8 +108,6 @@ export const expenseRouter = router({
           id: true,
         },
       });
-
-      console.log(aggregateResult);
 
       return { result, aggregateResult };
     }),
