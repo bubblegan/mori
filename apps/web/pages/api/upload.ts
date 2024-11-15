@@ -34,12 +34,10 @@ export type CreateExpense = Pick<Expense, "description" | "date"> & {
   amount: number;
 };
 
-export type BankType = "DBS" | "CITI" | "CIMB" | "UOB" | "HSBC" | undefined;
-
 export type ParsedResult = {
   expenses: CreateExpense[];
   statementDate: Date;
-  bank: BankType;
+  bank: string;
 };
 
 export type ParsedResponse = {
