@@ -10,6 +10,8 @@ export function getExpenseFilterParam() {
   const startDate = searchParams?.get("start-date");
   const endDate = searchParams?.get("end-date");
   const uncategorised = searchParams?.get("uncategorised") === "true";
+  const page = Number(searchParams?.get("page")) || 1;
+  const per = Number(searchParams?.get("per")) || 15;
 
   let start = null;
   let end = null;
@@ -24,5 +26,5 @@ export function getExpenseFilterParam() {
     }
   }
 
-  return { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds };
+  return { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds, page, per };
 }

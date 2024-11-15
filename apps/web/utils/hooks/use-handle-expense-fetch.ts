@@ -1,11 +1,11 @@
-import currency from "currency.js";
 import { getExpenseFilterParam } from "../get-expense-filter-params";
 import { trpc } from "../trpc";
 
 export function useHandleExpenseFetch() {
-  const { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds } = getExpenseFilterParam();
+  const { statementIds, start, end, keyword, categoryIds, uncategorised, tagIds, page, per } =
+    getExpenseFilterParam();
 
-  const expenses = trpc.expense.list.useQuery({
+  const result = trpc.expense.list.useQuery({
     statementIds,
     dateRange: {
       start,
@@ -15,13 +15,16 @@ export function useHandleExpenseFetch() {
     keyword,
     categoryIds,
     uncategorised,
+    page,
+    per,
   });
 
-  let totalAmt = 0;
-  expenses.data?.forEach((expense) => {
-    totalAmt = currency(totalAmt).add(Number(expense.amount)).value;
-  });
-  const amount = totalAmt.toFixed(2);
+  const expensesResult = result.data?.result || [];
+  const aggregateResult = result.data?.aggregateResult;
 
-  return { amount, expenses };
+  return {
+    amount: aggregateResult?._sum.amount || 0,
+    totalCount: aggregateResult?._count.id || 0,
+    expenses: expensesResult,
+  };
 }

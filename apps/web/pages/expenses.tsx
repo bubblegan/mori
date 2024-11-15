@@ -52,11 +52,11 @@ export default function Expenses() {
   const view = searchParams?.get("view");
 
   // get data here
-  const { expenses, amount } = useHandleExpenseFetch();
+  const { expenses, amount, totalCount } = useHandleExpenseFetch();
 
   const donwloadAsCsv = useCallback(() => {
-    if (expenses.data) {
-      const csvData = expenses.data.map((expense) => {
+    if (expenses) {
+      const csvData = expenses.map((expense) => {
         return {
           id: expense.id,
           amount: `${Number(expense.amount).toFixed(2).toLocaleString()}`,
@@ -68,7 +68,7 @@ export default function Expenses() {
       });
       downloadCsv(csvData);
     }
-  }, [expenses.data]);
+  }, [expenses]);
 
   useEffect(() => {
     if (searchParams.size === 0) {
@@ -157,7 +157,7 @@ export default function Expenses() {
               <span>Total: $ {new Intl.NumberFormat().format(Number(amount))}</span>
             </div>
             <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
-              <span>Count: {expenses.data?.length}</span>
+              <span>Count: {totalCount}</span>
             </div>
             <ExpenseFilterPills />
           </div>

@@ -97,8 +97,8 @@ export function CategoriseExpenseForm({
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
   useEffect(() => {
-    if (expenses.data) {
-      const tableData = expenses.data.map((expense) => {
+    if (expenses) {
+      const tableData = expenses.map((expense) => {
         return {
           id: expense.id,
           note: expense.note || "",
@@ -114,7 +114,7 @@ export function CategoriseExpenseForm({
       });
       setData(tableData);
     }
-  }, [expenses.data]);
+  }, [expenses]);
 
   return (
     <Dialog open={isOpen}>
@@ -137,8 +137,8 @@ export function CategoriseExpenseForm({
           ) : (
             <Button
               onClick={async () => {
-                if (expenses.data) {
-                  const categorisedExpenses = await handleCategorise(expenses.data);
+                if (expenses) {
+                  const categorisedExpenses = await handleCategorise(expenses);
                   const updateCategoryParam = categorisedExpenses.map((expense) => {
                     return {
                       expenseId: expense.id,

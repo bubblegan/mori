@@ -87,8 +87,8 @@ export function TagExpenseForm({
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
   useEffect(() => {
-    if (expenses.data) {
-      const tableData = expenses.data.map((expense) => {
+    if (expenses) {
+      const tableData = expenses.map((expense) => {
         return {
           id: expense.id,
           amount: `${Number(expense.amount).toFixed(2).toLocaleString()}`,
@@ -102,7 +102,7 @@ export function TagExpenseForm({
       });
       setData(tableData);
     }
-  }, [expenses.data]);
+  }, [expenses]);
 
   return (
     <Dialog open={isOpen}>
@@ -138,7 +138,7 @@ export function TagExpenseForm({
               disabled={!tag}
               onClick={() => {
                 const param =
-                  expenses.data?.map((expense) => {
+                  expenses.map((expense) => {
                     return {
                       expenseId: expense.id,
                       tagIds: [...expense.tags.map((tag) => tag.tagId), Number(tag)],

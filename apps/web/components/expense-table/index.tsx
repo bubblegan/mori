@@ -147,7 +147,7 @@ const ExpenseTable = () => {
   const [, setvalue] = useAtom(ExpenseFormAtom);
   const [, setConfirmationDialog] = useAtom(ConfirmationDialogAtom);
 
-  const { expenses } = useHandleExpenseFetch();
+  const { expenses, totalCount } = useHandleExpenseFetch();
   const utils = trpc.useUtils();
   const { toast } = useToast();
 
@@ -174,8 +174,8 @@ const ExpenseTable = () => {
   const [data, setData] = useState<ExpenseTableData[]>(() => []);
 
   useEffect(() => {
-    if (expenses.data) {
-      const tableData = expenses.data.map((expense) => {
+    if (expenses) {
+      const tableData = expenses.map((expense) => {
         const formattedType = {
           id: expense.id,
           createdAt: new Date(expense.createdAt),
@@ -222,9 +222,9 @@ const ExpenseTable = () => {
 
       setData(tableData);
     }
-  }, [expenses.data, setvalue, deleteExpenses, setConfirmationDialog, tagById]);
+  }, [expenses, setvalue, deleteExpenses, setConfirmationDialog, tagById]);
 
-  return <ExpenseTableUi data={data} columns={columns} />;
+  return <ExpenseTableUi data={data} columns={columns} isManualPagination={true} rowCount={totalCount} />;
 };
 
 export default ExpenseTable;

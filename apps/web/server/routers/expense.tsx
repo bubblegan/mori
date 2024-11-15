@@ -1,4 +1,5 @@
 import { prisma } from "@/utils/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { expenseSchema, expensesSchema } from "../../schema";
 import { protectedProcedure, router } from "../trpc";
@@ -14,7 +15,8 @@ export const expenseRouter = router({
   list: protectedProcedure
     .input(
       z.object({
-        page: z.number().optional(),
+        page: z.number(),
+        per: z.number(),
         statementIds: z.number().array().optional(),
         categoryIds: z.number().array().optional(),
         tagIds: z.number().array().optional(),
@@ -29,7 +31,7 @@ export const expenseRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const result = await prisma.expense.findMany({
+      const whereQuery: Prisma.ExpenseFindManyArgs = {
         where: {
           ...(input.statementIds && input.statementIds?.length > 0
             ? { statementId: { in: input.statementIds } }
@@ -73,6 +75,12 @@ export const expenseRouter = router({
             : {}),
           userId: ctx.auth.userId,
         },
+      };
+
+      const result = await prisma.expense.findMany({
+        skip: input.page ? (input.page - 1) * input.per : 0,
+        take: input.per,
+        where: whereQuery.where,
         include: {
           Category: true,
           Statement: {
@@ -85,7 +93,19 @@ export const expenseRouter = router({
         orderBy: { date: "desc" },
       });
 
-      return result;
+      const aggregateResult = await prisma.expense.aggregate({
+        where: whereQuery.where,
+        _sum: {
+          amount: true,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      console.log(aggregateResult);
+
+      return { result, aggregateResult };
     }),
   categorise: protectedProcedure
     .input(

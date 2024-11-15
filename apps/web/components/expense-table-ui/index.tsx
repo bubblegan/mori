@@ -1,4 +1,5 @@
-import { MouseEventHandler, useState } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
@@ -36,30 +37,49 @@ const ExpenseTableUi = ({
   data,
   columns,
   tableWrapperClass,
+  isManualPagination = false,
+  rowCount = undefined,
 }: {
   data: ExpenseTableData[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: ColumnDef<ExpenseTableData, any>[];
   tableWrapperClass?: string;
+  isManualPagination?: boolean;
+  rowCount?: number | undefined;
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const router = useRouter();
+  const [pagination, setPagination] = useState({
+    pageIndex: 0, //initial page index
+    pageSize: 15, //default page size
+  });
+
+  useEffect(() => {
+    if (isManualPagination) {
+      console.log(pagination);
+      const params = new URLSearchParams(window.location.search);
+      params.set("page", (pagination.pageIndex + 1).toString());
+      params.set("per", pagination.pageSize.toString());
+      router.push(`/expenses?${params.toString()}`, undefined, {
+        shallow: true,
+      });
+    }
+  }, [pagination, isManualPagination]);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: isManualPagination ? undefined : getPaginationRowModel(),
+    manualPagination: isManualPagination,
     getSortedRowModel: getSortedRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 15,
-        pageIndex: 0,
-      },
-    },
     state: {
       sorting,
+      pagination,
     },
     onSortingChange: setSorting,
+    rowCount: isManualPagination ? rowCount : undefined,
+    onPaginationChange: setPagination,
   });
 
   return (
