@@ -128,6 +128,80 @@ export const expenseRouter = router({
 
       return { result, aggregateResult };
     }),
+  // for AI categorise purpose
+  listMinimal: protectedProcedure
+    .input(
+      z.object({
+        statementIds: z.number().array().optional(),
+        categoryIds: z.number().array().optional(),
+        tagIds: z.number().array().optional(),
+        keyword: z.string().optional(),
+        uncategorised: z.boolean().optional(),
+        dateRange: z
+          .object({
+            start: z.date().nullable(),
+            end: z.date().nullable(),
+          })
+          .optional(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const whereQuery: Prisma.ExpenseFindManyArgs = {
+        where: {
+          ...(input.statementIds && input.statementIds?.length > 0
+            ? { statementId: { in: input.statementIds } }
+            : {}),
+          ...(input.categoryIds && input.categoryIds?.length > 0
+            ? {
+                categoryId: { in: input.categoryIds },
+              }
+            : {}),
+          ...(input.tagIds && input.tagIds?.length > 0
+            ? {
+                tags: {
+                  some: {
+                    tagId: {
+                      in: input.tagIds,
+                    },
+                  },
+                },
+              }
+            : {}),
+          ...(input.uncategorised
+            ? {
+                categoryId: null,
+              }
+            : {}),
+          ...(input.dateRange?.start && input.dateRange?.end
+            ? {
+                date: {
+                  gte: input.dateRange.start,
+                  lte: input.dateRange.end,
+                },
+              }
+            : {}),
+          ...(input.keyword
+            ? {
+                description: {
+                  contains: input.keyword,
+                  mode: "insensitive",
+                },
+              }
+            : {}),
+          userId: ctx.auth.userId,
+        },
+      };
+
+      const result = await prisma.expense.findMany({
+        select: {
+          id: true,
+          description: true,
+        },
+        where: whereQuery.where,
+      });
+
+      return result;
+    }),
   categorise: protectedProcedure
     .input(
       z.array(

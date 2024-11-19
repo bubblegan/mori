@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { useCategoriseExpense } from "@/utils/hooks/use-categorise-expense";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
+import { useHandleMinimalExpense } from "@/utils/hooks/use-handle-minimal-expense";
 import { trpc } from "@/utils/trpc";
 import { createColumnHelper } from "@tanstack/react-table";
 import { LoaderIcon } from "lucide-react";
@@ -82,7 +83,8 @@ export function CategoriseExpenseForm({
 }) {
   const { toast } = useToast();
   const utils = trpc.useUtils();
-  const { expenses } = useHandleExpenseFetch();
+  const { expenses, totalCount } = useHandleExpenseFetch();
+  const parsingExpense = useHandleMinimalExpense(isOpen);
 
   const { mutate: updateCategories } = trpc.expense.categorise.useMutation({
     onSuccess() {
@@ -126,8 +128,15 @@ export function CategoriseExpenseForm({
         <DialogHeader>
           <DialogTitle>Categorise</DialogTitle>
         </DialogHeader>
-        <p>Categorise the following {data.length} expense?</p>
-        <ExpenseTableUi data={data} columns={columns} tableWrapperClass="max-h-[500px] overflow-y-scroll" />
+        <p>Categorise the following {totalCount} expense?</p>
+        <ExpenseTableUi
+          data={data}
+          columns={columns}
+          isManualPagination
+          isManualSorting
+          rowCount={totalCount}
+          tableWrapperClass="max-h-[500px] overflow-y-scroll"
+        />
         <div className="flex w-full flex-row-reverse">
           {isFetching ? (
             <Button disabled>
@@ -137,8 +146,8 @@ export function CategoriseExpenseForm({
           ) : (
             <Button
               onClick={async () => {
-                if (expenses) {
-                  const categorisedExpenses = await handleCategorise(expenses);
+                if (parsingExpense.data) {
+                  const categorisedExpenses = await handleCategorise(parsingExpense.data);
                   const updateCategoryParam = categorisedExpenses.map((expense) => {
                     return {
                       expenseId: expense.id,
