@@ -57,6 +57,26 @@ const ExpenseTableUi = ({
   });
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get("page");
+    const per = params.get("per");
+
+    if (page && Number(page) > 0) {
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: Number(page) - 1,
+      }));
+    }
+
+    if (per && Number(page) > 0) {
+      setPagination((prev) => ({
+        ...prev,
+        pageSize: Number(per),
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
     if (isManualPagination) {
       const params = new URLSearchParams(window.location.search);
       params.set("page", (pagination.pageIndex + 1).toString());
