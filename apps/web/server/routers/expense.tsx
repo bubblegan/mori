@@ -83,6 +83,9 @@ export const expenseRouter = router({
       const orderBy = input.order?.by || "date";
       const orderDirection = input.order?.direction || "desc";
 
+      const orderByCategory = input.order?.by === "category";
+      const orderByStatement = input.order?.by === "statement";
+
       const result = await prisma.expense.findMany({
         skip: input.page ? (input.page - 1) * input.per : 0,
         take: input.per,
@@ -96,7 +99,21 @@ export const expenseRouter = router({
           },
           tags: true,
         },
-        orderBy: { [orderBy]: orderDirection },
+        ...(!orderByCategory && !orderByStatement
+          ? {
+              orderBy: { [orderBy]: orderDirection },
+            }
+          : {}),
+        ...(orderByCategory
+          ? {
+              orderBy: { Category: { title: orderDirection } },
+            }
+          : {}),
+        ...(orderByStatement
+          ? {
+              orderBy: { Statement: { name: orderDirection } },
+            }
+          : {}),
       });
 
       const aggregateResult = await prisma.expense.aggregate({

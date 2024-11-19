@@ -140,6 +140,7 @@ const columns = [
       </DropdownMenu>
     ),
     header: () => <span>Options</span>,
+    enableSorting: false,
   }),
 ];
 
