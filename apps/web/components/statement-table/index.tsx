@@ -197,8 +197,8 @@ const StatementTable = () => {
       sorting,
     },
     onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   return (
@@ -216,22 +216,23 @@ const StatementTable = () => {
                     )}
                     key={header.id}
                     colSpan={header.colSpan}
-                    onClick={() => {
-                      if (header.column.id === "id") {
-                        if (statements.data) {
-                          const keys = statements.data.map((data) => data.id);
-                          if (!checkAll) {
-                            setCheckedList(keys);
-                            setCheckedAll(true);
-                          } else {
-                            setCheckedList([]);
-                            setCheckedAll(false);
+                    onClick={
+                      header.column.id === "id"
+                        ? () => {
+                            if (statements.data) {
+                              const keys = statements.data.map((data) => data.id);
+                              if (!checkAll) {
+                                setCheckedList(keys);
+                                setCheckedAll(true);
+                              } else {
+                                setCheckedList([]);
+                                setCheckedAll(false);
+                              }
+                            }
+                            return;
                           }
-                        }
-                        return;
-                      }
-                      header.column.getToggleSortingHandler();
-                    }}>
+                        : header.column.getToggleSortingHandler()
+                    }>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
