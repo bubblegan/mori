@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
+import { AiFilterPopover } from "@/components/ai-filter-popover";
 import BasePage from "@/components/base-page";
 import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
 import CategorySelect from "@/components/category-select";
@@ -100,6 +101,7 @@ export default function Expenses() {
                 <CategorySelect />
                 <TagSelect />
                 <DateRangePicker />
+                <AiFilterPopover />
               </div>
             )}
             <div className="flex flex-row gap-3">
