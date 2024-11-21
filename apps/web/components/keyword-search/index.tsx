@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { Input } from "@/ui/input";
 import { useDebounceValue } from "@/utils/hooks/use-debounce-value";
@@ -8,6 +9,8 @@ const KeywordSearch = () => {
   const router = useRouter();
 
   const debounceValue = useDebounceValue(value, 500);
+  const params = useSearchParams();
+  const keywordParam = params.get("keyword");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -25,6 +28,13 @@ const KeywordSearch = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounceValue]);
+
+  useEffect(() => {
+    if (keywordParam && keywordParam !== value) {
+      setValue(keywordParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keywordParam]);
 
   return (
     <Input
