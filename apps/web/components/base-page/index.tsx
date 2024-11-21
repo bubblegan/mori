@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Toaster } from "@/ui/toaster";
 import cn from "@/utils/cn";
-import { DollarSign, Layers3, SquareGanttChart, LogOut, LayoutList } from "lucide-react";
+import { DollarSign, Layers3, SquareGanttChart, LogOut, LayoutList, Calendar } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ConfirmationDialog } from "../confirmation-dialog";
 
@@ -31,6 +31,7 @@ const BasePage = (props: { children: React.ReactNode }) => {
         <aside className="sticky left-0 top-0 flex h-screen max-h-screen w-56 flex-col overflow-y-auto overflow-x-hidden border-r border-muted bg-secondary/60 px-3 dark:bg-gradient-to-tr">
           <nav className="flex h-full flex-col gap-1 py-3 lg:pt-16">
             <NavigationLink icon={<DollarSign size={16} />} title="Expenses" route="/expenses" />
+            <NavigationLink icon={<Calendar size={16} />} title="Calendar" route="/calendar" />
             <NavigationLink icon={<SquareGanttChart size={16} />} title="Statement" route="/statements" />
             <NavigationLink icon={<Layers3 size={16} />} title="Category & Tag" route="/categories" />
             <NavigationLink icon={<LayoutList size={16} />} title="Task" route="/task" />
