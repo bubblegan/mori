@@ -18,35 +18,42 @@ export function AiFilterPopover() {
 
   const handleFilter = async () => {
     setIsLoading(true);
+    try {
+      const params = new URLSearchParams(window.location.search);
 
-    const params = new URLSearchParams(window.location.search);
-    const filter = await fetchFilterCompletion(promptInput);
+      const filter = await fetchFilterCompletion(promptInput);
 
+      // delete all params
+      for (const key of params.keys()) {
+        params.delete(key);
+      }
+
+      if (filter.startDate && filter.endDate) {
+        params.set("start-date", filter.startDate);
+        params.set("end-date", filter.endDate);
+      }
+
+      if (filter.keyword) {
+        params.set("keyword", filter.keyword);
+      }
+
+      if (filter.category.length > 0) {
+        const categoryIdByName = categories.data?.reduce((byId: Record<string, number>, curr) => {
+          byId[curr.title] = curr.id;
+          return byId;
+        }, {});
+
+        const ids = filter.category.map((category: string) => categoryIdByName && categoryIdByName[category]);
+        params.set("category-ids", ids.join(","));
+      }
+
+      router.push(`/expenses?${params.toString()}`, undefined, {
+        shallow: true,
+      });
+    } catch (error) {
+      console.error(error);
+    }
     setIsLoading(false);
-
-    if (filter.startDate && filter.endDate) {
-      params.set("start-date", filter.startDate);
-      params.set("end-date", filter.endDate);
-    }
-
-    if (filter.keyword) {
-      params.set("keyword", filter.keyword);
-    }
-
-    if (filter.category.length > 0) {
-      const categoryIdByName = categories.data?.reduce((byId: Record<string, number>, curr) => {
-        byId[curr.title] = curr.id;
-        return byId;
-      }, {});
-
-      const ids = filter.category.map((category: string) => categoryIdByName && categoryIdByName[category]);
-      params.set("category-ids", ids.join(","));
-    }
-
-    router.push(`/expenses?${params.toString()}`, undefined, {
-      shallow: true,
-    });
-
     setPopOverOpen(false);
   };
 
@@ -72,7 +79,7 @@ export function AiFilterPopover() {
         />
         <Button className="w-fit" disabled={isLoading} onClick={handleFilter}>
           {isLoading ? "Prompting" : "Filter"}{" "}
-          {isLoading && <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />}
         </Button>
       </PopoverContent>
     </Popover>

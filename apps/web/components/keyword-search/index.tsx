@@ -30,9 +30,10 @@ const KeywordSearch = () => {
   }, [debounceValue]);
 
   useEffect(() => {
-    if (keywordParam && keywordParam !== value) {
-      setValue(keywordParam);
+    if (keywordParam !== value) {
+      setValue(keywordParam || "");
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keywordParam]);
 
