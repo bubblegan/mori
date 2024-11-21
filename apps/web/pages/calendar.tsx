@@ -228,7 +228,7 @@ export default function Calendar() {
                                           <div
                                             key={expense.id}
                                             style={{ backgroundColor: expense.color }}
-                                            className="flex flex-row justify-between gap-6 rounded bg-blue-500 px-1">
+                                            className="flex flex-row justify-between gap-6 rounded bg-blue-500 px-1 text-white">
                                             <span className="text-xs">{expense.description}</span>
                                             <span className="text-xs">
                                               {currency(Number(expense.amount)).format()}
@@ -249,7 +249,7 @@ export default function Calendar() {
                                 <TooltipTrigger>
                                   <div
                                     style={{ backgroundColor: expense.color }}
-                                    className="flex flex-row justify-between rounded bg-blue-500 px-1">
+                                    className="flex flex-row justify-between rounded bg-blue-500 px-1 text-white">
                                     <span className="text-xs">{formatDescription(expense.description)}</span>
                                     <span className="text-xs">
                                       {currency(Number(expense.amount)).format()}
