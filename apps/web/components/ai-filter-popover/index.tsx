@@ -62,6 +62,7 @@ export function AiFilterPopover() {
           placeholder="Example: Show me expenses from last month"
           className="w-[420px]"
           value={promptInput}
+          maxLength={200}
           onChange={(e) => setPromptInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {

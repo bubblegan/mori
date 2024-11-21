@@ -9,7 +9,7 @@ const client = new OpenAI({
 });
 
 const requestBodySchema = z.object({
-  prompt: z.string().min(1, "Prompt cannot be empty"), // Must be a non-empty string
+  prompt: z.string().min(1, "Prompt cannot be empty").max(200, "Prompt maximum length is 200 characters"), // Must be a non-empty string
 });
 
 const Filter = z.object({
