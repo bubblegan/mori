@@ -90,6 +90,30 @@ export const catergoryRouter = router({
 
       return result;
     }),
+  updateCategoryColor: protectedProcedure
+    .input(
+      z.array(
+        z.object({
+          id: z.number(),
+          color: z.string(),
+        })
+      )
+    )
+    .mutation(async ({ input, ctx }) => {
+      input.forEach(async (categoryInput) => {
+        const result = await prisma.category.update({
+          where: {
+            id: categoryInput.id,
+            userId: ctx.auth.userId,
+          },
+          data: {
+            color: categoryInput.color,
+          },
+        });
+      });
+
+      return true;
+    }),
   delete: protectedProcedure.input(z.number()).mutation(async ({ input, ctx }) => {
     const result = await prisma.category.delete({
       where: {

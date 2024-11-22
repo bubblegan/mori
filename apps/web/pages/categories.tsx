@@ -1,4 +1,6 @@
+import { useState } from "react";
 import Head from "next/head";
+import { AiCategoryThemeDialog } from "@/components/ai-category-theme-dialog";
 import BasePage from "@/components/base-page";
 import CategoryForm, { CategoryFormAtom } from "@/components/category-form";
 import CategoryTable from "@/components/category-table";
@@ -10,6 +12,7 @@ import { useAtom } from "jotai";
 export default function Categories() {
   const [, setCategoryFormValue] = useAtom(CategoryFormAtom);
   const [, setTagFormValue] = useAtom(TagFormAtom);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -21,9 +24,12 @@ export default function Categories() {
       <BasePage>
         <div className="flex flex-row gap-2">
           <div className="flex w-full flex-col gap-4">
-            <div className="flex gap-2">
+            <div className="flex flex-row justify-between">
               <Button onClick={() => setCategoryFormValue({ isOpen: true })} className="w-fit">
                 Create Category
+              </Button>
+              <Button onClick={() => setIsOpen(true)} className="w-fit">
+                Ai Theme
               </Button>
             </div>
             <CategoryTable />
@@ -39,6 +45,7 @@ export default function Categories() {
         </div>
         <CategoryForm />
         <TagForm />
+        <AiCategoryThemeDialog isOpen={isOpen} setIsOpen={setIsOpen} />
       </BasePage>
     </>
   );

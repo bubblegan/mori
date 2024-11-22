@@ -35,3 +35,23 @@ export async function fetchFilterCompletion(prompt: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return response.json();
 }
+
+export async function fetchThemeCompletion(prompt: string, categories: { title: string; color: string }[]) {
+  const response = await fetch("/api/theme-completion", {
+    method: "POST",
+    body: JSON.stringify({
+      prompt,
+      categories,
+    }),
+    headers: new Headers({
+      "content-type": "application/json",
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to fetch");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return response.json();
+}
