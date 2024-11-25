@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { formatToDisplayDate } from "@/utils/date-util";
@@ -6,7 +7,6 @@ import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import { trpc } from "@/utils/trpc";
 import { createColumnHelper } from "@tanstack/react-table";
 import ExpenseTableUi, { ExpenseTableData } from "../expense-table-ui";
-import { Button } from "../ui/button";
 
 const columnHelper = createColumnHelper<ExpenseTableData>();
 

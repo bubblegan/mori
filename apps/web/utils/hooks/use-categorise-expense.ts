@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { fetchCompletion } from "../ai/fetch-completion";
 import { generateCategorisePrompt } from "../ai/generate-categorise-prompt";
+import { formatCategoryIdByName } from "../format-categoryId-by-name";
 import { trpc } from "../trpc";
 
 type CategorisableExpense = {
@@ -20,13 +21,7 @@ export function useCategoriseExpense() {
 
   const handleCategorise = async (expenses: CategorisableExpense[]): Promise<CategorisedExpense[]> => {
     setIsFetching(true);
-    let categoryIdByName: Record<string, number> = {};
-    if (categories.data && categories.data?.length > 0) {
-      categoryIdByName = categories.data.reduce((byId: Record<string, number>, curr) => {
-        byId[curr.title] = curr.id;
-        return byId;
-      }, {});
-    }
+    let categoryIdByName: Record<string, number> = formatCategoryIdByName(categories.data || []);
     const categorisePrompt = generateCategorisePrompt(expenses, categories.data || []);
     const response: { completion: string } = await fetchCompletion(categorisePrompt);
     const categorisedExpense: CategorisedExpense[] = [];

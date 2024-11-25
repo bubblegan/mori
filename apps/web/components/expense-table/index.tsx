@@ -6,6 +6,7 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/ui/use-toast";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import { trpc } from "@/utils/trpc";
@@ -16,7 +17,6 @@ import { Ellipsis, StickyNoteIcon, Tag } from "lucide-react";
 import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { ExpenseFormAtom } from "../expense-form";
 import ExpenseTableUi, { ExpenseTableData } from "../expense-table-ui";
-import { useToast } from "../ui/use-toast";
 
 const columnHelper = createColumnHelper<ExpenseTableData>();
 

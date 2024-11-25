@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/ui/button";
+import { Checkbox } from "@/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
@@ -6,8 +8,6 @@ import currency from "currency.js";
 import dayjs from "dayjs";
 import { atom, useAtom } from "jotai";
 import { CheckIcon, LoaderCircle } from "lucide-react";
-import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
 
 type TableData = {
   key: string;

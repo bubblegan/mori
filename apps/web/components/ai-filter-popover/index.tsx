@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
+import { Input } from "@/ui/input";
 import { Popover, PopoverTrigger, PopoverContent } from "@/ui/popover";
 import { fetchFilterCompletion } from "@/utils/ai/fetch-completion";
+import { formatCategoryIdByName } from "@/utils/format-categoryId-by-name";
 import { trpc } from "@/utils/trpc";
 import { LoaderIcon, Sparkles } from "lucide-react";
-import { Input } from "../ui/input";
 
 export function AiFilterPopover() {
   const [promptInput, setPromptInput] = useState("");
@@ -38,11 +39,7 @@ export function AiFilterPopover() {
       }
 
       if (filter.category.length > 0) {
-        const categoryIdByName = categories.data?.reduce((byId: Record<string, number>, curr) => {
-          byId[curr.title] = curr.id;
-          return byId;
-        }, {});
-
+        const categoryIdByName = formatCategoryIdByName(categories.data || []);
         const ids = filter.category.map((category: string) => categoryIdByName && categoryIdByName[category]);
         params.set("category-ids", ids.join(","));
       }
@@ -78,7 +75,7 @@ export function AiFilterPopover() {
           }}
         />
         <Button className="w-fit" disabled={isLoading} onClick={handleFilter}>
-          {isLoading ? "Prompting" : "Filter"}{" "}
+          {isLoading ? "Filtering" : "Filter"}{" "}
           {isLoading && <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />}
         </Button>
       </PopoverContent>

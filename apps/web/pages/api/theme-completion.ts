@@ -1,6 +1,5 @@
-import next, { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 import { nextAuthOptions } from "@/utils/auth/nextAuthOption";
-import { prisma } from "@/utils/prisma";
 import { Request, Response } from "express";
 import { getServerSession } from "next-auth";
 import OpenAI from "openai";

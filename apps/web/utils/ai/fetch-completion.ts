@@ -55,3 +55,23 @@ export async function fetchThemeCompletion(prompt: string, categories: { title: 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return response.json();
 }
+
+export async function fetchExpenseCompletion(prompt: string, categories: string[]) {
+  const response = await fetch("/api/expense-completion", {
+    method: "POST",
+    body: JSON.stringify({
+      prompt,
+      categories,
+    }),
+    headers: new Headers({
+      "content-type": "application/json",
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("failed to fetch");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return response.json();
+}

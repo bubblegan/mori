@@ -1,25 +1,19 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { Input } from "@/ui/input";
+import { toast } from "@/ui/use-toast";
 import { fetchThemeCompletion } from "@/utils/ai/fetch-completion";
+import { formatCategoryIdByName } from "@/utils/format-categoryId-by-name";
 import { trpc } from "@/utils/trpc";
-import { set } from "date-fns";
 import { LoaderIcon } from "lucide-react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { toast } from "../ui/use-toast";
 
 export function AiCategoryThemeDialog(props: { isOpen: boolean; setIsOpen: (isOpen: boolean) => void }) {
   const { isOpen, setIsOpen } = props;
   const categories = trpc.category.list.useQuery();
   const utils = trpc.useUtils();
-  let categoryIdByName: Record<string, number> = {};
 
-  if (categories.data && categories.data?.length > 0) {
-    categoryIdByName = categories.data?.reduce((byId: Record<string, number>, curr) => {
-      byId[curr.title] = curr.id;
-      return byId;
-    }, {});
-  }
+  const categoryIdByName = formatCategoryIdByName(categories.data || []);
 
   const [promptInput, setPromptInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);

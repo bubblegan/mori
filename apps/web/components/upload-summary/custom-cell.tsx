@@ -1,4 +1,5 @@
 import { useState, useEffect, ChangeEvent } from "react";
+import { Input } from "@/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { sentenceCase } from "@/utils/sentence-case";
@@ -6,7 +7,6 @@ import { trpc } from "@/utils/trpc";
 import { CellContext } from "@tanstack/react-table";
 import currency from "currency.js";
 import { ParsedExpenseTable } from ".";
-import { Input } from "../ui/input";
 
 const CustomCell = ({
   getValue,

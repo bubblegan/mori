@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import { useToast } from "@/ui/use-toast";
 import cn from "@/utils/cn";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { trpc } from "@/utils/trpc";
@@ -24,7 +25,6 @@ import { atom, useAtom } from "jotai";
 import { CheckIcon, Ellipsis } from "lucide-react";
 import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { StatementFormAtom } from "../statement-form";
-import { useToast } from "../ui/use-toast";
 
 type StatementTableData = {
   id: number;

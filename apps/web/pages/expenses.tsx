@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
+import { AiExpenseForm } from "@/components/ai-expense-form";
 import { AiFilterPopover } from "@/components/ai-filter-popover";
 import BasePage from "@/components/base-page";
 import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
@@ -17,6 +18,7 @@ import { TagExpenseForm } from "@/components/tag-expense-form";
 import { TagSelect } from "@/components/tag-select";
 import { ThemeSelect } from "@/components/theme-select";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -36,7 +38,7 @@ import { formatToDisplayDate } from "@/utils/date-util";
 import { downloadCsv } from "@/utils/download-as-csv";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import { useAtom } from "jotai";
-import { Plus, Settings, Upload } from "lucide-react";
+import { Plus, Settings, Sparkles, Upload } from "lucide-react";
 
 export type AggregateType = "category" | "monthly";
 
@@ -44,6 +46,7 @@ export default function Expenses() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isCategoriseDialogOpen, setCategoriseDialog] = useState(false);
   const [isTagDialogOpen, setTagDialog] = useState(false);
+  const [isAiExpenseFormOpen, setAiExpenseFormOpen] = useState(false);
 
   const [, setValue] = useAtom(ExpenseFormAtom);
 
@@ -133,7 +136,7 @@ export default function Expenses() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={() => setValue({ isOpen: true, expense: undefined })}>
+              <Button variant="outline" onClick={() => setAiExpenseFormOpen(true)}>
                 <Plus size={16} />
               </Button>
               <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
@@ -146,6 +149,9 @@ export default function Expenses() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setValue({ isOpen: true, expense: undefined })}>
+                    Add Expense
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTagDialog(true)}>Tag</DropdownMenuItem>
                   <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
@@ -169,6 +175,20 @@ export default function Expenses() {
         <TagExpenseForm isOpen={isTagDialogOpen} setIsOpen={setTagDialog} />
         <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />
         <CategoriseExpenseForm isOpen={isCategoriseDialogOpen} setIsOpen={setCategoriseDialog} />
+        <Dialog open={isAiExpenseFormOpen}>
+          <DialogContent
+            onCloseClick={() => {
+              setAiExpenseFormOpen(false);
+            }}
+            className="min-w-fit">
+            <DialogHeader>
+              <DialogTitle className="flex flex-row items-center gap-2">
+                Add Expenses <Sparkles size={20} />
+              </DialogTitle>
+            </DialogHeader>
+            <AiExpenseForm />
+          </DialogContent>
+        </Dialog>
       </BasePage>
     </>
   );

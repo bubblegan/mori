@@ -6,13 +6,13 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import { useToast } from "@/ui/use-toast";
 import { trpc } from "@/utils/trpc";
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useAtom } from "jotai";
 import { Ellipsis } from "lucide-react";
 import { ConfirmationDialogAtom } from "../confirmation-dialog";
 import { TagFormAtom } from "../tag-form";
-import { useToast } from "../ui/use-toast";
 
 type TableData = {
   id: number;

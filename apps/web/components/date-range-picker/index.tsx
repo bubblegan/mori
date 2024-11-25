@@ -3,6 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Calendar } from "@/ui/calendar";
+import { Input } from "@/ui/input";
 import { Popover, PopoverContent } from "@/ui/popover";
 import cn from "@/utils/cn";
 import { DateRange as DateRangeType, dateRangeKeyConvert } from "@/utils/date-range-key";
@@ -10,7 +11,6 @@ import { PopoverTrigger } from "@radix-ui/react-popover";
 import dayjs from "dayjs";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { Input } from "../ui/input";
 
 const DateRangePicker = () => {
   const searchParams = useSearchParams();
