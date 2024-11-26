@@ -196,7 +196,11 @@ export default function Expenses() {
                 Add Expenses <Sparkles size={20} />
               </DialogTitle>
             </DialogHeader>
-            <AiExpenseForm />
+            <AiExpenseForm
+              onExpenseCreate={() => {
+                setAiExpenseFormOpen(false);
+              }}
+            />
           </DialogContent>
         </Dialog>
       </BasePage>

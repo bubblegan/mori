@@ -14,16 +14,21 @@ type ExpenseAiResponse = {
   amount: number;
 };
 
-export function AiExpenseForm() {
+export function AiExpenseForm(props: { onExpenseCreate?: () => void }) {
+  const { onExpenseCreate = () => undefined } = props;
+
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const { toast } = useToast();
   const categories = trpc.category.list.useQuery();
+  const utils = trpc.useUtils();
 
   const { mutate: createExpense } = trpc.expense.create.useMutation({
     onSuccess() {
       toast({ description: "Expense Created." });
+      utils.expense.invalidate();
+      onExpenseCreate();
     },
   });
 
