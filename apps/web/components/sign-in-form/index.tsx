@@ -11,7 +11,12 @@ type LoginInputForm = {
 };
 
 const SignInForm = () => {
-  const form = useForm<LoginInputForm>();
+  const form = useForm<LoginInputForm>({
+    defaultValues: {
+      username: "demo",
+      password: "demo",
+    },
+  });
   const { toast } = useToast();
 
   const onSubmit = useCallback(
@@ -42,6 +47,7 @@ const SignInForm = () => {
         </label>
         <Input type="password" className="mt-1" {...form.register("password")} />
       </div>
+      <span className="text-sm">For demo puporse, the username and password to login is demo</span>
       <div className="flex w-full flex-row-reverse">
         <Button className="w-fit" type="submit">
           Login

@@ -4,14 +4,14 @@ import { AiCategoryThemeDialog } from "@/components/ai-category-theme-dialog";
 import BasePage from "@/components/base-page";
 import CategoryForm, { CategoryFormAtom } from "@/components/category-form";
 import CategoryTable from "@/components/category-table";
-import TagForm, { TagFormAtom } from "@/components/tag-form";
-import TagTable from "@/components/tag-table";
+// import TagForm, { TagFormAtom } from "@/components/tag-form";
+// import TagTable from "@/components/tag-table";
 import { Button } from "@/components/ui/button";
 import { useAtom } from "jotai";
 
 export default function Categories() {
   const [, setCategoryFormValue] = useAtom(CategoryFormAtom);
-  const [, setTagFormValue] = useAtom(TagFormAtom);
+  // const [, setTagFormValue] = useAtom(TagFormAtom);
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -24,7 +24,7 @@ export default function Categories() {
       <BasePage>
         <div className="flex flex-row gap-2">
           <div className="flex w-full flex-col gap-4">
-            <div className="flex flex-row justify-between">
+            <div className="flex flex-row gap-2">
               <Button onClick={() => setCategoryFormValue({ isOpen: true })} className="w-fit">
                 Create Category
               </Button>
@@ -34,17 +34,17 @@ export default function Categories() {
             </div>
             <CategoryTable />
           </div>
-          <div className="flex w-full flex-col gap-4">
+          {/* <div className="flex w-full flex-col gap-4">
             <div className="flex gap-2">
               <Button onClick={() => setTagFormValue({ isOpen: true })} className="w-fit">
                 Create Tag
               </Button>
             </div>
             <TagTable />
-          </div>
+          </div> */}
         </div>
         <CategoryForm />
-        <TagForm />
+        {/* <TagForm /> */}
         <AiCategoryThemeDialog isOpen={isOpen} setIsOpen={setIsOpen} />
       </BasePage>
     </>

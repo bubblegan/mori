@@ -32,6 +32,7 @@
     "@trpc/next": "^11.0.0-rc.359",
     "@trpc/react-query": "^11.0.0-rc.359",
     "@trpc/server": "^11.0.0-rc.359",
+    "@vercel/analytics": "^1.4.1",
     "adm-zip": "^0.5.12",
     "ai": "^3.3.11",
     "bcryptjs": "^2.4.3",

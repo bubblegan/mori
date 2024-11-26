@@ -1,8 +1,6 @@
 import { useCallback, useState } from "react";
-import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
-import { ToastAction } from "@/ui/toast";
 import { toast } from "@/ui/use-toast";
 import { ParsedExpense } from "@/utils/completion-to-parsed-data";
 import { trpc } from "@/utils/trpc";
@@ -21,7 +19,6 @@ const UploadStatementForm = ({
   setIsOpen: (param: boolean) => void;
 }) => {
   const categories = trpc.category.list.useQuery();
-  const router = useRouter();
   const utils = trpc.useUtils();
   const categoriesMap: Record<string, number> = {};
 
@@ -33,7 +30,7 @@ const UploadStatementForm = ({
 
   const [uploadingState, setUploadingState] = useState<UploadingState>("default");
   const [errorText, setErrorText] = useState("");
-  const [file, setFile] = useState<File | undefined>(undefined);
+  const [, setFile] = useState<File | undefined>(undefined);
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
 
   const { mutate: createExpenses } = trpc.expense.createMany.useMutation({
@@ -47,11 +44,11 @@ const UploadStatementForm = ({
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const uploadedFile = acceptedFiles[0];
-      if (uploadedFile.type === "application/pdf" || uploadedFile.type === "application/zip") {
-        setFile(uploadedFile);
-        setUploadingState("filepreview");
-        return;
-      }
+      // if (uploadedFile.type === "application/pdf" || uploadedFile.type === "application/zip") {
+      //   setFile(uploadedFile);
+      //   setUploadingState("filepreview");
+      //   return;
+      // }
       if (uploadedFile.type === "text/csv") {
         handleCsvUpload(uploadedFile, (parsedExpense) => {
           parsedExpense.forEach((expense) => {
@@ -81,8 +78,8 @@ const UploadStatementForm = ({
       setErrorText(error.message);
     },
     accept: {
-      "application/pdf": [".pdf"],
-      "application/zip": [".zip"],
+      // "application/pdf": [".pdf"],
+      // "application/zip": [".zip"],
       "application/csv": [".csv"],
     },
     multiple: false,
@@ -116,7 +113,10 @@ const UploadStatementForm = ({
                   <div className="flex flex-col items-center gap-1">
                     <p>Drag and drop some files here, or click to select files</p>
                     <p className="text-center text-sm text-muted-foreground/50">
-                      You can upload single PDF or multiple in ZIP
+                      You can upload single CSV or multiple in ZIP
+                    </p>
+                    <p className="text-center text-sm text-muted-foreground/50">
+                      Supported CSV Header : description, amount, date, category
                     </p>
                   </div>
                 )}
@@ -124,7 +124,7 @@ const UploadStatementForm = ({
             </div>
           </>
         )}
-        {uploadingState === "filepreview" && (
+        {/* {uploadingState === "filepreview" && (
           <>
             {file && (
               <div className="flex w-full justify-between rounded border border-solid border-border p-4">
@@ -168,7 +168,7 @@ const UploadStatementForm = ({
               </Button>
             </div>
           </>
-        )}
+        )} */}
         {uploadingState === "csv" && (
           <UploadSummary
             setParsedExpense={setParsedExpense}

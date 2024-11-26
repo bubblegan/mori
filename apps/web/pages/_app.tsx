@@ -1,4 +1,5 @@
 import type { AppProps } from "next/app";
+import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider, useTheme } from "next-themes";
 import "../styles/globals.css";
@@ -11,6 +12,7 @@ function App({ Component, pageProps }: AppProps) {
     <ThemeProvider attribute="class" defaultTheme={theme}>
       <SessionProvider session={pageProps.session}>
         <Component {...pageProps} />
+        <Analytics />
       </SessionProvider>
     </ThemeProvider>
   );

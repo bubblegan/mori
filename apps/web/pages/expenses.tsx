@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { AiExpenseForm } from "@/components/ai-expense-form";
 import { AiFilterPopover } from "@/components/ai-filter-popover";
 import BasePage from "@/components/base-page";
-import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
+// import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
 import CategorySelect from "@/components/category-select";
 import DateRangePicker from "@/components/date-range-picker";
 import { ExpenseFilterPills } from "@/components/expense-filter-pills";
@@ -44,7 +44,7 @@ export type AggregateType = "category" | "monthly";
 
 export default function Expenses() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [isCategoriseDialogOpen, setCategoriseDialog] = useState(false);
+  // const [isCategoriseDialogOpen, setCategoriseDialog] = useState(false);
   const [isTagDialogOpen, setTagDialog] = useState(false);
   const [isAiExpenseFormOpen, setAiExpenseFormOpen] = useState(false);
 
@@ -152,7 +152,7 @@ export default function Expenses() {
                   <DropdownMenuItem onClick={() => setValue({ isOpen: true, expense: undefined })}>
                     Add Expense
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem>
+                  {/* <DropdownMenuItem onClick={() => setCategoriseDialog(true)}>Categorise</DropdownMenuItem> */}
                   <DropdownMenuItem onClick={() => setTagDialog(true)}>Tag</DropdownMenuItem>
                   <DropdownMenuItem onClick={donwloadAsCsv}>CSV</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -184,7 +184,7 @@ export default function Expenses() {
         <ExpenseForm />
         <TagExpenseForm isOpen={isTagDialogOpen} setIsOpen={setTagDialog} />
         <UploadStatementForm isOpen={isUploadDialogOpen} setIsOpen={setUploadDialogOpen} />
-        <CategoriseExpenseForm isOpen={isCategoriseDialogOpen} setIsOpen={setCategoriseDialog} />
+        {/* <CategoriseExpenseForm isOpen={isCategoriseDialogOpen} setIsOpen={setCategoriseDialog} /> */}
         <Dialog open={isAiExpenseFormOpen}>
           <DialogContent
             onCloseClick={() => {
