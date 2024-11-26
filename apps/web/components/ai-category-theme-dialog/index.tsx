@@ -91,7 +91,7 @@ export function AiCategoryThemeDialog(props: { isOpen: boolean; setIsOpen: (isOp
         />
         <div className="flex w-full flex-row-reverse gap-2">
           <Button className="w-fit" disabled={isLoading} onClick={handleFetchingTheme}>
-            {isLoading ? "Getting Yur Theme" : "Prompt"}{" "}
+            {isLoading ? "Getting Your Theme" : "Prompt"}{" "}
             {isLoading && <LoaderIcon className="ml-2 h-4 w-4 animate-spin" />}
           </Button>
           {themeAvailabled && (
