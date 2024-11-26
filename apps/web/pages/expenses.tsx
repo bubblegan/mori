@@ -168,6 +168,16 @@ export default function Expenses() {
               <span>Count: {totalCount}</span>
             </div>
             <ExpenseFilterPills />
+            {searchParams.size > 0 && (
+              <Button
+                onClick={() => {
+                  router.push(`/expenses`, undefined, {
+                    shallow: true,
+                  });
+                }}>
+                Reset Filter
+              </Button>
+            )}
           </div>
           {view === "aggregate" ? <ExpenseSummarySection /> : <ExpenseTable />}
         </div>

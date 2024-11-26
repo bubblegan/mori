@@ -50,6 +50,10 @@ const DateRangePicker = () => {
       });
       setStartDateInput(startDateParsed.format("DD MMM, YYYY"));
       setEndDateInput(endDateParsed.format("DD MMM, YYYY"));
+    } else {
+      setDateRange(undefined);
+      setStartDateInput("");
+      setEndDateInput("");
     }
   }, [searchParams]);
 
