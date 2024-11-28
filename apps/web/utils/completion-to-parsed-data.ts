@@ -23,7 +23,7 @@ export type categoryMap =
     }[]
   | undefined;
 
-export function completionToParsedDate(
+export function completionToParsedData(
   completion: string,
   categoryMap?: categoryMap
 ): [ParsedStatement, ParsedExpense[]] {
@@ -50,7 +50,12 @@ export function completionToParsedDate(
     }
 
     if (line.indexOf("total amount:") === 0) {
-      parseStatementResult.totalAmount = Number(line.slice(line.indexOf(":") + 1).trim());
+      const amountLine = line.slice(line.indexOf(":") + 1).trim();
+      if (amountLine.split(" ").length > 1) {
+        parseStatementResult.totalAmount = Number(amountLine.split(" ")[0]);
+      } else {
+        parseStatementResult.totalAmount = Number(amountLine);
+      }
     }
 
     if (line.indexOf("statement date:") === 0) {

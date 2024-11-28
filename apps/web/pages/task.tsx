@@ -14,7 +14,7 @@ import {
 import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
 import UploadSummary from "@/components/upload-summary";
-import { completionToParsedDate, ParsedExpense, ParsedStatement } from "@/utils/completion-to-parsed-data";
+import { completionToParsedData, ParsedExpense, ParsedStatement } from "@/utils/completion-to-parsed-data";
 import { trpc } from "@/utils/trpc";
 import { Statement } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -69,7 +69,7 @@ export default function Task() {
     const resJson = await response.json();
     const parsed = resJson[0];
 
-    const [parsedStatement, parsedExpenses] = completionToParsedDate(
+    const [parsedStatement, parsedExpenses] = completionToParsedData(
       parsed.completion,
       categories.data || []
     );

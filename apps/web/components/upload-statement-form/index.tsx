@@ -2,16 +2,17 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
-import { ToastAction } from "@/ui/toast";
 import { toast } from "@/ui/use-toast";
-import { ParsedExpense } from "@/utils/completion-to-parsed-data";
+import { completionToParsedData, ParsedExpense, ParsedStatement } from "@/utils/completion-to-parsed-data";
 import { trpc } from "@/utils/trpc";
+import { Statement } from "@prisma/client";
 import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import { ToastAction } from "../ui/toast";
 import UploadSummary from "../upload-summary";
 import { handleCsvUpload } from "./handle-csv-upload";
 
-export type UploadingState = "default" | "filepreview" | "error" | "csv";
+export type UploadingState = "default" | "filepreview" | "error" | "csv" | "uploaded-pdf";
 
 const UploadStatementForm = ({
   isOpen = false,
@@ -35,6 +36,9 @@ const UploadStatementForm = ({
   const [errorText, setErrorText] = useState("");
   const [file, setFile] = useState<File | undefined>(undefined);
   const [parsedExpense, setParsedExpense] = useState<ParsedExpense[]>([]);
+  const [parsedStatement, setParsedStatement] = useState<ParsedStatement | undefined>(undefined);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const { mutate: createExpenses } = trpc.expense.createMany.useMutation({
     onSuccess() {
@@ -135,39 +139,107 @@ const UploadStatementForm = ({
             <div className="flex flex-row-reverse">
               <Button
                 className="w-fit"
+                disabled={isLoading}
                 onClick={async () => {
+                  setIsLoading(true);
                   if (file) {
                     const formData = new FormData();
-                    formData.append("statement", file);
 
+                    formData.append("statement", file);
                     const response = await fetch("/api/task", {
                       method: "POST",
                       body: formData,
                     });
 
                     if (response.ok) {
-                      toast({
-                        description: "Uploaded to background process",
-                        action: (
-                          <ToastAction
-                            onClick={() => {
-                              router.push("/task");
-                            }}
-                            altText="View">
-                            View
-                          </ToastAction>
-                        ),
-                      });
-                      setFile(undefined);
-                      setIsOpen(false);
-                      setUploadingState("default");
+                      if (file.type === "application/zip") {
+                        toast({
+                          description: "Uploaded to background process",
+                          action: (
+                            <ToastAction
+                              onClick={() => {
+                                router.push("/task");
+                              }}
+                              altText="View">
+                              View
+                            </ToastAction>
+                          ),
+                        });
+                        setIsOpen(false);
+                        setUploadingState("default");
+                        setFile(undefined);
+                      }
+
+                      if (file.type === "application/pdf") {
+                        const res = await response.json();
+                        const [parsedStatement, parsedExpenses] = completionToParsedData(
+                          res.result,
+                          categories.data || []
+                        );
+                        setParsedExpense(parsedExpenses);
+                        setParsedStatement(parsedStatement);
+                        setIsLoading(false);
+                        setUploadingState("uploaded-pdf");
+                      }
                     }
                   }
                 }}>
-                Upload
+                {isLoading ? "Analyzing..." : "Upload"}
               </Button>
             </div>
           </>
+        )}
+        {uploadingState === "uploaded-pdf" && (
+          <UploadSummary
+            setParsedExpense={setParsedExpense}
+            parsedExpenses={parsedExpense}
+            parsedStatement={parsedStatement}
+            onCreateClick={async () => {
+              if (!file) return;
+              const formData = new FormData();
+
+              const statementPayload = {
+                bank: parsedStatement?.bank,
+                date: parsedStatement?.statementDate?.toISOString(),
+                expenses: parsedExpense.map((expense) => {
+                  return {
+                    description: expense.description,
+                    amount: expense.amount,
+                    date: expense.date,
+                    ...(expense.categoryId ? { categoryId: expense.categoryId } : {}),
+                  };
+                }),
+              };
+
+              formData.append("statement", file);
+              formData.append("payload", JSON.stringify(statementPayload));
+
+              const response = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+              });
+
+              if (response.ok) {
+                const statement = (await response.json()) as Statement;
+                toast({
+                  description: "Statement Uploaded Successfully",
+                  action: (
+                    <ToastAction
+                      onClick={() => {
+                        router.push(`/expenses?statement-ids=${statement.id}`, undefined, {
+                          shallow: true,
+                        });
+                      }}
+                      altText="View">
+                      View
+                    </ToastAction>
+                  ),
+                });
+                setIsOpen(false);
+                setFile(undefined);
+              }
+            }}
+          />
         )}
         {uploadingState === "csv" && (
           <UploadSummary
