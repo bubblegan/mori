@@ -8,11 +8,13 @@ import BasePage from "@/components/base-page";
 import { CategoriseExpenseForm } from "@/components/categorise-expense-form";
 import CategorySelect from "@/components/category-select";
 import DateRangePicker from "@/components/date-range-picker";
+import { DesktopOnly } from "@/components/desktop-only";
 import { ExpenseFilterPills } from "@/components/expense-filter-pills";
 import ExpenseForm, { ExpenseFormAtom } from "@/components/expense-form";
-import { ExpenseSummarySection } from "@/components/expense-summary-section";
 import ExpenseTable from "@/components/expense-table";
 import KeywordSearch from "@/components/keyword-search";
+import { MobileExpenseTable } from "@/components/mobile-expense-table";
+import { MobileOnly } from "@/components/mobile-only";
 import StatementSelect from "@/components/statement-select";
 import { TagExpenseForm } from "@/components/tag-expense-form";
 import { TagSelect } from "@/components/tag-select";
@@ -25,35 +27,24 @@ import {
   DropdownMenuItem,
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectGroup,
-  SelectItem,
-  SelectContent,
-} from "@/components/ui/select";
 import UploadStatementForm from "@/components/upload-statement-form";
 import { formatToDisplayDate } from "@/utils/date-util";
 import { downloadCsv } from "@/utils/download-as-csv";
 import { useHandleExpenseFetch } from "@/utils/hooks/use-handle-expense-fetch";
 import { useAtom } from "jotai";
-import { Plus, Settings, Sparkles, Upload } from "lucide-react";
-
-export type AggregateType = "category" | "monthly";
+import { ListFilter, Plus, Settings, Sparkles, Upload } from "lucide-react";
 
 export default function Expenses() {
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isCategoriseDialogOpen, setCategoriseDialog] = useState(false);
   const [isTagDialogOpen, setTagDialog] = useState(false);
   const [isAiExpenseFormOpen, setAiExpenseFormOpen] = useState(false);
+  const [mobileFilterDialog, setMobileFilterDialog] = useState(false);
 
   const [, setValue] = useAtom(ExpenseFormAtom);
 
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  const view = searchParams?.get("view");
 
   // get data here
   const { expenses, amount, totalCount } = useHandleExpenseFetch();
@@ -90,52 +81,18 @@ export default function Expenses() {
       </Head>
       <BasePage>
         <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full justify-between">
-            {view === "aggregate" ? (
-              <div className="flex gap-3">
-                <DateRangePicker />
+          <div className="hidden w-full justify-between md:flex">
+            <div className="flex gap-3">
+              <div className="w-64">
+                <KeywordSearch />
               </div>
-            ) : (
-              <div className="flex gap-3">
-                <div className="w-64">
-                  <KeywordSearch />
-                </div>
-                <StatementSelect />
-                <CategorySelect />
-                <TagSelect />
-                <DateRangePicker />
-                <AiFilterPopover />
-              </div>
-            )}
+              <StatementSelect />
+              <CategorySelect />
+              <TagSelect />
+              <DateRangePicker />
+              <AiFilterPopover />
+            </div>
             <div className="flex flex-row gap-3">
-              <Select
-                onValueChange={(value) => {
-                  const params = new URLSearchParams(window.location.search);
-                  if (value === "aggregate") {
-                    params.set("view", value);
-                    params.delete("statement-ids");
-                    params.delete("category-ids");
-                    params.delete("tag-ids");
-                    params.delete("keyword");
-                  } else {
-                    params.delete("view");
-                  }
-                  router.push(`/expenses?${params.toString()}`, undefined, {
-                    shallow: true,
-                  });
-                }}
-                defaultValue="expense"
-                value={view || "expense"}>
-                <SelectTrigger className="h-10 w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="expense">Expenses View</SelectItem>
-                    <SelectItem value="aggregate">Aggregate View</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
               <Button variant="outline" onClick={() => setAiExpenseFormOpen(true)}>
                 <Plus size={16} />
               </Button>
@@ -160,26 +117,45 @@ export default function Expenses() {
               <ThemeSelect />
             </div>
           </div>
-          <div className="flex flex-row gap-2">
-            <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
+          <div className="flex gap-2 md:flex-row">
+            <div
+              className={
+                "h-9 w-fit rounded-md border border-input px-3 py-2 text-xs text-primary md:text-sm"
+              }>
               <span>Total: $ {new Intl.NumberFormat().format(Number(amount))}</span>
             </div>
-            <div className="h-10 w-fit rounded-md border border-input px-3 py-2 text-sm text-primary">
+            <div className="h-9 w-fit rounded-md border border-input px-3 py-2 text-xs text-primary md:text-sm">
               <span>Count: {totalCount}</span>
             </div>
-            <ExpenseFilterPills />
+            <MobileOnly>
+              <div className="flex flex-row gap-2">
+                <Button variant={"outline"} size={"sm"} onClick={() => setMobileFilterDialog(true)}>
+                  <ListFilter size={16} />
+                </Button>
+                <AiFilterPopover />
+              </div>
+            </MobileOnly>
+            <DesktopOnly>
+              <ExpenseFilterPills />
+            </DesktopOnly>
             {searchParams.size > 0 && (
               <Button
                 onClick={() => {
                   router.push(`/expenses`, undefined, {
                     shallow: true,
                   });
-                }}>
-                Reset Filter
+                }}
+                size={"sm"}>
+                Reset
               </Button>
             )}
           </div>
-          {view === "aggregate" ? <ExpenseSummarySection /> : <ExpenseTable />}
+          <MobileOnly>
+            <MobileExpenseTable />
+          </MobileOnly>
+          <DesktopOnly>
+            <ExpenseTable />
+          </DesktopOnly>
         </div>
         <ExpenseForm />
         <TagExpenseForm isOpen={isTagDialogOpen} setIsOpen={setTagDialog} />
@@ -201,6 +177,26 @@ export default function Expenses() {
                 setAiExpenseFormOpen(false);
               }}
             />
+          </DialogContent>
+        </Dialog>
+        <Dialog open={mobileFilterDialog}>
+          <DialogContent
+            onCloseClick={() => {
+              setMobileFilterDialog(false);
+            }}
+            className="min-w-fit">
+            <DialogHeader>
+              <DialogTitle className="flex flex-row items-center gap-2">Filter</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4">
+              <KeywordSearch />
+              <div className="flex w-full flex-row gap-2">
+                <StatementSelect />
+                <CategorySelect />
+              </div>
+              <TagSelect />
+              <DateRangePicker />
+            </div>
           </DialogContent>
         </Dialog>
       </BasePage>
