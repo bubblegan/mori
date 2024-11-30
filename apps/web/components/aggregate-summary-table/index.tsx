@@ -15,7 +15,6 @@ import {
 import dayjs from "dayjs";
 import { useAtom } from "jotai";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { AggregateType } from "../../pages/expenses";
 import { CategoryFormAtom } from "../category-form";
 
 type TableData = {
@@ -46,7 +45,7 @@ const columns = [
   }),
 ];
 
-export function AggregateSummaryTable(props: { aggregateBy: AggregateType }) {
+export function AggregateSummaryTable(props: { aggregateBy: "monthly" | "category" }) {
   const { aggregateBy } = props;
 
   const catAggregate = useHandleCategoryAggregate();

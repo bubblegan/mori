@@ -5,9 +5,8 @@ import { useHandleCategoryAggregate } from "@/utils/hooks/use-handle-category-ag
 import { useHandleMonthAggregate } from "@/utils/hooks/use-handle-monthly-aggregate";
 import { sentenceCase } from "@/utils/sentence-case";
 import dayjs from "dayjs";
-import { AggregateType } from "../../pages/expenses";
 
-export function AggregateSummaryChart(props: { aggregateBy: AggregateType }) {
+export function AggregateSummaryChart(props: { aggregateBy: "monthly" | "category" }) {
   const { aggregateBy } = props;
 
   // get data here
